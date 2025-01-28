@@ -244,8 +244,8 @@ export class PelotonAPI {
 
     async login(): Promise<void> {
         const payload: LoginPayload = {
-            username_or_email: process.env.PELOTON_USERNAME || '',
-            password: process.env.PELOTON_PASSWORD || ''
+            username_or_email: process.env['PELOTON_USERNAME'] || '',
+            password: process.env['PELOTON_PASSWORD'] || ''
         };
 
         await this.fetch('https://api.onepeloton.com/auth/login', {

@@ -1,107 +1,30 @@
 import "./instrument";
 import { PelotonAPI } from './peloton';
-import { isWithinInterval, sendDiscordRequest, isPreviousDay, humanize } from './utils';
+import {
+    isWithinInterval,
+    sendDiscordRequest,
+    isPreviousDay,
+    humanize,
+    validWorkout,
+    getInstructorName,
+    rideDurationOrActual,
+    rideCountStr,
+    formatNumber,
+    RideInfo,
+    WorkoutInfo,
+    hasNoDuration,
+    pbListStr,
+    type UserTotal,
+    type DiscordEmbed,
+    type PBInfo
+} from './utils';
 import * as Sentry from "@sentry/bun";
-import pluralize from 'pluralize';
-import { mean, median } from 'mathjs';
 import { subDays, subHours } from 'date-fns';
 import pMap from "p-map";
-
-
-interface DiscordEmbed {
-    type: string;
-    title: string;
-    description: string;
-    url: string;
-    thumbnail: {
-        url: string;
-    };
-    fields: {
-        name: string;
-        value: string;
-        inline: boolean;
-    }[];
-}
-
-interface UserTotal {
-    username: string;
-    output: number;
-    rides: number;
-    duration: number;
-}
-
-interface RideInfo {
-    id: string;
-    title: string;
-    instructor_name: string;
-    start_time: number;
-    url: string;
-    workouts: WorkoutInfo[];
-}
-
-interface WorkoutInfo {
-    user_username: string;
-    total_work: number;
-    is_new_pb: boolean;
-}
-
-interface PBInfo {
-    total_work: number;
-    duration: number;
-}
-
-function formatNumber(num: number): string {
-    return Number.isInteger(num) ? num.toString() : num.toFixed(2);
-}
-
-function hasNoDuration(workout: { start_time: number; end_time: number | null }): boolean {
-    const startTime = new Date(workout.start_time * 1000);
-    if (!workout.end_time) {
-        return true;
-    }
-
-    const endTime = new Date(workout.end_time * 1000);
-    if (endTime.getTime() - startTime.getTime() === 0) {
-        return true;
-    }
-
-    return false;
-}
-
-function rideDurationOrActual(workout: any): number {
-    return workout.ride?.duration || workout.end_time - workout.start_time;
-}
-
-function validWorkout(workout: any): boolean {
-    if (workout.status !== 'COMPLETE' || hasNoDuration(workout) || workout.metrics_type !== 'cycling') {
-        return false;
-    }
-    return true;
-}
-
-function rideCountStr(totals: Record<string, UserTotal>, workout: { user_username: string }): string {
-    const total = totals[workout.user_username];
-    if (!total) {
-        return '';
-    }
-
-    const rideCount = total.rides;
-    return `(${rideCount} ${pluralize('ride', rideCount)})`;
-}
-
-function pbListStr(pbDict: PBInfo[]): string {
-    return pbDict
-        .map(pb => `**${Math.round(pb.total_work / 1000)}** kJ/${pb.duration} mins`)
-        .join(', ');
-}
-
-function getInstructorName(workout: any): string {
-    const instructor = workout.ride?.instructor;
-    if (!instructor) {
-        return workout.ride?.description ?? 'n/a';
-    }
-    return instructor.name ?? 'n/a';
-}
+import { leaderboardsTable } from "./db/schema";
+import { db } from "./db/client";
+import { mean, median } from 'mathjs';
+import pluralize from 'pluralize';
 
 export async function postWorkouts(api: PelotonAPI, nlUserId: string): Promise<void> {
     const workouts = await api.getWorkouts(nlUserId);
@@ -175,7 +98,7 @@ export async function postWorkouts(api: PelotonAPI, nlUserId: string): Promise<v
         }
     };
 
-    const channelId = process.env.PELOTON_CHANNEL_ID;
+    const channelId = process.env['PELOTON_CHANNEL_ID'];
     try {
         await sendDiscordRequest('post', `channels/${channelId}/messages`, jsonBody);
         console.info(`Successfully posted Peloton ride ids: ${recentWorkouts.map(workout => workout.ride.id)}`);
@@ -192,14 +115,13 @@ export async function postLeaderboard(api: PelotonAPI, nlUserId: string): Promis
     const rides: Record<string, RideInfo> = {};
     for (const workout of validWorkouts) {
         if (!workout.ride?.id || !workout.ride?.title) continue;
-        const ride: RideInfo = {
-            id: workout.ride.id,
-            title: workout.ride.title,
-            instructor_name: getInstructorName(workout),
-            start_time: workout.start_time,
-            url: `https://members.onepeloton.com/classes/cycling?modal=classDetailsModal&classId=${workout.ride.id}`,
-            workouts: []
-        };
+        const ride = new RideInfo(
+            workout.ride.id,
+            workout.ride.title,
+            getInstructorName(workout),
+            workout.start_time,
+            `https://members.onepeloton.com/classes/cycling?modal=classDetailsModal&classId=${workout.ride.id}`
+        );
         rides[workout.ride.id] = ride;
     }
 
@@ -207,64 +129,6 @@ export async function postLeaderboard(api: PelotonAPI, nlUserId: string): Promis
     const playersWhoPbd: Record<string, PBInfo[]> = {};
 
     const { users } = await api.getUsersInTag('TheEggCarton');
-
-    // for (const user of users) {
-    //     const userWorkouts = await api.getWorkouts(user.id);
-    //     const validUserWorkouts = userWorkouts.filter(validWorkout);
-
-    //     for (const workout of validUserWorkouts) {
-    //         const workoutRideId = workout.ride.id;
-
-    //         if (isPreviousDay(workout)) {
-    //             // Did user PB?
-    //             if (workout.is_total_work_personal_record) {
-    //                 const pbDict: PBInfo = {
-    //                     total_work: workout.total_work,
-    //                     duration: Math.round(rideDurationOrActual(workout) / 60)
-    //                 };
-    //                 const existingPbs = playersWhoPbd[user.username];
-    //                 if (existingPbs) {
-    //                     existingPbs.push(pbDict);
-    //                 } else {
-    //                     playersWhoPbd[user.username] = [pbDict];
-    //                 }
-    //             }
-
-    //             // Calculate user's totals
-    //             const userTotal = totals[user.username];
-    //             if (!userTotal) {
-    //                 totals[user.username] = {
-    //                     username: user.username,
-    //                     output: workout.total_work,
-    //                     rides: 1,
-    //                     duration: Math.round(rideDurationOrActual(workout) / 60)
-    //                 };
-    //             } else {
-    //                 userTotal.output += workout.total_work;
-    //                 userTotal.rides += 1;
-    //                 userTotal.duration += Math.round(rideDurationOrActual(workout) / 60);
-    //             }
-    //         }
-
-    //         // Add workout to ride leaderboard
-    //         const ride = rides[workoutRideId];
-    //         if (!ride) continue;
-
-    //         // was ride recent?
-    //         // These rides can be up to 12 hours before NL
-    //         const startTime = new Date(workout.start_time * 1000);
-    //         const minDt = subHours(new Date(ride.start_time * 1000), 12);
-    //         if (startTime < minDt) continue;
-
-    //         const workoutObj: WorkoutInfo = {
-    //             user_username: user.username,
-    //             total_work: workout.total_work,
-    //             is_new_pb: workout.is_total_work_personal_record
-    //         };
-    //         ride.workouts.push(workoutObj);
-    //     }
-    // }
-
 
     await pMap(users, async(user) => {
       const userWorkouts = await api.getWorkouts(user.id);
@@ -314,43 +178,42 @@ export async function postLeaderboard(api: PelotonAPI, nlUserId: string): Promis
           const minDt = subHours(new Date(ride.start_time * 1000), 12);
           if (startTime < minDt) continue;
 
-          const workoutObj: WorkoutInfo = {
-              user_username: user.username,
-              total_work: workout.total_work,
-              is_new_pb: workout.is_total_work_personal_record
-          };
+          const workoutObj = new WorkoutInfo(
+              user.username,
+              workout.total_work,
+              workout.is_total_work_personal_record
+          );
           ride.workouts.push(workoutObj);
         }
     }, { concurrency: 10 });
 
+    // Dump all the rides to the db
+    const ridesJson: typeof leaderboardsTable.$inferInsert = {
+        json: { rides, totals, playersWhoPbd }
+    };
+    await db.insert(leaderboardsTable).values(ridesJson);
+
     const embeds: DiscordEmbed[] = [];
-    const leaderboardSize = Number(process.env.LEADERBOARD_SIZE) || 10;
+    const leaderboardSize = Number(process.env['LEADERBOARD_SIZE']) || 10;
 
     // Generate leaderboards
     for (const ride of Object.values(rides)) {
-        // sort by output desc
-        ride.workouts.sort((a, b) => b.total_work - a.total_work);
-        const outputs = ride.workouts.map(w => w.total_work);
-        const medianOutput = outputs.length > 0 ? median(outputs) : 0;
-        const meanOutput = outputs.length > 0 ? mean(outputs) : 0;
+        ride.workouts = ride.sortedWorkouts();
+        const medianOutput = ride.getMedianOutput();
+        const meanOutput = ride.getMeanOutput();
         const riderCount = ride.workouts.length;
         // cut top
         ride.workouts = ride.workouts.slice(0, leaderboardSize);
 
-        const desc = `Instructor: ${ride.instructor_name}\r
-        NL rode: <t:${ride.start_time}:F>\r
-        Total riders: **${riderCount}**`;
-
         const embed: DiscordEmbed = {
             type: 'rich',
             title: `${ride.title} - Leaderboard`,
-            description: desc,
+            description: `Instructor: ${ride.instructor_name}\rNL rode: <t:${ride.start_time}:F>\rTotal riders: **${riderCount}**`,
             url: ride.url,
             thumbnail: { url: '' },
             fields: ride.workouts.map((workout, i) => ({
                 name: `${humanize(i)} Place`,
-                value: `${workout.user_username} - **${Math.round(workout.total_work / 1000)}** kJ` +
-                    `${workout.is_new_pb ? ' (⭐ **NEW PB** ⭐)' : ''}` +
+                value: `${workout.getOutputString()}${workout.getPBString()}` +
                     ` ${rideCountStr(totals, workout)}`,
                 inline: false
             }))
@@ -439,7 +302,7 @@ export async function postLeaderboard(api: PelotonAPI, nlUserId: string): Promis
         }
     };
 
-    const channelId = process.env.PELOTON_CHANNEL_ID;
+    const channelId = process.env['PELOTON_CHANNEL_ID'];
     try {
         await sendDiscordRequest('post', `channels/${channelId}/messages`, jsonBody);
         console.info(`Successfully posted leaderboard with ride ids: ${Object.keys(rides)}`);
@@ -456,7 +319,7 @@ async function getAndPostWorkouts(): Promise<void> {
     const nlUserId = 'efc2317a6aad48218488a27bf8b0e460';
     await postWorkouts(api, nlUserId);
 
-    const leaderboardUserId = process.env.LEADERBOARD_USER_ID ?? 'efc2317a6aad48218488a27bf8b0e460';
+    const leaderboardUserId = process.env['LEADERBOARD_USER_ID'] ?? 'efc2317a6aad48218488a27bf8b0e460';
     await postLeaderboard(api, leaderboardUserId);
 }
 
