@@ -7,6 +7,7 @@ import { median } from "mathjs";
 import { mean } from "mathjs";
 import { UserTotal } from "../lionbot/utils";
 import { LeaderboardDisplay } from "./components/leaderboard-display";
+import { subDays } from "date-fns";
 
 type RideData = {
     id: string;
@@ -18,6 +19,9 @@ type RideData = {
         user_username: string;
         total_work: number;
         is_new_pb: boolean;
+        avg_cadence: number;
+        avg_resistance: number;
+        strive_score?: number;
     }[];
 }
 
@@ -48,7 +52,10 @@ export default async function Page() {
         workouts: ride.workouts.map(w => ({
             user_username: w.user_username,
             total_work: w.total_work,
-            is_new_pb: w.is_new_pb
+            is_new_pb: w.is_new_pb,
+            strive_score: w.strive_score,
+            avg_cadence: w.avg_cadence,
+            avg_resistance: w.avg_resistance
         }))
     }));
 
@@ -62,9 +69,10 @@ export default async function Page() {
     const averageRideCount = mean(rideCounts);
     const totalOutput = totalsList.reduce((sum, w) => sum + w.output, 0);
     const PBList = Object.entries(playersWhoPbd).sort((a, b) => a[0].toLowerCase().localeCompare(b[0].toLowerCase()));
+    const firstRideDate = rides.length > 0 ? new Date(rides[0].start_time * 1000) : subDays(leaderboard.createdAt, 1);
 
     return <LeaderboardDisplay
-        date={leaderboard.createdAt}
+        date={firstRideDate}
         rides={rides}
         totals={totals}
         totalsList={totalsList}

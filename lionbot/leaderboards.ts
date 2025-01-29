@@ -54,7 +54,7 @@ export async function postWorkouts(api: PelotonAPI, nlUserId: string): Promise<v
         const rideTitle = workout.ride.title;
 
         const newPb = workout.is_total_work_personal_record;
-        const pbLine = newPb ? '\n\n ⭐ ️**New Total Work Personal Record!** ⭐ ' : '';
+        const pbLine = newPb ? '\n\n ⭐ ️**New PB!** ⭐ ' : '';
 
         const embed: DiscordEmbed = {
             type: 'rich',
@@ -138,34 +138,34 @@ export async function postLeaderboard(api: PelotonAPI, nlUserId: string): Promis
           const workoutRideId = workout.ride.id;
 
           if (isPreviousDay(workout)) {
-              // Did user PB?
-              if (workout.is_total_work_personal_record) {
-                  const pbDict: PBInfo = {
-                      total_work: workout.total_work,
-                      duration: Math.round(rideDurationOrActual(workout) / 60)
-                  };
-                  const existingPbs = playersWhoPbd[user.username];
-                  if (existingPbs) {
-                      existingPbs.push(pbDict);
-                  } else {
-                      playersWhoPbd[user.username] = [pbDict];
-                  }
-              }
+                // Did user PB?
+                if (workout.is_total_work_personal_record) {
+                    const pbDict: PBInfo = {
+                        total_work: workout.total_work,
+                        duration: Math.round(rideDurationOrActual(workout) / 60)
+                    };
+                    const existingPbs = playersWhoPbd[user.username];
+                    if (existingPbs) {
+                        existingPbs.push(pbDict);
+                    } else {
+                        playersWhoPbd[user.username] = [pbDict];
+                    }
+                }
 
-              // Calculate user's totals
-              const userTotal = totals[user.username];
-              if (!userTotal) {
-                  totals[user.username] = {
-                      username: user.username,
-                      output: workout.total_work,
-                      rides: 1,
-                      duration: Math.round(rideDurationOrActual(workout) / 60)
-                  };
-              } else {
-                  userTotal.output += workout.total_work;
-                  userTotal.rides += 1;
-                  userTotal.duration += Math.round(rideDurationOrActual(workout) / 60);
-              }
+                // Calculate user's totals
+                const userTotal = totals[user.username];
+                if (!userTotal) {
+                    totals[user.username] = {
+                        username: user.username,
+                        output: workout.total_work,
+                        rides: 1,
+                        duration: Math.round(rideDurationOrActual(workout) / 60)
+                    };
+                } else {
+                    userTotal.output += workout.total_work;
+                    userTotal.rides += 1;
+                    userTotal.duration += Math.round(rideDurationOrActual(workout) / 60);
+                }
           }
 
           // Add workout to ride leaderboard
@@ -178,10 +178,17 @@ export async function postLeaderboard(api: PelotonAPI, nlUserId: string): Promis
           const minDt = subHours(new Date(ride.start_time * 1000), 12);
           if (startTime < minDt) continue;
 
+          const performanceData = await api.getWorkoutPerformanceData(workout.id);
+          const avgCadence = performanceData.metrics.find(m => m.slug === 'cadence')?.average_value ?? 0;
+          const avgResistance = performanceData.metrics.find(m => m.slug === 'resistance')?.average_value ?? 0;
+          const striveScore = performanceData.effort_zones?.total_effort_points;
           const workoutObj = new WorkoutInfo(
               user.username,
               workout.total_work,
-              workout.is_total_work_personal_record
+              workout.is_total_work_personal_record,
+              avgCadence,
+              avgResistance,
+              striveScore
           );
           ride.workouts.push(workoutObj);
         }

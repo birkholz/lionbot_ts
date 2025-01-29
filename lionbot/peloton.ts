@@ -6,6 +6,122 @@ interface LoginPayload {
     password: string;
 }
 
+interface PerformanceGraphResponse {
+    duration: number;
+    is_class_plan_shown: boolean;
+    segment_list: Segment[];
+    seconds_since_pedaling_start: number[];
+    average_summaries: AverageSummary[];
+    summaries: Summary[];
+    metrics: Metric[];
+    has_apple_watch_metrics: boolean;
+    splits_data: SplitsData;
+    splits_metrics: SplitsMetrics;
+    target_metrics_performance_data: {
+        target_metrics: any[];
+        time_in_metric: any[];
+    };
+    effort_zones: EffortZones;
+    muscle_group_score: any[];
+    summary_available: boolean;
+    performance_graph_available: boolean;
+}
+
+interface Metric {
+    display_name: string;
+    display_unit: string;
+    max_value: number;
+    average_value: number;
+    values: number[];
+    slug: string;
+    zones?: HeartRateZone[];
+    missing_data_duration?: number;
+}
+
+interface HeartRateZone {
+    display_name: string;
+    slug: string;
+    range: string;
+    duration: number;
+    max_value: number;
+    min_value: number;
+}
+
+interface Summary {
+    display_name: string;
+    display_unit: string;
+    value: number;
+    slug: string;
+}
+
+interface SplitsData {
+    distance_marker_display_unit: string;
+    elevation_change_display_unit: string;
+    splits: Split[];
+}
+
+interface Split {
+    distance_marker: number;
+    order: number;
+    seconds: number;
+    elevation_change: number | null;
+    has_floor_segment: boolean;
+    is_best: boolean;
+}
+
+interface SplitsMetrics {
+    header: SplitsHeader[];
+    metrics: SplitMetric[];
+}
+
+interface SplitsHeader {
+    slug: string;
+    display_name: string;
+}
+
+interface SplitMetric {
+    is_best: boolean;
+    has_floor_segment: boolean;
+    data: SplitMetricData[];
+}
+
+interface SplitMetricData {
+    slug: string;
+    value: number;
+    unit: string;
+}
+
+interface EffortZones {
+    total_effort_points: number;
+    heart_rate_zone_durations: {
+        heart_rate_z1_duration: number;
+        heart_rate_z2_duration: number;
+        heart_rate_z3_duration: number;
+        heart_rate_z4_duration: number;
+        heart_rate_z5_duration: number;
+    };
+}
+
+interface Segment {
+    id: string;
+    length: number;
+    start_time_offset: number;
+    icon_url: string;
+    intensity_in_mets: number;
+    metrics_type: string;
+    icon_name: string;
+    icon_slug: string;
+    name: string;
+    is_drill: boolean;
+}
+
+interface AverageSummary {
+    display_name: string;
+    display_unit: string;
+    value: number;
+    slug: string;
+}
+
 // Core workout interfaces
 interface WorkoutResponse {
     data: Workout[];
@@ -328,6 +444,29 @@ export class PelotonAPI {
             return { users };
         } catch (error) {
             console.error('Failed to fetch users in tag:', error);
+            throw error;
+        }
+    }
+
+    async getWorkoutPerformanceData(workoutId: string): Promise<PerformanceGraphResponse> {
+        const requestUrl = `https://api.onepeloton.com/api/workout/${workoutId}/performance_graph`;
+
+        try {
+            const response = await this.fetch(requestUrl, this.defaultOptions);
+
+            if (response.status === 401) {
+                await this.login();
+                return this.getWorkoutPerformanceData(workoutId);
+            }
+            if (response.status >= 400) {
+                console.error(`Failed to fetch performance data: ${response.status}`);
+                throw new Error(`Failed to fetch performance data: ${response.status}`);
+            }
+
+            const data = await response.json() as PerformanceGraphResponse;
+            return data;
+        } catch (error) {
+            console.error('Failed to fetch workout performance data:', error);
             throw error;
         }
     }

@@ -1,6 +1,6 @@
 'use client';
 
-import { format, subDays } from "date-fns";
+import { format } from "date-fns";
 import pluralize from "pluralize";
 import { UserTotal, formatNumber, humanize } from "../../lionbot/utils";
 import {
@@ -23,6 +23,9 @@ type Workout = {
     user_username: string;
     total_work: number;
     is_new_pb: boolean;
+    strive_score?: number;
+    avg_cadence: number;
+    avg_resistance: number;
 }
 
 type Ride = {
@@ -62,7 +65,7 @@ export function LeaderboardDisplay({
     PBList
 }: Props) {
     return (
-        <div className="max-w-xl mx-auto mt-4 p-3 rounded-xl shadow-md bg-zinc-900">
+        <div className="max-w-2xl mx-auto mt-4 p-3 rounded-xl shadow-md bg-zinc-900">
             <h1 className="text-3xl font-bold tracking-tight text-center">#TheEggCarton Leaderboards</h1>
             <h2 className="text-xl font-semibold tracking-tight text-center">Date: {format(date, 'yyyy-MM-dd')}</h2>
             <Separator className="my-4"/>
@@ -73,24 +76,30 @@ export function LeaderboardDisplay({
                             <h3>{ride.title} - Leaderboard</h3>
                         </AccordionTrigger>
                         <AccordionContent>
-                            <a href={ride.url}>Class Link</a>
+                            <a target="_blank" className="text-blue-500 hover:underline hover:text-blue-400" href={ride.url}>Class Link</a>
                             <p>Instructor: {ride.instructor_name}</p>
-                            <p>NL rode: {format(new Date(ride.start_time * 1000), 'PPpp')}</p>
+                            <p>NL rode: {format(new Date(ride.start_time * 1000).toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }), 'PPpp')} PT</p>
                             <p>Total riders: <b>{ride.workouts.length}</b></p>
                             <Table>
                                 <TableHeader>
                                     <TableRow>
                                         <TableHead>Rank</TableHead>
                                         <TableHead>Username</TableHead>
-                                        <TableHead>Output</TableHead>
+                                        <TableHead>Total Output</TableHead>
+                                        <TableHead>Avg Cadence</TableHead>
+                                        <TableHead>Avg Resistance</TableHead>
+                                        <TableHead>Strive Score</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     {sortWorkouts(ride.workouts).map((workout, i) => (
                                     <TableRow key={`${workout.user_username}-${workout.total_work}`}>
                                         <TableCell>{humanize(i)} Place</TableCell>
-                                        <TableCell><a href={`https://members.onepeloton.com/members/${workout.user_username}/overview`}>{workout.user_username}</a></TableCell>
+                                        <TableCell><a target="_blank" className="text-blue-500 hover:underline hover:text-blue-400" href={`https://members.onepeloton.com/members/${workout.user_username}/overview`}>{workout.user_username}</a></TableCell>
                                         <TableCell>{Math.round(workout.total_work / 1000)} kJ</TableCell>
+                                        <TableCell>{workout.avg_cadence ? `${workout.avg_cadence} rpm` : 'N/A'}</TableCell>
+                                        <TableCell>{workout.avg_resistance ? `${workout.avg_resistance}%` : 'N/A'}</TableCell>
+                                        <TableCell>{workout.strive_score ? `${workout.strive_score}` : 'N/A'}</TableCell>
                                     </TableRow>
                                 ))}
                                 </TableBody>
@@ -102,7 +111,7 @@ export function LeaderboardDisplay({
                 {Object.keys(totals).length > 0 && (
                     <AccordionItem value="endurance">
                         <AccordionTrigger>
-                            <h3>Endurance Leaderboard {format(subDays(date, 1), 'yyyy-MM-dd')}</h3>
+                            <h3>Endurance Leaderboard {format(date, 'yyyy-MM-dd')}</h3>
                         </AccordionTrigger>
                         <AccordionContent>
                             <p>Total riders: <b>{totalRiders}</b></p>
@@ -122,7 +131,7 @@ export function LeaderboardDisplay({
                                 {totalsList.map((user, i) => (
                                 <TableRow key={user.username}>
                                     <TableCell>{humanize(i)} Place</TableCell>
-                                    <TableCell><a href={`https://members.onepeloton.com/members/${user.username}/overview`}>{user.username}</a></TableCell>
+                                    <TableCell><a target="_blank" className="text-blue-500 hover:underline hover:text-blue-400" href={`https://members.onepeloton.com/members/${user.username}/overview`}>{user.username}</a></TableCell>
                                     <TableCell>{Math.round(user.output / 1000)} kJ</TableCell>
                                     <TableCell>{user.rides} {pluralize('ride', user.rides)}</TableCell>
                                     <TableCell>{user.duration} mins</TableCell>
@@ -149,7 +158,7 @@ export function LeaderboardDisplay({
                                 <TableBody>
                                     {PBList.map(([username, pbs]) => (
                                     <TableRow key={username}>
-                                        <TableCell><a href={`https://members.onepeloton.com/members/${username}/overview`}>{username}</a></TableCell>
+                                        <TableCell><a target="_blank" className="text-blue-500 hover:underline hover:text-blue-400" href={`https://members.onepeloton.com/members/${username}/overview`}>{username}</a></TableCell>
                                         <TableCell>{pbs.map((pb) => (
                                             <p key={`${username}-pb-${pb.total_work}`}><b>{Math.round(pb.total_work / 1000)}</b> kJ / {pb.duration} mins</p>
                                         ))}

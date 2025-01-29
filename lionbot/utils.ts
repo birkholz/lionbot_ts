@@ -66,7 +66,10 @@ export class WorkoutInfo {
     constructor(
         public user_username: string,
         public total_work: number,
-        public is_new_pb: boolean
+        public is_new_pb: boolean,
+        public avg_cadence: number,
+        public avg_resistance: number,
+        public strive_score?: number
     ) {}
 
     getOutputString(): string {
