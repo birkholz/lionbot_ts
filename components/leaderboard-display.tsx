@@ -19,6 +19,8 @@ import {
   TableHeader,
   TableRow,
 } from "./ui/table"
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "./ui/hover-card"
+import { BadgeHelp, Sparkle } from "lucide-react"
 
 type Workout = {
   user_username: string
@@ -81,6 +83,21 @@ export function LeaderboardDisplay({
 
   return (
     <div className="mx-auto mt-4 max-w-2xl rounded-xl bg-zinc-900 p-3 shadow-md">
+      <div className="float-right block h-[2rem] w-[2rem]">
+        <HoverCard>
+          <HoverCardTrigger>
+            <BadgeHelp className="opacity-25" width="auto" height="auto" />
+          </HoverCardTrigger>
+          <HoverCardContent>
+            <p className="text-sm">
+              If you do not wish for your information to be included, you can
+              set your Peloton profile to private. All of this data is publicly
+              visible, or visible to lionbot if a private user accepts a follow
+              request from lionbot.
+            </p>
+          </HoverCardContent>
+        </HoverCard>
+      </div>
       <h1 className="text-center text-3xl font-bold tracking-tight">
         #TheEggCarton Leaderboards
       </h1>
@@ -100,20 +117,24 @@ export function LeaderboardDisplay({
         {rides.map((ride) => (
           <AccordionItem key={ride.id} value={ride.id}>
             <AccordionTrigger>
-              <h3>{ride.title} - Leaderboard</h3>
+              <h3>{ride.title}</h3>
             </AccordionTrigger>
             <AccordionContent>
-              <div className="flex items-center gap-4">
-                <div>
-                  <a
-                    target="_blank"
-                    className="text-blue-500 hover:text-blue-400 hover:underline"
-                    href={ride.url}
-                  >
-                    Class Link
-                  </a>
-                  <p>Instructor: {ride.instructor_name}</p>
-                  <p>
+              <a
+                href={ride.url}
+                target="_blank"
+                className="inset-shadow-xs block rounded-lg p-2 hover:bg-black/20"
+              >
+                <div className="flex items-center gap-4">
+                  <div>
+                    <b className="text-3xl font-bold">{ride.workouts.length}</b>
+                    <p className="text-sm text-muted-foreground">
+                      Total riders
+                    </p>
+                  </div>
+                  <div>
+                    <p>{ride.instructor_name}</p>
+                    {/* <p>
                     NL rode:{" "}
                     {new Date(ride.start_time * 1000).toLocaleTimeString(
                       "en-US",
@@ -122,20 +143,18 @@ export function LeaderboardDisplay({
                       },
                     )}{" "}
                     PT
-                  </p>
-                  <p>
-                    Total riders: <b>{ride.workouts.length}</b>
-                  </p>
+                  </p> */}
+                  </div>
+                  {ride.image_url && (
+                    <img
+                      src={ride.image_url}
+                      alt={ride.title}
+                      width={180}
+                      className="block rounded-lg"
+                    />
+                  )}
                 </div>
-                {ride.image_url && (
-                  <img
-                    src={ride.image_url}
-                    alt={ride.title}
-                    width={200}
-                    className="block rounded-lg"
-                  />
-                )}
-              </div>
+              </a>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -152,7 +171,7 @@ export function LeaderboardDisplay({
                     <TableRow
                       key={`${workout.user_username}-${workout.total_work}`}
                     >
-                      <TableCell>{humanize(i)} Place</TableCell>
+                      <TableCell>{humanize(i)}</TableCell>
                       <TableCell>
                         <a
                           target="_blank"
@@ -163,7 +182,15 @@ export function LeaderboardDisplay({
                         </a>
                       </TableCell>
                       <TableCell>
-                        {Math.round(workout.total_work / 1000)} kJ
+                        {Math.round(workout.total_work / 1000)} kJ{" "}
+                        {workout.is_new_pb && (
+                          <div
+                            className="inline-block h-[1em] align-middle"
+                            title="New PB"
+                          >
+                            <Sparkle width="auto" height="auto" color="gold" />
+                          </div>
+                        )}
                       </TableCell>
                       <TableCell>
                         {workout.avg_cadence
@@ -194,18 +221,37 @@ export function LeaderboardDisplay({
               <h3>Endurance Leaderboard</h3>
             </AccordionTrigger>
             <AccordionContent>
-              <p>
-                Total riders: <b>{totalRiders}</b>
-              </p>
-              <p>
-                Median/Average ride count:{" "}
-                <b>{formatNumber(medianRideCount)}</b> /{" "}
-                <b>{formatNumber(averageRideCount)}</b>
-              </p>
-              <p>
-                Combined Output:{" "}
-                <b>{Math.round((totalOutput / 1000000) * 100) / 100} MJ</b>
-              </p>
+              <div className="mb-2 flex grow items-end justify-center gap-6 text-center">
+                <div>
+                  <b className="text-3xl font-bold">{totalRiders}</b>
+                  <p className="text-sm text-muted-foreground">Total riders</p>
+                </div>
+                <div>
+                  <b className="text-4xl font-bold">
+                    {Math.round((totalOutput / 1000000) * 100) / 100}{" "}
+                    <span className="text-base">MJ</span>
+                  </b>
+                  <p className="text-sm text-muted-foreground">
+                    Combined Output
+                  </p>
+                </div>
+                {/* <div>
+                  <b className="text-2xl font-bold">
+                    {formatNumber(medianRideCount)}
+                  </b>
+                  <p className="text-sm text-muted-foreground">
+                    Median ride count
+                  </p>
+                </div> */}
+                <div>
+                  <b className="text-2xl font-bold">
+                    {formatNumber(averageRideCount)}
+                  </b>
+                  <p className="text-sm text-muted-foreground">
+                    Average ride count
+                  </p>
+                </div>
+              </div>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -219,7 +265,7 @@ export function LeaderboardDisplay({
                 <TableBody>
                   {totalsList.map((user, i) => (
                     <TableRow key={user.username}>
-                      <TableCell>{humanize(i)} Place</TableCell>
+                      <TableCell>{humanize(i)}</TableCell>
                       <TableCell>
                         <a
                           target="_blank"
@@ -244,7 +290,21 @@ export function LeaderboardDisplay({
         {PBList.length > 0 && (
           <AccordionItem value="pbs">
             <AccordionTrigger>
-              <h3>Players who have PB'd</h3>
+              <h3>
+                <div
+                  className="inline-block h-[1em] align-middle"
+                  title="New PB"
+                >
+                  <Sparkle width="auto" height="auto" color="gold" />
+                </div>
+                <span className="mx-1">New PBs</span>
+                <div
+                  className="inline-block h-[1em] align-middle"
+                  title="New PB"
+                >
+                  <Sparkle width="auto" height="auto" color="gold" />
+                </div>
+              </h3>
             </AccordionTrigger>
             <AccordionContent>
               <Table>
