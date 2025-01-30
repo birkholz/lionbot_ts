@@ -35,6 +35,7 @@ type Ride = {
   instructor_name: string
   start_time: number
   url: string
+  image_url: string
   workouts: Workout[]
 }
 
@@ -69,7 +70,7 @@ export function LeaderboardDisplay({
   startDate,
   endDate,
 }: Props) {
-  const openAccordion = rides.length > 0 ? rides[0].id : "endurance"
+  // const openAccordion = rides.length > 0 ? rides[0].id : "endurance"
   const accordionRef = React.useRef<HTMLDivElement>(null)
 
   const handleAccordionChange = (value: string) => {
@@ -102,24 +103,39 @@ export function LeaderboardDisplay({
               <h3>{ride.title} - Leaderboard</h3>
             </AccordionTrigger>
             <AccordionContent>
-              <a
-                target="_blank"
-                className="text-blue-500 hover:text-blue-400 hover:underline"
-                href={ride.url}
-              >
-                Class Link
-              </a>
-              <p>Instructor: {ride.instructor_name}</p>
-              <p>
-                NL rode:{" "}
-                {new Date(ride.start_time * 1000).toLocaleTimeString("en-US", {
-                  timeZone: "America/Los_Angeles",
-                })}{" "}
-                PT
-              </p>
-              <p>
-                Total riders: <b>{ride.workouts.length}</b>
-              </p>
+              <div className="flex items-center gap-4">
+                <div>
+                  <a
+                    target="_blank"
+                    className="text-blue-500 hover:text-blue-400 hover:underline"
+                    href={ride.url}
+                  >
+                    Class Link
+                  </a>
+                  <p>Instructor: {ride.instructor_name}</p>
+                  <p>
+                    NL rode:{" "}
+                    {new Date(ride.start_time * 1000).toLocaleTimeString(
+                      "en-US",
+                      {
+                        timeZone: "America/Los_Angeles",
+                      },
+                    )}{" "}
+                    PT
+                  </p>
+                  <p>
+                    Total riders: <b>{ride.workouts.length}</b>
+                  </p>
+                </div>
+                {ride.image_url && (
+                  <img
+                    src={ride.image_url}
+                    alt={ride.title}
+                    width={200}
+                    className="block rounded-lg"
+                  />
+                )}
+              </div>
               <Table>
                 <TableHeader>
                   <TableRow>

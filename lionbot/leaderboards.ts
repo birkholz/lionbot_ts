@@ -1,5 +1,5 @@
 import * as Sentry from "@sentry/bun"
-import { subDays, subHours } from "date-fns"
+import { format, subDays, subHours } from "date-fns"
 import { mean, median } from "mathjs"
 import pMap from "p-map"
 import pluralize from "pluralize"
@@ -133,6 +133,7 @@ export async function postLeaderboard(
       getInstructorName(workout),
       workout.start_time,
       `https://members.onepeloton.com/classes/cycling?modal=classDetailsModal&classId=${workout.ride.id}`,
+      workout.ride.image_url,
     )
     rides[workout.ride.id] = ride
   }
@@ -214,9 +215,11 @@ export async function postLeaderboard(
     { concurrency: 10 },
   )
 
+  const yesterday = subDays(new Date(), 1)
   // Dump all the rides to the db
   const ridesJson: typeof leaderboardsTable.$inferInsert = {
     json: { rides, totals, playersWhoPbd },
+    date: format(yesterday, "yyyy-MM-dd"),
   }
   await db.insert(leaderboardsTable).values(ridesJson)
 
@@ -237,7 +240,7 @@ export async function postLeaderboard(
       title: `${ride.title} - Leaderboard`,
       description: `Instructor: ${ride.instructor_name}\rNL rode: <t:${ride.start_time}:F>\rTotal riders: **${riderCount}**`,
       url: ride.url,
-      thumbnail: { url: "" },
+      thumbnail: { url: ride.image_url },
       fields: ride.workouts.map((workout, i) => ({
         name: `${humanize(i)} Place`,
         value:
@@ -265,7 +268,6 @@ export async function postLeaderboard(
     const averageRideCount = mean(rideCounts)
     const totalOutput = totalsList.reduce((sum, w) => sum + w.output, 0)
     const topTotals = totalsList.slice(0, leaderboardSize)
-    const yesterday = subDays(new Date(), 1)
 
     const totalOutputStr =
       totalOutput / 1000000 > 10

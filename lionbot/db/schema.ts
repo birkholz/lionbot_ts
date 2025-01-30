@@ -9,7 +9,7 @@ import {
   unique,
   jsonb,
   type PgTableWithColumns,
-  timestamp,
+  date,
 } from "drizzle-orm/pg-core"
 
 export const streams: PgTableWithColumns<any> = pgTable(
@@ -116,7 +116,5 @@ export const twitchStreams = pgTable(
 export const leaderboardsTable = pgTable("leaderboards", {
   id: serial().primaryKey().notNull(),
   json: jsonb("json"),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .defaultNow()
-    .notNull(),
+  date: date("date").notNull().defaultNow(),
 })

@@ -3,6 +3,7 @@ import { mean, median } from "mathjs"
 import ordinal from "ordinal"
 import pluralize from "pluralize"
 import { twMerge } from "tailwind-merge"
+import { TZDate } from "@date-fns/tz"
 
 export interface DiscordEmbed {
   type: string
@@ -32,6 +33,7 @@ export class RideInfo {
   instructor_name: string
   start_time: number
   url: string
+  image_url: string
   workouts: WorkoutInfo[]
 
   constructor(
@@ -40,12 +42,14 @@ export class RideInfo {
     instructor_name: string,
     start_time: number,
     url: string,
+    image_url: string,
   ) {
     this.id = id
     this.title = title
     this.instructor_name = instructor_name
     this.start_time = start_time
     this.url = url
+    this.image_url = image_url
     this.workouts = []
   }
 
@@ -236,4 +240,22 @@ export function humanize(i: number): string {
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
+}
+
+export function parseDate(date: string): Date {
+  const [yearStr, monthStr, dayStr] = date.split("-")
+  const year = Number(yearStr)
+  const month = Number(monthStr)
+  const day = Number(dayStr)
+
+  if (isNaN(year) || isNaN(month) || isNaN(day)) {
+    throw new Error(`Invalid date format: ${date}`)
+  }
+
+  return new TZDate(
+    year,
+    month - 1,
+    day,
+    Intl.DateTimeFormat().resolvedOptions().timeZone,
+  )
 }

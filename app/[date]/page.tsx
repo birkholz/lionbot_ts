@@ -1,12 +1,11 @@
-import { TZDate } from "@date-fns/tz"
-import { addDays, format, subDays } from "date-fns"
-import { asc, desc, sql } from "drizzle-orm"
+import { format } from "date-fns"
+import { asc, desc, eq } from "drizzle-orm"
 import { mean, median } from "mathjs"
 import { DateNavigation } from "../../components/date-navigation"
 import { LeaderboardDisplay } from "../../components/leaderboard-display"
 import { db } from "../../lionbot/db/client"
 import { leaderboardsTable } from "../../lionbot/db/schema"
-import { UserTotal } from "../../lionbot/utils"
+import { parseDate, UserTotal } from "../../lionbot/utils"
 
 type RideData = {
   id: string
@@ -14,6 +13,7 @@ type RideData = {
   instructor_name: string
   start_time: number
   url: string
+  image_url: string
   workouts: {
     user_username: string
     total_work: number
@@ -38,42 +38,37 @@ type Props = {
 
 export default async function Page({ params }: Props) {
   const { date } = await params
-  const [year, month, day] = date.split("-").map(Number)
-  const displayDate = new TZDate(
-    year,
-    month - 1,
-    day,
-    Intl.DateTimeFormat().resolvedOptions().timeZone,
-  )
+  const displayDate = parseDate(date)
 
   // Get the date range from the database
   const [firstLeaderboard] = await db
-    .select({ createdAt: leaderboardsTable.createdAt })
+    .select({ date: leaderboardsTable.date })
     .from(leaderboardsTable)
-    .orderBy(asc(leaderboardsTable.createdAt))
+    .orderBy(asc(leaderboardsTable.date))
     .limit(1)
 
   const [lastLeaderboard] = await db
-    .select({ createdAt: leaderboardsTable.createdAt })
+    .select({ date: leaderboardsTable.date })
     .from(leaderboardsTable)
-    .orderBy(desc(leaderboardsTable.createdAt))
+    .orderBy(desc(leaderboardsTable.date))
     .limit(1)
 
-  const startDate = firstLeaderboard?.createdAt ?? new Date()
-  const endDate = lastLeaderboard?.createdAt ?? new Date()
+  const startDate = parseDate(
+    firstLeaderboard?.date ?? format(new Date(), "yyyy-MM-dd"),
+  )
+  const endDate = parseDate(
+    lastLeaderboard?.date ?? format(new Date(), "yyyy-MM-dd"),
+  )
 
   const leaderboards = await db
     .select()
     .from(leaderboardsTable)
-    .where(
-      // Add one day since leaderboard createdAt is one day ahead of the rides
-      sql`created_at::date = ${format(addDays(displayDate, 1), "yyyy-MM-dd")}`,
-    )
-    .orderBy(desc(leaderboardsTable.createdAt))
+    .where(eq(leaderboardsTable.date, format(displayDate, "yyyy-MM-dd")))
+    .orderBy(desc(leaderboardsTable.date))
     .limit(1)
   const leaderboard = leaderboards[0]
 
-  if (!leaderboard) {
+  if (!leaderboard || !leaderboard.json) {
     return (
       <article className="mx-auto mt-4 max-w-2xl rounded-xl bg-zinc-900 p-3 shadow-md">
         <h1 className="text-center text-3xl font-bold tracking-tight">
@@ -81,8 +76,8 @@ export default async function Page({ params }: Props) {
         </h1>
         <DateNavigation
           date={displayDate}
-          startDate={subDays(startDate, 1)}
-          endDate={subDays(endDate, 1)}
+          startDate={startDate}
+          endDate={endDate}
         />
         <p className="mt-4 text-center">No leaderboard data available.</p>
       </article>
@@ -96,6 +91,7 @@ export default async function Page({ params }: Props) {
     instructor_name: ride.instructor_name,
     start_time: ride.start_time,
     url: ride.url,
+    image_url: ride.image_url,
     workouts: ride.workouts.map((w) => ({
       user_username: w.user_username,
       total_work: w.total_work,
@@ -130,8 +126,8 @@ export default async function Page({ params }: Props) {
       averageRideCount={averageRideCount}
       totalOutput={totalOutput}
       PBList={PBList}
-      startDate={subDays(startDate, 1)}
-      endDate={subDays(endDate, 1)}
+      startDate={startDate}
+      endDate={endDate}
     />
   )
 }
