@@ -24,7 +24,5 @@
     "noUnusedParameters": true,
     "noPropertyAccessFromIndexSignature": true
   },
-  "include": [
-    "lionbot/**/*.ts"
-  ]
+  "include": ["lionbot/**/*.ts"]
 }

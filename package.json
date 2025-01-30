@@ -23,6 +23,7 @@
     "@types/react": "^19.0.8",
     "@types/react-dom": "^19.0.3",
     "@vitejs/plugin-react-swc": "^3.7.2",
+    "autoprefixer": "^10.4.20",
     "drizzle-kit": "^0.30.2",
     "eslint": "^9.18.0",
     "eslint-plugin-react": "^7.37.4",
@@ -30,15 +31,20 @@
     "globals": "^15.14.0",
     "jiti": "^2.4.2",
     "postcss": "^8.5.1",
-    "tailwindcss": "^4.0.0",
+    "postcss-import": "^16.1.0",
+    "prettier-plugin-tailwindcss": "^0.6.11",
+    "tailwindcss": "^3.4.17",
     "typescript-eslint": "^8.21.0"
   },
   "peerDependencies": {
     "typescript": "^5.7.3"
   },
   "dependencies": {
+    "@date-fns/tz": "^1.2.0",
     "@radix-ui/react-accordion": "^1.2.2",
+    "@radix-ui/react-popover": "^1.1.5",
     "@radix-ui/react-separator": "^1.1.1",
+    "@radix-ui/react-slot": "^1.1.1",
     "@sentry/bun": "^8.51.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -57,6 +63,7 @@
     "postgres": "^3.4.5",
     "prettier": "^3.4.2",
     "react": "^19.0.0",
+    "react-day-picker": "^9.5.1",
     "react-dom": "^19.0.0",
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7"

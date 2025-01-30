@@ -1,8 +1,7 @@
 import * as React from "react"
 import * as AccordionPrimitive from "@radix-ui/react-accordion"
 import { ChevronDown } from "lucide-react"
-import { cn } from "../../../lionbot/utils"
-
+import { cn } from "../../lionbot/utils"
 
 const Accordion = AccordionPrimitive.Root
 
@@ -26,8 +25,8 @@ const AccordionTrigger = React.forwardRef<
     <AccordionPrimitive.Trigger
       ref={ref}
       className={cn(
-        "flex flex-1 items-center justify-between py-4 text-sm font-medium transition-all hover:underline text-left [&[data-state=open]>svg]:rotate-180",
-        className
+        "flex flex-1 items-center justify-between py-4 text-left text-sm font-medium transition-all hover:underline [&[data-state=open]>svg]:rotate-180",
+        className,
       )}
       {...props}
     >
