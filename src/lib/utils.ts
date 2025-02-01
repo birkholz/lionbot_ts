@@ -4,6 +4,7 @@ import ordinal from "ordinal"
 import pluralize from "pluralize"
 import { twMerge } from "tailwind-merge"
 import { TZDate } from "@date-fns/tz"
+import type { EffortZones, PBInfo, UserTotal } from "@types"
 
 export interface DiscordEmbed {
   type: string
@@ -18,24 +19,6 @@ export interface DiscordEmbed {
     value: string
     inline: boolean
   }[]
-}
-
-export interface UserTotal {
-  username: string
-  output: number
-  rides: number
-  duration: number
-}
-
-export interface EffortZones {
-  total_effort_points: number
-  heart_rate_zone_durations: {
-    heart_rate_z1_duration: number
-    heart_rate_z2_duration: number
-    heart_rate_z3_duration: number
-    heart_rate_z4_duration: number
-    heart_rate_z5_duration: number
-  }
 }
 
 export class RideInfo {
@@ -102,11 +85,6 @@ export class WorkoutInfo {
   getPBString(): string {
     return this.is_new_pb ? " (⭐ **NEW PB** ⭐)" : ""
   }
-}
-
-export interface PBInfo {
-  total_work: number
-  duration: number
 }
 
 export function formatNumber(num: number): string {

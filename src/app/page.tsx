@@ -1,9 +1,9 @@
 import { redirect } from "next/navigation"
 import { format } from "date-fns"
-import { db } from "../lionbot/db/client"
-import { leaderboardsTable } from "../lionbot/db/schema"
+import { db } from "../db/client"
+import { leaderboardsTable } from "../db/schema"
 import { desc } from "drizzle-orm"
-import { parseDate } from "../lionbot/utils"
+import { parseDate } from "../lib/utils"
 
 export default async function Page() {
   const [lastLeaderboard] = await db

@@ -144,6 +144,23 @@ interface NextPage {
   created_at: number
 }
 
+interface FTPInfo {
+  ftp: number
+  ftp_source: string
+  ftp_workout_id: string | null
+}
+
+interface AchievementTemplate {
+  id: string
+  name: string
+  slug: string
+  image_url: string
+  description: string
+  animated_image_url: string | null
+  kinetic_token_background: string | null
+  achievement_count: number
+}
+
 interface Workout {
   created_at: number
   device_type: string
@@ -169,16 +186,27 @@ interface Workout {
   total_video_buffering_seconds: number
   v2_total_video_watch_time_seconds: number
   v2_total_video_buffering_seconds: number
-  total_music_audio_play_seconds: null
-  total_music_audio_buffer_seconds: null
-  service_id: null
+  total_music_audio_play_seconds: number | null
+  total_music_audio_buffer_seconds: number | null
+  service_id: string | null
   ride: Ride
   created: number
   device_time_created_at: number
-  strava_id: null
-  fitbit_id: null
-  effort_zones: null
-  is_splits_personal_record: boolean
+  strava_id: string | null
+  fitbit_id: string | null
+  is_skip_intro_available: boolean
+  pause_time_remaining: number | null
+  pause_time_elapsed: number | null
+  is_paused: boolean
+  has_paused: boolean
+  is_pause_available: boolean
+  total_heart_rate_zone_durations: null
+  average_effort_score: number | null
+  achievement_templates: AchievementTemplate[]
+  leaderboard_rank: number
+  total_leaderboard_users: number
+  ftp_info: FTPInfo
+  device_type_display_name: string
 }
 
 interface Ride {
@@ -481,6 +509,27 @@ export class PelotonAPI {
       return data
     } catch (error) {
       console.error("Failed to fetch workout performance data:", error)
+      throw error
+    }
+  }
+
+  async getWorkout(workoutId: string): Promise<Workout> {
+    const requestUrl = `https://api.onepeloton.com/api/workout/${workoutId}`
+
+    try {
+      const response = await this.fetch(requestUrl, this.defaultOptions)
+
+      if (response.status === 401) {
+        await this.login()
+        return this.getWorkout(workoutId)
+      }
+      if (response.status >= 400) {
+        throw new Error(`Failed to fetch workout: ${response.status}`)
+      }
+
+      return (await response.json()) as Workout
+    } catch (error) {
+      console.error("Failed to fetch workout:", error)
       throw error
     }
   }

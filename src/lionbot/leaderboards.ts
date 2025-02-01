@@ -3,10 +3,10 @@ import { format, subDays, subHours } from "date-fns"
 import { mean, median } from "mathjs"
 import pMap from "p-map"
 import pluralize from "pluralize"
-import { db } from "./db/client"
-import { leaderboardsTable } from "./db/schema"
+import { db } from "@db/client"
+import { leaderboardsTable } from "@db/schema"
 import "./instrument"
-import { PelotonAPI } from "./peloton"
+import { PelotonAPI } from "@lib/peloton"
 import {
   formatNumber,
   getInstructorName,
@@ -16,14 +16,11 @@ import {
   isWithinInterval,
   pbListStr,
   rideCountStr,
-  RideInfo,
   sendDiscordRequest,
   validWorkout,
-  WorkoutInfo,
-  type DiscordEmbed,
-  type PBInfo,
-  type UserTotal,
-} from "./utils"
+} from "@lib/utils"
+import { RideInfo, WorkoutInfo } from "@types"
+import type { DiscordEmbed, PBInfo, UserTotal } from "@types"
 
 export async function postWorkouts(
   api: PelotonAPI,
@@ -41,6 +38,7 @@ export async function postWorkouts(
     if (workout.status !== "COMPLETE" || workout.metrics_type !== "cycling") {
       continue
     }
+    const fullWorkout = await api.getWorkout(workout.id)
 
     const classId = workout.ride.id
     const classUrl = `https://members.onepeloton.com/classes/cycling?modal=classDetailsModal&classId=${classId}`
@@ -61,7 +59,9 @@ export async function postWorkouts(
       workout.ride.instructor?.image_url ?? workout.ride.image_url
     const rideTitle = workout.ride.title
 
-    const newPb = workout.is_total_work_personal_record
+    const newPb = fullWorkout.achievement_templates.some(
+      (a) => a.slug === "best_output",
+    )
     const pbLine = newPb ? "\n\n ⭐ ️**New PB!** ⭐ " : ""
 
     const embed: DiscordEmbed = {
@@ -154,8 +154,12 @@ export async function postLeaderboard(
         const workoutRideId = workout.ride.id
 
         if (isPreviousDay(workout)) {
+          const userWorkout = await api.getWorkout(workout.id)
+          const isPb = userWorkout.achievement_templates.some(
+            (a) => a.slug === "best_output",
+          )
           // Did user PB?
-          if (workout.is_total_work_personal_record) {
+          if (isPb) {
             const pbDict: PBInfo = {
               total_work: workout.total_work,
               duration: Math.round(

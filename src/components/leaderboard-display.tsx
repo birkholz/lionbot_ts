@@ -2,20 +2,16 @@
 
 import pluralize from "pluralize"
 import * as React from "react"
-import {
-  formatNumber,
-  humanize,
-  type EffortZones,
-  type UserTotal,
-} from "../lionbot/utils"
-import { DateNavigation } from "./date-navigation"
+import { formatNumber, humanize } from "@lib/utils"
+import type { LeaderboardDisplayProps, Ride, Workout } from "@types"
+import { DateNavigation } from "@components/date-navigation"
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "./ui/accordion"
-import { Separator } from "./ui/separator"
+} from "@components/ui/accordion"
+import { Separator } from "@components/ui/separator"
 import {
   Table,
   TableBody,
@@ -23,53 +19,22 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "./ui/table"
+} from "@components/ui/table"
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "./ui/tooltip"
+} from "@components/ui/tooltip"
 import { BadgeHelp, Ruler, Sparkle } from "lucide-react"
 import { Pie, PieChart } from "recharts"
-import { ChartConfig, ChartContainer } from "./ui/chart"
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "./ui/hover-card"
-import { Toggle } from "./ui/toggle"
-
-type Workout = {
-  user_username: string
-  total_work: number
-  is_new_pb: boolean
-  avg_cadence: number
-  avg_resistance: number
-  distance: number
-  duration: number
-  effort_zones: EffortZones | null
-}
-
-type Ride = {
-  id: string
-  title: string
-  instructor_name: string
-  start_time: number
-  url: string
-  image_url: string
-  workouts: Workout[]
-}
-
-type Props = {
-  displayDate: Date
-  rides: Ride[]
-  totals: Record<string, UserTotal>
-  totalsList: UserTotal[]
-  totalRiders: number
-  medianRideCount: number
-  averageRideCount: number
-  totalOutput: number
-  PBList: [string, { total_work: number; duration: number }[]][]
-  startDate: Date
-  endDate: Date
-}
+import { ChartConfig, ChartContainer } from "@components/ui/chart"
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@components/ui/hover-card"
+import { Toggle } from "@components/ui/toggle"
 
 function sortWorkouts(workouts: Workout[]): Workout[] {
   return [...workouts].sort((a, b) => b.total_work - a.total_work)
@@ -87,15 +52,17 @@ export function LeaderboardDisplay({
   PBList,
   startDate,
   endDate,
-}: Props) {
+}: LeaderboardDisplayProps) {
   // const openAccordion = rides.length > 0 ? rides[0].id : "endurance"
   const accordionRef = React.useRef<HTMLDivElement>(null)
-  const [useMetric, setUseMetric] = React.useState(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("useMetric") !== "false"
+  const [useMetric, setUseMetric] = React.useState(true)
+
+  React.useEffect(() => {
+    const savedMetric = localStorage.getItem("useMetric")
+    if (savedMetric !== null) {
+      setUseMetric(savedMetric !== "false")
     }
-    return true
-  })
+  }, [])
 
   React.useEffect(() => {
     localStorage.setItem("useMetric", useMetric.toString())
@@ -152,7 +119,7 @@ export function LeaderboardDisplay({
       <div className="absolute left-3 top-3">
         <TooltipProvider>
           <Tooltip>
-            <TooltipTrigger>
+            <TooltipTrigger asChild>
               <Toggle
                 variant="outline"
                 aria-label="Distance Units"
@@ -172,7 +139,7 @@ export function LeaderboardDisplay({
       <div className="absolute right-3 top-3 h-[2rem] w-[2rem]">
         <HoverCard>
           <HoverCardTrigger>
-            <BadgeHelp className="opacity-25" width="auto" height="auto" />
+            <BadgeHelp width="2rem" height="2rem" className="opacity-25" />
           </HoverCardTrigger>
           <HoverCardContent>
             <p className="text-sm">
@@ -288,8 +255,8 @@ export function LeaderboardDisplay({
                             <Tooltip>
                               <TooltipTrigger className="inline-block h-[1em] cursor-default align-middle">
                                 <Sparkle
-                                  width="auto"
-                                  height="auto"
+                                  width="1em"
+                                  height="1em"
                                   color="gold"
                                 />
                               </TooltipTrigger>
@@ -432,14 +399,14 @@ export function LeaderboardDisplay({
                   className="inline-block h-[1em] align-middle"
                   title="New PB"
                 >
-                  <Sparkle width="auto" height="auto" color="gold" />
+                  <Sparkle width="1em" height="1em" color="gold" />
                 </div>
                 <span className="mx-1">New PBs</span>
                 <div
                   className="inline-block h-[1em] align-middle"
                   title="New PB"
                 >
-                  <Sparkle width="auto" height="auto" color="gold" />
+                  <Sparkle width="1em" height="1em" color="gold" />
                 </div>
               </h3>
             </AccordionTrigger>

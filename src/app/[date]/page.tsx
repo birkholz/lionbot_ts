@@ -1,49 +1,18 @@
 import { format } from "date-fns"
 import { asc, desc, eq } from "drizzle-orm"
 import { mean, median } from "mathjs"
-import { DateNavigation } from "../../components/date-navigation"
-import { LeaderboardDisplay } from "../../components/leaderboard-display"
-import { db } from "../../lionbot/db/client"
-import { leaderboardsTable } from "../../lionbot/db/schema"
-import {
-  parseDate,
-  type EffortZones,
-  type UserTotal,
-} from "../../lionbot/utils"
+import { DateNavigation } from "@components/date-navigation"
+import { LeaderboardDisplay } from "@components/leaderboard-display"
+import { db } from "@db/client"
+import { leaderboardsTable } from "@db/schema"
+import { parseDate } from "@lib/utils"
+import type { LeaderboardJson } from "@types"
 
-type RideData = {
-  id: string
-  title: string
-  instructor_name: string
-  start_time: number
-  url: string
-  image_url: string
-  workouts: {
-    user_username: string
-    total_work: number
-    is_new_pb: boolean
-    avg_cadence: number
-    avg_resistance: number
-    distance: number
-    strive_score?: number
-    duration: number
-    effort_zones: EffortZones | null
-  }[]
-}
-
-type LeaderboardJson = {
-  rides: Record<string, RideData>
-  totals: Record<string, UserTotal>
-  playersWhoPbd: Record<string, { total_work: number; duration: number }[]>
-}
-
-type Props = {
-  params: {
-    date: string
-  }
-}
-
-export default async function Page({ params }: Props) {
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ date: string }>
+}) {
   const { date } = await params
   const displayDate = parseDate(date)
 
