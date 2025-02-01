@@ -40,17 +40,13 @@ function sortWorkouts(workouts: Workout[]): Workout[] {
   return [...workouts].sort((a, b) => b.total_work - a.total_work)
 }
 
-const ClientComponent = ({ children }: { children: React.ReactNode }) => {
+export function LeaderboardDisplay(props: LeaderboardDisplayProps) {
   const [mounted, setMounted] = React.useState(false)
 
   React.useEffect(() => {
     setMounted(true)
   }, [])
 
-  return mounted ? children : null
-}
-
-export function LeaderboardDisplay(props: LeaderboardDisplayProps) {
   return (
     <article className="mx-auto my-4 max-w-2xl rounded-xl bg-zinc-900 p-3 shadow-md">
       <h1 className="text-center text-3xl font-bold tracking-tight">
@@ -62,21 +58,23 @@ export function LeaderboardDisplay(props: LeaderboardDisplayProps) {
         endDate={props.endDate}
       />
       <Separator className="my-4" />
-      <ClientComponent>
-        <LeaderboardContent {...props} />
-      </ClientComponent>
+      {mounted && <LeaderboardContent {...props} />}
     </article>
   )
 }
 
 function LeaderboardContent({
+  displayDate,
   rides,
   totals,
   totalsList,
   totalRiders,
+  medianRideCount,
   averageRideCount,
   totalOutput,
   PBList,
+  startDate,
+  endDate,
 }: LeaderboardDisplayProps) {
   // const openAccordion = rides.length > 0 ? rides[0].id : "endurance"
   const accordionRef = React.useRef<HTMLDivElement>(null)
@@ -142,24 +140,22 @@ function LeaderboardContent({
   return (
     <>
       <div className="absolute left-3 top-3">
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Toggle
-                variant="outline"
-                aria-label="Distance Units"
-                pressed={useMetric}
-                onPressedChange={setUseMetric}
-              >
-                <Ruler className="mr-1" />
-                <span>{useMetric ? "km" : "mi"}</span>
-              </Toggle>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Change the distance units</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Toggle
+              variant="outline"
+              aria-label="Distance Units"
+              pressed={useMetric}
+              onPressedChange={setUseMetric}
+            >
+              <Ruler className="mr-1" />
+              <span>{useMetric ? "km" : "mi"}</span>
+            </Toggle>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Change the distance units</p>
+          </TooltipContent>
+        </Tooltip>
       </div>
       <div className="absolute right-3 top-3 h-[2rem] w-[2rem]">
         <HoverCard>
@@ -267,20 +263,14 @@ function LeaderboardContent({
                         {Math.round(workout.total_work / 1000)}
                         <span className="text-muted-foreground"> kJ </span>
                         {workout.is_new_pb && (
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger className="inline-block h-[1em] cursor-default align-middle">
-                                <Sparkle
-                                  width="1em"
-                                  height="1em"
-                                  color="gold"
-                                />
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>New PB</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger className="inline-block h-[1em] cursor-default align-middle">
+                              <Sparkle width="1em" height="1em" color="gold" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>New PB</p>
+                            </TooltipContent>
+                          </Tooltip>
                         )}
                       </TableCell>
                       <TableCell>{formatDistance(workout.distance)}</TableCell>
