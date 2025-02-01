@@ -7,7 +7,7 @@
   "scripts": {
     "leaderboards": "bun run src/lionbot/leaderboards.ts",
     "dev": "bunx --bun next dev",
-    "build": "bunx --bun next build && bun build --compile --minify --sourcemap ./out/lionbot.ts --outfile out/lionbot",
+    "build": "bunx --bun next build",
     "start": "bunx --bun next start",
     "lint": "bunx --bun next lint",
     "db:generate": "drizzle-kit generate",
