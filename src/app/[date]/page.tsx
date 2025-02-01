@@ -1,12 +1,12 @@
-import { format } from "date-fns"
-import { asc, desc, eq } from "drizzle-orm"
-import { mean, median } from "mathjs"
 import { DateNavigation } from "@components/date-navigation"
 import { LeaderboardDisplay } from "@components/leaderboard-display"
 import { db } from "@db/client"
 import { leaderboardsTable } from "@db/schema"
 import { parseDate } from "@lib/utils"
 import type { LeaderboardJson } from "@types"
+import { format } from "date-fns"
+import { asc, desc, eq } from "drizzle-orm"
+import { mean, median } from "mathjs"
 
 export default async function Page({
   params,

@@ -1,9 +1,5 @@
 "use client"
 
-import pluralize from "pluralize"
-import * as React from "react"
-import { formatNumber, humanize } from "@lib/utils"
-import type { LeaderboardDisplayProps, Ride, Workout } from "@types"
 import { DateNavigation } from "@components/date-navigation"
 import {
   Accordion,
@@ -11,6 +7,12 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@components/ui/accordion"
+import { ChartConfig, ChartContainer } from "@components/ui/chart"
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@components/ui/hover-card"
 import { Separator } from "@components/ui/separator"
 import {
   Table,
@@ -20,21 +22,34 @@ import {
   TableHeader,
   TableRow,
 } from "@components/ui/table"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@components/ui/tooltip"
-import { BadgeHelp, Ruler, Sparkle } from "lucide-react"
-import { Pie, PieChart } from "recharts"
-import { ChartConfig, ChartContainer } from "@components/ui/chart"
-import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "@components/ui/hover-card"
 import { Toggle } from "@components/ui/toggle"
+import { formatNumber, humanize } from "@lib/utils"
+import type { LeaderboardDisplayProps, Workout } from "@types"
+import { BadgeHelp, Ruler, Sparkle } from "lucide-react"
+import dynamic from "next/dynamic"
+import pluralize from "pluralize"
+import * as React from "react"
+import { Pie, PieChart } from "recharts"
+
+const ClientOnlyTooltip = dynamic(
+  () => import("@components/ui/tooltip").then((mod) => mod.Tooltip),
+  { ssr: false },
+)
+
+const ClientOnlyTooltipProvider = dynamic(
+  () => import("@components/ui/tooltip").then((mod) => mod.TooltipProvider),
+  { ssr: false },
+)
+
+const ClientOnlyTooltipTrigger = dynamic(
+  () => import("@components/ui/tooltip").then((mod) => mod.TooltipTrigger),
+  { ssr: false },
+)
+
+const ClientOnlyTooltipContent = dynamic(
+  () => import("@components/ui/tooltip").then((mod) => mod.TooltipContent),
+  { ssr: false },
+)
 
 function sortWorkouts(workouts: Workout[]): Workout[] {
   return [...workouts].sort((a, b) => b.total_work - a.total_work)
@@ -117,9 +132,9 @@ export function LeaderboardDisplay({
   return (
     <div className="relative mx-auto my-4 max-w-2xl rounded-xl bg-zinc-900 p-3 shadow-md">
       <div className="absolute left-3 top-3">
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
+        <ClientOnlyTooltipProvider>
+          <ClientOnlyTooltip>
+            <ClientOnlyTooltipTrigger asChild>
               <Toggle
                 variant="outline"
                 aria-label="Distance Units"
@@ -129,12 +144,12 @@ export function LeaderboardDisplay({
                 <Ruler className="mr-1" />
                 <span>{useMetric ? "km" : "mi"}</span>
               </Toggle>
-            </TooltipTrigger>
-            <TooltipContent>
+            </ClientOnlyTooltipTrigger>
+            <ClientOnlyTooltipContent>
               <p>Change the distance units</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+            </ClientOnlyTooltipContent>
+          </ClientOnlyTooltip>
+        </ClientOnlyTooltipProvider>
       </div>
       <div className="absolute right-3 top-3 h-[2rem] w-[2rem]">
         <HoverCard>
@@ -251,20 +266,20 @@ export function LeaderboardDisplay({
                         {Math.round(workout.total_work / 1000)}
                         <span className="text-muted-foreground"> kJ </span>
                         {workout.is_new_pb && (
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger className="inline-block h-[1em] cursor-default align-middle">
+                          <ClientOnlyTooltipProvider>
+                            <ClientOnlyTooltip>
+                              <ClientOnlyTooltipTrigger className="inline-block h-[1em] cursor-default align-middle">
                                 <Sparkle
                                   width="1em"
                                   height="1em"
                                   color="gold"
                                 />
-                              </TooltipTrigger>
-                              <TooltipContent>
+                              </ClientOnlyTooltipTrigger>
+                              <ClientOnlyTooltipContent>
                                 <p>New PB</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
+                              </ClientOnlyTooltipContent>
+                            </ClientOnlyTooltip>
+                          </ClientOnlyTooltipProvider>
                         )}
                       </TableCell>
                       <TableCell>{formatDistance(workout.distance)}</TableCell>
