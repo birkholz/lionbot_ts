@@ -22,7 +22,6 @@
     "@types/pluralize": "^0.0.33",
     "@types/react": "^19.0.8",
     "@types/react-dom": "^19.0.3",
-    "@vitejs/plugin-react-swc": "^3.7.2",
     "autoprefixer": "^10.4.20",
     "drizzle-kit": "^0.30.2",
     "eslint": "^9.18.0",
@@ -74,8 +73,5 @@
     "recharts": "^2.15.1",
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7"
-  },
-  "trustedDependencies": [
-    "@swc/core"
-  ]
+  }
 }
