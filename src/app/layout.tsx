@@ -1,6 +1,5 @@
 import "./globals.css"
 import { ThemeProvider } from "../components/theme-provider"
-import { TooltipProvider } from "@components/ui/tooltip"
 
 export default function RootLayout({
   children,
@@ -20,7 +19,7 @@ export default function RootLayout({
           enableSystem={false}
           disableTransitionOnChange
         >
-          <TooltipProvider>{children}</TooltipProvider>
+          {children}
         </ThemeProvider>
       </body>
     </html>
