@@ -52,24 +52,31 @@ const ClientComponent = ({ children }: { children: React.ReactNode }) => {
 
 export function LeaderboardDisplay(props: LeaderboardDisplayProps) {
   return (
-    <ClientComponent>
-      <LeaderboardDisplayInner {...props} />
-    </ClientComponent>
+    <article className="mx-auto my-4 max-w-2xl rounded-xl bg-zinc-900 p-3 shadow-md">
+      <h1 className="text-center text-3xl font-bold tracking-tight">
+        <span className="text-primary">#TheEggCarton</span> Leaderboards
+      </h1>
+      <DateNavigation
+        date={props.displayDate}
+        startDate={props.startDate}
+        endDate={props.endDate}
+      />
+      <Separator className="my-4" />
+      <ClientComponent>
+        <LeaderboardContent {...props} />
+      </ClientComponent>
+    </article>
   )
 }
 
-function LeaderboardDisplayInner({
-  displayDate,
+function LeaderboardContent({
   rides,
   totals,
   totalsList,
   totalRiders,
-  medianRideCount,
   averageRideCount,
   totalOutput,
   PBList,
-  startDate,
-  endDate,
 }: LeaderboardDisplayProps) {
   // const openAccordion = rides.length > 0 ? rides[0].id : "endurance"
   const accordionRef = React.useRef<HTMLDivElement>(null)
@@ -133,7 +140,7 @@ function LeaderboardDisplayInner({
   }
 
   return (
-    <div className="relative mx-auto my-4 max-w-2xl rounded-xl bg-zinc-900 p-3 shadow-md">
+    <>
       <div className="absolute left-3 top-3">
         <TooltipProvider>
           <Tooltip>
@@ -174,15 +181,6 @@ function LeaderboardDisplayInner({
           </HoverCardContent>
         </HoverCard>
       </div>
-      <h1 className="text-center text-3xl font-bold tracking-tight">
-        <span className="text-primary">#TheEggCarton</span> Leaderboards
-      </h1>
-      <DateNavigation
-        date={displayDate}
-        startDate={startDate}
-        endDate={endDate}
-      />
-      <Separator className="my-4" />
       <Accordion
         ref={accordionRef}
         type="single"
@@ -464,6 +462,6 @@ function LeaderboardDisplayInner({
           </AccordionItem>
         )}
       </Accordion>
-    </div>
+    </>
   )
 }
