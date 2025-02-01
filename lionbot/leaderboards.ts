@@ -16,7 +16,6 @@ import {
   isWithinInterval,
   pbListStr,
   rideCountStr,
-  rideDurationOrActual,
   RideInfo,
   sendDiscordRequest,
   validWorkout,
@@ -52,7 +51,9 @@ export async function postWorkouts(
       continue
     }
 
-    const avgOutput = Math.round(totalOutput / rideDurationOrActual(workout))
+    const avgOutput = Math.round(
+      totalOutput / (workout.end_time - workout.start_time),
+    )
 
     const instructorName =
       workout.ride.instructor?.name ?? workout.ride.description
@@ -157,7 +158,9 @@ export async function postLeaderboard(
           if (workout.is_total_work_personal_record) {
             const pbDict: PBInfo = {
               total_work: workout.total_work,
-              duration: Math.round(rideDurationOrActual(workout) / 60),
+              duration: Math.round(
+                (workout.end_time - workout.start_time) / 60,
+              ),
             }
             const existingPbs = playersWhoPbd[user.username]
             if (existingPbs) {
@@ -174,12 +177,16 @@ export async function postLeaderboard(
               username: user.username,
               output: workout.total_work,
               rides: 1,
-              duration: Math.round(rideDurationOrActual(workout) / 60),
+              duration: Math.round(
+                (workout.end_time - workout.start_time) / 60,
+              ),
             }
           } else {
             userTotal.output += workout.total_work
             userTotal.rides += 1
-            userTotal.duration += Math.round(rideDurationOrActual(workout) / 60)
+            userTotal.duration += Math.round(
+              (workout.end_time - workout.start_time) / 60,
+            )
           }
         }
 
@@ -195,19 +202,27 @@ export async function postLeaderboard(
 
         const performanceData = await api.getWorkoutPerformanceData(workout.id)
         const avgCadence =
-          performanceData.metrics.find((m) => m.slug === "cadence")
-            ?.average_value ?? 0
+          performanceData.average_summaries.find(
+            (m) => m.slug === "avg_cadence",
+          )?.value ?? 0
         const avgResistance =
-          performanceData.metrics.find((m) => m.slug === "resistance")
-            ?.average_value ?? 0
-        const striveScore = performanceData.effort_zones?.total_effort_points
+          performanceData.average_summaries.find(
+            (m) => m.slug === "avg_resistance",
+          )?.value ?? 0
+        const distance =
+          performanceData.summaries.find((m) => m.slug === "distance")?.value ??
+          0
+        // performanceData.duration is wrong, it is the ride's duration, not the workout's
+        const duration = workout.end_time - workout.start_time
         const workoutObj = new WorkoutInfo(
           user.username,
           workout.total_work,
           workout.is_total_work_personal_record,
           avgCadence,
           avgResistance,
-          striveScore,
+          distance,
+          duration,
+          performanceData.effort_zones,
         )
         ride.workouts.push(workoutObj)
       }
@@ -360,4 +375,5 @@ async function getAndPostWorkouts(): Promise<void> {
   await postLeaderboard(api, leaderboardUserId)
 }
 
-getAndPostWorkouts()
+await getAndPostWorkouts()
+process.exit(0)

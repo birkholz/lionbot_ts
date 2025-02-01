@@ -5,7 +5,11 @@ import { DateNavigation } from "../../components/date-navigation"
 import { LeaderboardDisplay } from "../../components/leaderboard-display"
 import { db } from "../../lionbot/db/client"
 import { leaderboardsTable } from "../../lionbot/db/schema"
-import { parseDate, UserTotal } from "../../lionbot/utils"
+import {
+  parseDate,
+  type EffortZones,
+  type UserTotal,
+} from "../../lionbot/utils"
 
 type RideData = {
   id: string
@@ -20,7 +24,10 @@ type RideData = {
     is_new_pb: boolean
     avg_cadence: number
     avg_resistance: number
+    distance: number
     strive_score?: number
+    duration: number
+    effort_zones: EffortZones | null
   }[]
 }
 
@@ -99,6 +106,9 @@ export default async function Page({ params }: Props) {
       strive_score: w.strive_score,
       avg_cadence: w.avg_cadence,
       avg_resistance: w.avg_resistance,
+      distance: w.distance,
+      duration: w.duration,
+      effort_zones: w.effort_zones,
     })),
   }))
 

@@ -2,14 +2,19 @@
 
 import pluralize from "pluralize"
 import * as React from "react"
-import { formatNumber, humanize, type UserTotal } from "../lionbot/utils"
+import {
+  formatNumber,
+  humanize,
+  type EffortZones,
+  type UserTotal,
+} from "../lionbot/utils"
+import { DateNavigation } from "./date-navigation"
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "./ui/accordion"
-import { DateNavigation } from "./date-navigation"
 import { Separator } from "./ui/separator"
 import {
   Table,
@@ -19,16 +24,27 @@ import {
   TableHeader,
   TableRow,
 } from "./ui/table"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "./ui/tooltip"
+import { BadgeHelp, Ruler, Sparkle } from "lucide-react"
+import { Pie, PieChart } from "recharts"
+import { ChartConfig, ChartContainer } from "./ui/chart"
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "./ui/hover-card"
-import { BadgeHelp, Sparkle } from "lucide-react"
+import { Toggle } from "./ui/toggle"
 
 type Workout = {
   user_username: string
   total_work: number
   is_new_pb: boolean
-  strive_score?: number
   avg_cadence: number
   avg_resistance: number
+  distance: number
+  duration: number
+  effort_zones: EffortZones | null
 }
 
 type Ride = {
@@ -74,6 +90,16 @@ export function LeaderboardDisplay({
 }: Props) {
   // const openAccordion = rides.length > 0 ? rides[0].id : "endurance"
   const accordionRef = React.useRef<HTMLDivElement>(null)
+  const [useMetric, setUseMetric] = React.useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("useMetric") !== "false"
+    }
+    return true
+  })
+
+  React.useEffect(() => {
+    localStorage.setItem("useMetric", useMetric.toString())
+  }, [useMetric])
 
   const handleAccordionChange = (value: string) => {
     if (value && accordionRef.current) {
@@ -81,25 +107,90 @@ export function LeaderboardDisplay({
     }
   }
 
+  const formatDistance = (distance: number) => {
+    if (useMetric) {
+      return (
+        <>
+          {distance.toFixed(2)}
+          <span className="text-muted-foreground"> km</span>
+        </>
+      )
+    }
+    return (
+      <>
+        {(distance * 0.621371).toFixed(2)}
+        <span className="text-muted-foreground"> mi</span>
+      </>
+    )
+  }
+
+  const chartConfig: ChartConfig = {
+    "1": {
+      label: "Zone 1",
+      color: "#50C4AA",
+    },
+    "2": {
+      label: "Zone 2",
+      color: "#B6C95C",
+    },
+    "3": {
+      label: "Zone 3",
+      color: "#FACB3E",
+    },
+    "4": {
+      label: "Zone 4",
+      color: "#FC800F",
+    },
+    "5": {
+      label: "Zone 5",
+      color: "#FF4759",
+    },
+  }
+
   return (
-    <div className="mx-auto mt-4 max-w-2xl rounded-xl bg-zinc-900 p-3 shadow-md">
-      <div className="float-right block h-[2rem] w-[2rem]">
+    <div className="relative mx-auto my-4 max-w-2xl rounded-xl bg-zinc-900 p-3 shadow-md">
+      <div className="absolute left-3 top-3">
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger>
+              <Toggle
+                variant="outline"
+                aria-label="Distance Units"
+                pressed={useMetric}
+                onPressedChange={setUseMetric}
+              >
+                <Ruler className="mr-1" />
+                <span>{useMetric ? "km" : "mi"}</span>
+              </Toggle>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Change the distance units</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
+      <div className="absolute right-3 top-3 h-[2rem] w-[2rem]">
         <HoverCard>
           <HoverCardTrigger>
             <BadgeHelp className="opacity-25" width="auto" height="auto" />
           </HoverCardTrigger>
           <HoverCardContent>
             <p className="text-sm">
-              If you do not wish for your information to be included, you can
-              set your Peloton profile to private. All of this data is publicly
-              visible, or visible to lionbot if a private user accepts a follow
-              request from lionbot.
+              Ride leaderboards are delayed by one day to allow more people to
+              participate. They include all riders in the tag that did the ride
+              from 12 hours before NL until the start of NL's stream the
+              following day.
+            </p>
+            <p className="text-sm">
+              Don't want to be on the leaderboard? Setting your Peloton profile
+              to private, or blocking Lionbot, will hide you from future
+              leaderboards.
             </p>
           </HoverCardContent>
         </HoverCard>
       </div>
       <h1 className="text-center text-3xl font-bold tracking-tight">
-        #TheEggCarton Leaderboards
+        <span className="text-primary">#TheEggCarton</span> Leaderboards
       </h1>
       <DateNavigation
         date={displayDate}
@@ -117,7 +208,7 @@ export function LeaderboardDisplay({
         {rides.map((ride) => (
           <AccordionItem key={ride.id} value={ride.id}>
             <AccordionTrigger>
-              <h3>{ride.title}</h3>
+              <h3 className="text-xl">{ride.title}</h3>
             </AccordionTrigger>
             <AccordionContent>
               <a
@@ -161,9 +252,17 @@ export function LeaderboardDisplay({
                     <TableHead>Rank</TableHead>
                     <TableHead>Username</TableHead>
                     <TableHead>Total Output</TableHead>
-                    <TableHead>Avg Cadence</TableHead>
-                    <TableHead>Avg Resistance</TableHead>
-                    <TableHead>Strive Score</TableHead>
+                    <TableHead>Distance</TableHead>
+                    <TableHead>Duration</TableHead>
+                    <TableHead>
+                      <a
+                        href="https://www.strive.bike/blog/strive-score-explained"
+                        target="_blank"
+                        className="cursor-help hover:text-foreground hover:underline"
+                      >
+                        Strive Score
+                      </a>
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -182,31 +281,69 @@ export function LeaderboardDisplay({
                         </a>
                       </TableCell>
                       <TableCell>
-                        {Math.round(workout.total_work / 1000)} kJ{" "}
+                        {Math.round(workout.total_work / 1000)}
+                        <span className="text-muted-foreground"> kJ </span>
                         {workout.is_new_pb && (
-                          <div
-                            className="inline-block h-[1em] align-middle"
-                            title="New PB"
-                          >
-                            <Sparkle width="auto" height="auto" color="gold" />
-                          </div>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger className="inline-block h-[1em] cursor-default align-middle">
+                                <Sparkle
+                                  width="auto"
+                                  height="auto"
+                                  color="gold"
+                                />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>New PB</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         )}
                       </TableCell>
+                      <TableCell>{formatDistance(workout.distance)}</TableCell>
                       <TableCell>
-                        {workout.avg_cadence
-                          ? `${workout.avg_cadence} rpm`
-                          : "N/A"}
+                        {Math.round(workout.duration / 60)}
+                        <span className="text-muted-foreground"> mins</span>
                       </TableCell>
-                      <TableCell>
-                        {workout.avg_resistance
-                          ? `${workout.avg_resistance}%`
-                          : "N/A"}
-                      </TableCell>
-                      <TableCell>
-                        {workout.strive_score
-                          ? `${workout.strive_score}`
-                          : "N/A"}
-                      </TableCell>
+                      {workout.effort_zones?.total_effort_points ? (
+                        <TableCell>
+                          {workout.effort_zones.total_effort_points}
+                          <ChartContainer
+                            config={chartConfig}
+                            className="float-left mr-1 inline-block h-[20px] w-[20px]"
+                          >
+                            <PieChart>
+                              <Pie
+                                data={Object.entries(
+                                  workout.effort_zones
+                                    .heart_rate_zone_durations,
+                                )
+                                  .reverse()
+                                  .map(([key, value], i) => ({
+                                    name: key,
+                                    value,
+                                    fill: `var(--color-${5 - i})`,
+                                  }))}
+                                dataKey="value"
+                                nameKey="name"
+                                cx="50%"
+                                cy="50%"
+                                innerRadius={6}
+                                outerRadius={10}
+                                startAngle={90}
+                                endAngle={450}
+                                isAnimationActive={false}
+                              />
+                            </PieChart>
+                          </ChartContainer>
+                        </TableCell>
+                      ) : (
+                        <TableCell>
+                          <span className="text-center text-muted-foreground">
+                            -
+                          </span>
+                        </TableCell>
+                      )}
                     </TableRow>
                   ))}
                 </TableBody>
@@ -218,7 +355,7 @@ export function LeaderboardDisplay({
         {Object.keys(totals).length > 0 && (
           <AccordionItem value="endurance">
             <AccordionTrigger>
-              <h3>Endurance Leaderboard</h3>
+              <h3 className="text-xl">Endurance Leaderboard</h3>
             </AccordionTrigger>
             <AccordionContent>
               <div className="mb-2 flex grow items-end justify-center gap-6 text-center">
@@ -228,8 +365,8 @@ export function LeaderboardDisplay({
                 </div>
                 <div>
                   <b className="text-4xl font-bold">
-                    {Math.round((totalOutput / 1000000) * 100) / 100}{" "}
-                    <span className="text-base">MJ</span>
+                    {Math.round((totalOutput / 1000000) * 100) / 100}
+                    <span className="text-base"> MJ</span>
                   </b>
                   <p className="text-sm text-muted-foreground">
                     Combined Output
@@ -290,7 +427,7 @@ export function LeaderboardDisplay({
         {PBList.length > 0 && (
           <AccordionItem value="pbs">
             <AccordionTrigger>
-              <h3>
+              <h3 className="text-xl">
                 <div
                   className="inline-block h-[1em] align-middle"
                   title="New PB"

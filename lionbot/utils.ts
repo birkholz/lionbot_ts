@@ -27,6 +27,17 @@ export interface UserTotal {
   duration: number
 }
 
+export interface EffortZones {
+  total_effort_points: number
+  heart_rate_zone_durations: {
+    heart_rate_z1_duration: number
+    heart_rate_z2_duration: number
+    heart_rate_z3_duration: number
+    heart_rate_z4_duration: number
+    heart_rate_z5_duration: number
+  }
+}
+
 export class RideInfo {
   id: string
   title: string
@@ -79,7 +90,9 @@ export class WorkoutInfo {
     public is_new_pb: boolean,
     public avg_cadence: number,
     public avg_resistance: number,
-    public strive_score?: number,
+    public distance: number,
+    public duration: number,
+    public effort_zones: EffortZones | null,
   ) {}
 
   getOutputString(): string {
@@ -115,10 +128,6 @@ export function hasNoDuration(workout: {
   }
 
   return false
-}
-
-export function rideDurationOrActual(workout: any): number {
-  return workout.ride?.duration || workout.end_time - workout.start_time
 }
 
 export function validWorkout(workout: any): boolean {
