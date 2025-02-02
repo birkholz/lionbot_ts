@@ -246,3 +246,7 @@ export function parseDate(date: string): Date {
     Intl.DateTimeFormat().resolvedOptions().timeZone,
   )
 }
+
+export function localizeNumber(x: number, locale: string = "en-US"): string {
+  return new Intl.NumberFormat(locale).format(x)
+}

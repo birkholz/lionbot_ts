@@ -22,7 +22,7 @@ import {
 } from "@components/ui/table"
 import { Toggle } from "@components/ui/toggle"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip"
-import { formatNumber, humanize } from "@lib/utils"
+import { formatNumber, humanize, localizeNumber } from "@lib/utils"
 import { BadgeHelp, Ruler, Sparkle } from "lucide-react"
 import pluralize from "pluralize"
 import * as React from "react"
@@ -233,7 +233,8 @@ function LeaderboardContent({
                         </a>
                       </TableCell>
                       <TableCell>
-                        {Math.round(workout.total_work / 1000)}
+                        {/* TODO: Make the locale passed to localizeNumber a configurable option */}
+                        {localizeNumber(Math.round(workout.total_work / 1000))}
                         <span className="text-muted-foreground"> kJ </span>
                         {workout.is_new_pb && (
                           <Tooltip>
@@ -309,7 +310,9 @@ function LeaderboardContent({
                 </div>
                 <div>
                   <b className="text-4xl font-bold">
-                    {Math.round((totalOutput / 1000000) * 100) / 100}
+                    {localizeNumber(
+                      Math.round((totalOutput / 1000000) * 100) / 100,
+                    )}
                     <span className="text-base"> MJ</span>
                   </b>
                   <p className="text-sm text-muted-foreground">
@@ -348,7 +351,9 @@ function LeaderboardContent({
                           {user.username}
                         </a>
                       </TableCell>
-                      <TableCell>{Math.round(user.output / 1000)} kJ</TableCell>
+                      <TableCell>
+                        {localizeNumber(Math.round(user.output / 1000))} kJ
+                      </TableCell>
                       <TableCell>
                         {user.rides} {pluralize("ride", user.rides)}
                       </TableCell>
@@ -402,8 +407,10 @@ function LeaderboardContent({
                       <TableCell>
                         {pbs.map((pb) => (
                           <p key={`${username}-pb-${pb.total_work}`}>
-                            <b>{Math.round(pb.total_work / 1000)}</b> kJ /{" "}
-                            {pb.duration} mins
+                            <b>
+                              {localizeNumber(Math.round(pb.total_work / 1000))}
+                            </b>{" "}
+                            kJ / {pb.duration} mins
                           </p>
                         ))}
                       </TableCell>
