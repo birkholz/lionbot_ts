@@ -1,6 +1,5 @@
 import { TooltipProvider } from "@components/ui/tooltip"
 import { Analytics } from "@vercel/analytics/react"
-import { SpeedInsights } from "@vercel/speed-insights/next"
 import type { AppProps } from "next/app"
 import Head from "next/head"
 import { ThemeProvider } from "../components/theme-provider"
@@ -23,7 +22,6 @@ export default function App({ Component, pageProps }: AppProps) {
         </TooltipProvider>
       </ThemeProvider>
       <Analytics />
-      <SpeedInsights />
     </>
   )
 }
