@@ -153,7 +153,7 @@ function LeaderboardContent({
           </TooltipContent>
         </Tooltip>
       </div>
-      <div className="absolute right-3 top-3 h-[2rem] w-[2rem]">
+      <div className="absolute right-3 top-3 hidden h-[2rem] w-[2rem] md:block">
         <HoverCard>
           <HoverCardTrigger>
             <BadgeHelp width="2rem" height="2rem" className="opacity-25" />
@@ -183,7 +183,7 @@ function LeaderboardContent({
         {rides.map((ride) => (
           <AccordionItem key={ride.id} value={ride.id}>
             <AccordionTrigger>
-              <h3 className="text-xl">{ride.title}</h3>
+              <h3 className="select-none text-xl">{ride.title}</h3>
             </AccordionTrigger>
             <AccordionContent>
               <a
@@ -191,32 +191,23 @@ function LeaderboardContent({
                 target="_blank"
                 className="inset-shadow-xs block rounded-lg p-2 hover:bg-black/20"
               >
-                <div className="flex items-center gap-4">
-                  <div>
-                    <b className="text-3xl font-bold">{ride.workouts.length}</b>
-                    <p className="text-sm text-muted-foreground">
+                <div className="relative flex flex-nowrap items-center gap-4">
+                  <div className="z-20 order-1 md:order-3">
+                    <p>{ride.instructor_name}</p>
+                  </div>
+                  <div className="z-20 order-2 min-w-[50%] grow text-center md:order-1 md:min-w-fit">
+                    <b className="text-4xl font-bold md:text-3xl">
+                      {ride.workouts.length}
+                    </b>
+                    <p className="text-base text-muted-foreground md:text-sm">
                       Total riders
                     </p>
-                  </div>
-                  <div>
-                    <p>{ride.instructor_name}</p>
-                    {/* <p>
-                    NL rode:{" "}
-                    {new Date(ride.start_time * 1000).toLocaleTimeString(
-                      "en-US",
-                      {
-                        timeZone: "America/Los_Angeles",
-                      },
-                    )}{" "}
-                    PT
-                  </p> */}
                   </div>
                   {ride.image_url && (
                     <img
                       src={ride.image_url}
                       alt={ride.title}
-                      width={180}
-                      className="block rounded-lg"
+                      className="absolute right-0 z-10 order-2 block w-[50%] rounded-lg opacity-40 md:static md:w-[180px] md:opacity-100"
                     />
                   )}
                 </div>
@@ -226,10 +217,12 @@ function LeaderboardContent({
                   <TableRow>
                     <TableHead>Rank</TableHead>
                     <TableHead>Username</TableHead>
-                    <TableHead>Total Output</TableHead>
+                    <TableHead className="text-center md:text-left">
+                      Total Output
+                    </TableHead>
                     <TableHead>Distance</TableHead>
                     <TableHead>Duration</TableHead>
-                    <TableHead>
+                    <TableHead className="text-center md:text-left">
                       <a
                         href="https://www.strive.bike/blog/strive-score-explained"
                         target="_blank"
@@ -240,7 +233,7 @@ function LeaderboardContent({
                     </TableHead>
                   </TableRow>
                 </TableHeader>
-                <TableBody>
+                <TableBody className="text-nowrap">
                   {sortWorkouts(ride.workouts).map((workout, i) => (
                     <TableRow
                       key={`${workout.user_username}-${workout.total_work}`}
@@ -275,7 +268,7 @@ function LeaderboardContent({
                         <span className="text-muted-foreground"> mins</span>
                       </TableCell>
                       {workout.effort_zones?.total_effort_points ? (
-                        <TableCell>
+                        <TableCell className="min-w-[6em] md:text-left">
                           {workout.effort_zones.total_effort_points}
                           <ChartContainer
                             config={chartConfig}
@@ -307,10 +300,8 @@ function LeaderboardContent({
                           </ChartContainer>
                         </TableCell>
                       ) : (
-                        <TableCell>
-                          <span className="text-center text-muted-foreground">
-                            -
-                          </span>
+                        <TableCell className="text-center md:pl-[3em] md:text-left">
+                          <span className="text-muted-foreground">-</span>
                         </TableCell>
                       )}
                     </TableRow>
@@ -324,7 +315,7 @@ function LeaderboardContent({
         {Object.keys(totals).length > 0 && (
           <AccordionItem value="endurance">
             <AccordionTrigger>
-              <h3 className="text-xl">Endurance Leaderboard</h3>
+              <h3 className="select-none text-xl">Endurance Leaderboard</h3>
             </AccordionTrigger>
             <AccordionContent>
               <div className="mb-2 flex grow items-end justify-center gap-6 text-center">
@@ -368,7 +359,7 @@ function LeaderboardContent({
                     <TableHead>Duration</TableHead>
                   </TableRow>
                 </TableHeader>
-                <TableBody>
+                <TableBody className="text-nowrap">
                   {totalsList.map((user, i) => (
                     <TableRow key={user.username}>
                       <TableCell>{humanize(i)}</TableCell>
@@ -396,7 +387,7 @@ function LeaderboardContent({
         {PBList.length > 0 && (
           <AccordionItem value="pbs">
             <AccordionTrigger>
-              <h3 className="text-xl">
+              <h3 className="select-none text-xl">
                 <div
                   className="inline-block h-[1em] align-middle"
                   title="New PB"
