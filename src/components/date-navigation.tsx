@@ -17,17 +17,10 @@ export function DateNavigation({ date, startDate, endDate }: Props) {
   const router = useRouter()
   const [selectedDate, setSelectedDate] = React.useState<Date>(date)
 
-  // TODO: populate this from the database
-  // const datesWithData = [new Date(2025, 0, 26), new Date(2025, 0, 28)]
-
-  // const isDisabledDate = (date: Date) => {
-  //   return datesWithData.every((d) => !isSameDay(date, d))
-  // }
-
   const handleDateSelect = (newDate: Date | undefined) => {
     if (newDate) {
       setSelectedDate(newDate)
-      router.push(`/${format(newDate, "yyyy-MM-dd")}`)
+      router.push(`/archive/${format(newDate, "yyyy-MM-dd")}`)
     }
   }
 
@@ -36,14 +29,15 @@ export function DateNavigation({ date, startDate, endDate }: Props) {
   }, [date])
 
   return (
-    <div className="flex items-center justify-center gap-2 text-center text-2xl font-semibold tracking-tight">
+    <div className="mt-1 flex items-center justify-center gap-2 text-center text-2xl font-semibold tracking-tight">
       <button
-        className="text-blue-500 hover:text-blue-400 hover:underline"
+        className="text-blue-500 hover:text-blue-400 hover:underline disabled:cursor-not-allowed disabled:text-zinc-500 disabled:hover:text-zinc-500 disabled:hover:no-underline"
         onClick={() =>
-          router.push(`/${format(subDays(date, 1), "yyyy-MM-dd")}`)
+          router.push(`/archive/${format(subDays(date, 1), "yyyy-MM-dd")}`)
         }
+        disabled={isSameDay(date, startDate)}
       >
-        <ArrowLeft />
+        <ArrowLeft size={30} />
       </button>
       <Popover>
         <PopoverTrigger asChild>
@@ -65,12 +59,13 @@ export function DateNavigation({ date, startDate, endDate }: Props) {
         </PopoverContent>
       </Popover>
       <button
-        className="text-blue-500 hover:text-blue-400 hover:underline"
+        className="text-blue-500 hover:text-blue-400 hover:underline disabled:cursor-not-allowed disabled:text-zinc-500 disabled:hover:text-zinc-500 disabled:hover:no-underline"
         onClick={() =>
-          router.push(`/${format(addDays(date, 1), "yyyy-MM-dd")}`)
+          router.push(`/archive/${format(addDays(date, 1), "yyyy-MM-dd")}`)
         }
+        disabled={isSameDay(date, endDate)}
       >
-        <ArrowRight />
+        <ArrowRight size={30} />
       </button>
     </div>
   )

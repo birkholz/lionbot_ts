@@ -1,6 +1,5 @@
 "use client"
 
-import { DateNavigation } from "@components/date-navigation"
 import {
   Accordion,
   AccordionContent,
@@ -13,7 +12,6 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "@components/ui/hover-card"
-import { Separator } from "@components/ui/separator"
 import {
   Table,
   TableBody,
@@ -23,18 +21,13 @@ import {
   TableRow,
 } from "@components/ui/table"
 import { Toggle } from "@components/ui/toggle"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@components/ui/tooltip"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip"
 import { formatNumber, humanize } from "@lib/utils"
-import type { LeaderboardDisplayProps, Workout } from "@types"
 import { BadgeHelp, Ruler, Sparkle } from "lucide-react"
 import pluralize from "pluralize"
 import * as React from "react"
 import { Pie, PieChart } from "recharts"
+import type { LeaderboardDisplayProps, Workout } from "../types/components"
 
 function sortWorkouts(workouts: Workout[]): Workout[] {
   return [...workouts].sort((a, b) => b.total_work - a.total_work)
@@ -47,20 +40,11 @@ export function LeaderboardDisplay(props: LeaderboardDisplayProps) {
     setMounted(true)
   }, [])
 
-  return (
-    <article className="relative mx-auto max-w-2xl bg-zinc-900 p-3 lg:my-4 lg:rounded-xl lg:shadow-md">
-      <h1 className="text-center text-3xl font-bold tracking-tight">
-        <span className="text-primary">#TheEggCarton</span> Leaderboards
-      </h1>
-      <DateNavigation
-        date={props.displayDate}
-        startDate={props.startDate}
-        endDate={props.endDate}
-      />
-      <Separator className="my-4" />
-      {mounted && <LeaderboardContent {...props} />}
-    </article>
-  )
+  if (!mounted) {
+    return null
+  }
+
+  return <LeaderboardContent {...props} />
 }
 
 function LeaderboardContent({
@@ -332,14 +316,6 @@ function LeaderboardContent({
                     Combined Output
                   </p>
                 </div>
-                {/* <div>
-                  <b className="text-2xl font-bold">
-                    {formatNumber(medianRideCount)}
-                  </b>
-                  <p className="text-sm text-muted-foreground">
-                    Median ride count
-                  </p>
-                </div> */}
                 <div>
                   <b className="text-2xl font-bold">
                     {formatNumber(averageRideCount)}

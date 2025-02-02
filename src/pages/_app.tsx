@@ -2,10 +2,13 @@ import { TooltipProvider } from "@components/ui/tooltip"
 import { Analytics } from "@vercel/analytics/react"
 import type { AppProps } from "next/app"
 import Head from "next/head"
+import { useRouter } from "next/router"
 import { ThemeProvider } from "../components/theme-provider"
 import "../styles/globals.css"
 
 export default function App({ Component, pageProps }: AppProps) {
+  const router = useRouter()
+
   return (
     <>
       <Head>
@@ -25,7 +28,17 @@ export default function App({ Component, pageProps }: AppProps) {
         disableTransitionOnChange
       >
         <TooltipProvider delayDuration={0}>
-          <Component {...pageProps} />
+          <article className="relative mx-auto max-w-2xl bg-zinc-900 p-3 lg:mt-4 lg:rounded-xl lg:shadow-md">
+            <h1 className="text-center text-3xl font-bold tracking-tight">
+              <a
+                onClick={() => router.push(`/latest`)}
+                className="cursor-pointer"
+              >
+                <span className="text-primary">#TheEggCarton</span> Leaderboards
+              </a>
+            </h1>
+            <Component {...pageProps} />
+          </article>
         </TooltipProvider>
       </ThemeProvider>
       <Analytics />

@@ -27,10 +27,7 @@ export type LeaderboardDisplayProps = {
   totals: Record<string, UserTotal>
   totalsList: UserTotal[]
   totalRiders: number
-  medianRideCount: number
   averageRideCount: number
   totalOutput: number
   PBList: [string, { total_work: number; duration: number }[]][]
-  startDate: Date
-  endDate: Date
 }
