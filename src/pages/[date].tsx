@@ -7,13 +7,21 @@ import type { LeaderboardJson } from "@types"
 import { format } from "date-fns"
 import { asc, desc, eq } from "drizzle-orm"
 import { mean, median } from "mathjs"
+import type { GetServerSideProps } from "next"
 
-export default async function Page({
-  params,
-}: {
-  params: Promise<{ date: string }>
-}) {
-  const { date } = await params
+interface Props {
+  date: string
+  leaderboard: {
+    json: LeaderboardJson
+  } | null
+  startDate: string
+  endDate: string
+}
+
+export const getServerSideProps: GetServerSideProps<Props> = async (
+  context,
+) => {
+  const date = context.params?.date as string
   const displayDate = parseDate(date)
 
   // Get the date range from the database
@@ -42,18 +50,36 @@ export default async function Page({
     .where(eq(leaderboardsTable.date, format(displayDate, "yyyy-MM-dd")))
     .orderBy(desc(leaderboardsTable.date))
     .limit(1)
-  const leaderboard = leaderboards[0]
+  const leaderboard = leaderboards[0] as Props["leaderboard"]
+
+  return {
+    props: {
+      date: format(displayDate, "yyyy-MM-dd"),
+      leaderboard,
+      startDate: format(startDate, "yyyy-MM-dd"),
+      endDate: format(endDate, "yyyy-MM-dd"),
+    },
+  }
+}
+
+export default function DatePage({
+  date,
+  leaderboard,
+  startDate,
+  endDate,
+}: Props) {
+  const displayDate = parseDate(date)
 
   if (!leaderboard || !leaderboard.json) {
     return (
       <article className="mx-auto mt-4 max-w-2xl rounded-xl bg-zinc-900 p-3 shadow-md">
         <h1 className="text-center text-3xl font-bold tracking-tight">
-          #TheEggCarton Leaderboards
+          <span className="text-primary">#TheEggCarton</span> Leaderboards
         </h1>
         <DateNavigation
           date={displayDate}
-          startDate={startDate}
-          endDate={endDate}
+          startDate={parseDate(startDate)}
+          endDate={parseDate(endDate)}
         />
         <p className="mt-4 text-center">No leaderboard data available.</p>
       </article>
@@ -105,8 +131,8 @@ export default async function Page({
       averageRideCount={averageRideCount}
       totalOutput={totalOutput}
       PBList={PBList}
-      startDate={startDate}
-      endDate={endDate}
+      startDate={parseDate(startDate)}
+      endDate={parseDate(endDate)}
     />
   )
 }
