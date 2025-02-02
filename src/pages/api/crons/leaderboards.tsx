@@ -1,7 +1,7 @@
 "use server"
 
 import { TZDate } from "@date-fns/tz"
-import { addMinutes, isWithinInterval, set, subMinutes } from "date-fns"
+import { addMinutes, isWithinInterval, subMinutes } from "date-fns"
 import { NextApiRequest, NextApiResponse } from "next"
 
 export default async function handler(
@@ -15,19 +15,32 @@ export default async function handler(
 
   // Cron runs at 9 AM PST and PDT
   // we only want to run if its currently 9 AM in the Pacific timezone
-  const now = new TZDate("America/Los_Angeles")
-  const targetTime = set(now, {
-    hours: 9,
-    minutes: 0,
-    seconds: 0,
-    milliseconds: 0,
-  })
-  const interval = {
-    start: subMinutes(targetTime, 5),
-    end: addMinutes(targetTime, 5),
-  }
+  const jsNow = new Date()
+  const now = new TZDate(
+    jsNow.getFullYear(),
+    jsNow.getMonth(),
+    jsNow.getDate(),
+    jsNow.getHours(),
+    jsNow.getMinutes(),
+    jsNow.getSeconds(),
+    "America/Los_Angeles",
+  )
+  const targetTime = new TZDate(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+    9,
+    0,
+    0,
+    "America/Los_Angeles",
+  )
 
-  if (isWithinInterval(now, interval)) {
+  if (
+    isWithinInterval(now, {
+      start: subMinutes(targetTime, 5),
+      end: addMinutes(targetTime, 5),
+    })
+  ) {
     // Start the process and let it run in the background
     const proc = Bun.spawn(["bun", "run", "leaderboards"], {
       stdout: "inherit",
