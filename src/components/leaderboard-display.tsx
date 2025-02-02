@@ -64,17 +64,13 @@ export function LeaderboardDisplay(props: LeaderboardDisplayProps) {
 }
 
 function LeaderboardContent({
-  displayDate,
   rides,
   totals,
   totalsList,
   totalRiders,
-  medianRideCount,
   averageRideCount,
   totalOutput,
   PBList,
-  startDate,
-  endDate,
 }: LeaderboardDisplayProps) {
   // const openAccordion = rides.length > 0 ? rides[0].id : "endurance"
   const accordionRef = React.useRef<HTMLDivElement>(null)
