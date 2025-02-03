@@ -195,7 +195,7 @@ function LeaderboardContent({
                   <div className="col-span-3 flex items-center space-x-2">
                     <Label
                       htmlFor="distance-units"
-                      onClick={() => setUseMetric(false)}
+                      onClick={() => setUseMetric(true)}
                       className="text-right"
                     >
                       Imperial (mi)
@@ -208,7 +208,7 @@ function LeaderboardContent({
                     />
                     <Label
                       htmlFor="distance-units"
-                      onClick={() => setUseMetric(true)}
+                      onClick={() => setUseMetric(false)}
                     >
                       Metric (km)
                     </Label>
