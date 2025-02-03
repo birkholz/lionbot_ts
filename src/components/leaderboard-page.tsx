@@ -59,7 +59,6 @@ export function LeaderboardPage({ date, leaderboard, dateRange }: Props) {
       />
       <Separator className="mt-2" />
       <LeaderboardDisplay
-        displayDate={displayDate}
         rides={rides}
         totals={totals}
         totalsList={totalsList}

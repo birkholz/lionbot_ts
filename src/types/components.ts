@@ -22,7 +22,6 @@ export type Ride = {
 }
 
 export type LeaderboardDisplayProps = {
-  displayDate: Date
   rides: Ride[]
   totals: Record<string, UserTotal>
   totalsList: UserTotal[]
