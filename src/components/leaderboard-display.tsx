@@ -67,19 +67,30 @@ function LeaderboardContent({
   totalOutput,
   PBList,
 }: LeaderboardDisplayProps) {
-  // const openAccordion = rides.length > 0 ? rides[0].id : "endurance"
   const accordionRef = React.useRef<HTMLDivElement>(null)
   const [useMetric, setUseMetric] = React.useState(true)
   const [numberFormat, setNumberFormat] = React.useState("en-US")
+  const [autoOpen, setAutoOpen] = React.useState(true)
+
+  const getDefaultAccordionValue = React.useCallback(() => {
+    if (!autoOpen) return undefined
+    if (rides.length > 0) return rides[0].id
+    if (Object.keys(totals).length > 0) return "endurance"
+    return undefined
+  }, [autoOpen, rides, totals])
 
   React.useEffect(() => {
     const savedMetric = localStorage.getItem("useMetric")
     const savedFormat = localStorage.getItem("numberFormat")
+    const savedAutoOpen = localStorage.getItem("autoOpen")
     if (savedMetric !== null) {
       setUseMetric(savedMetric !== "false")
     }
     if (savedFormat !== null) {
       setNumberFormat(savedFormat)
+    }
+    if (savedAutoOpen !== null) {
+      setAutoOpen(savedAutoOpen === "true")
     }
   }, [])
 
@@ -90,6 +101,10 @@ function LeaderboardContent({
   React.useEffect(() => {
     localStorage.setItem("numberFormat", numberFormat)
   }, [numberFormat])
+
+  React.useEffect(() => {
+    localStorage.setItem("autoOpen", autoOpen.toString())
+  }, [autoOpen])
 
   const handleAccordionChange = (value: string) => {
     if (value && accordionRef.current) {
@@ -153,7 +168,7 @@ function LeaderboardContent({
               <p>Settings & Info</p>
             </TooltipContent>
           </Tooltip>
-          <DialogContent className="max-w-md p-2" hideClose>
+          <DialogContent className="max-w-md gap-2 p-2" hideClose>
             <Tabs defaultValue="settings">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="settings">Settings</TabsTrigger>
@@ -180,7 +195,7 @@ function LeaderboardContent({
                       id="distance-units"
                       checked={useMetric}
                       onCheckedChange={setUseMetric}
-                      className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-primary"
+                      className="data-[state=checked]:bg-primary"
                     />
                     <Label
                       htmlFor="distance-units"
@@ -212,6 +227,22 @@ function LeaderboardContent({
                       </SelectItem>
                     </SelectContent>
                   </Select>
+                  <div className="col-span-2 mr-2 text-right">
+                    <Label
+                      htmlFor="auto-open"
+                      className="align-middle text-muted-foreground"
+                    >
+                      Auto-open first leaderboard
+                    </Label>
+                  </div>
+                  <div className="col-span-3 flex items-center space-x-2">
+                    <Switch
+                      id="auto-open"
+                      checked={autoOpen}
+                      onCheckedChange={setAutoOpen}
+                      className="data-[state=checked]:bg-primary"
+                    />
+                  </div>
                 </div>
               </TabsContent>
               <TabsContent value="info">
@@ -244,7 +275,7 @@ function LeaderboardContent({
         ref={accordionRef}
         type="single"
         collapsible
-        // defaultValue={openAccordion}
+        defaultValue={getDefaultAccordionValue()}
         onValueChange={handleAccordionChange}
       >
         {rides.map((ride) => (
