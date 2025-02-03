@@ -84,7 +84,7 @@ function LeaderboardContent({
     const savedFormat = localStorage.getItem("numberFormat")
     const savedAutoOpen = localStorage.getItem("autoOpen")
     if (savedMetric !== null) {
-      setUseMetric(savedMetric !== "false")
+      setUseMetric(savedMetric === "true")
     }
     if (savedFormat !== null) {
       setNumberFormat(savedFormat)
@@ -195,7 +195,7 @@ function LeaderboardContent({
                       id="distance-units"
                       checked={useMetric}
                       onCheckedChange={setUseMetric}
-                      className="data-[state=checked]:bg-primary"
+                      className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-primary"
                     />
                     <Label
                       htmlFor="distance-units"
