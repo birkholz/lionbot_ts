@@ -17,72 +17,29 @@ import {
 } from "@components/ui/table"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip"
 import { humanize, localizeNumber } from "@lib/utils"
-import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
-import { Settings, Sparkle } from "lucide-react"
+import { Sparkle } from "lucide-react"
 import pluralize from "pluralize"
 import * as React from "react"
 import { Pie, PieChart } from "recharts"
 import type { LeaderboardDisplayProps, Workout } from "../types/components"
-import { Button } from "./ui/button"
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  DialogTitle,
-  DialogTrigger,
-} from "./ui/dialog"
-import { Label } from "./ui/label"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "./ui/select"
-import { Switch } from "./ui/switch"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs"
+import { useLeaderboardState } from "./leaderboard-state"
 
 function sortWorkouts(workouts: Workout[]): Workout[] {
   return [...workouts].sort((a, b) => b.total_work - a.total_work)
 }
 
 export function LeaderboardDisplay(props: LeaderboardDisplayProps) {
-  const [mounted, setMounted] = React.useState(false)
-
-  React.useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  if (!mounted) {
-    return null
-  }
-
-  return <LeaderboardContent {...props} />
-}
-
-function LeaderboardContent({
-  rides,
-  totals,
-  totalsList,
-  totalRiders,
-  averageRideCount,
-  totalOutput,
-  PBList,
-}: LeaderboardDisplayProps) {
+  const {
+    rides,
+    totals,
+    totalsList,
+    totalRiders,
+    averageRideCount,
+    totalOutput,
+    PBList,
+  } = props
   const accordionRef = React.useRef<HTMLDivElement>(null)
-  const [useMetric, setUseMetric] = React.useState(() => {
-    const saved = localStorage.getItem("useMetric")
-    return saved !== null ? saved === "true" : true
-  })
-  const [numberFormat, setNumberFormat] = React.useState(() => {
-    const saved = localStorage.getItem("numberFormat")
-    return saved || "en-US"
-  })
-  const [autoOpen, setAutoOpen] = React.useState(() => {
-    const saved = localStorage.getItem("autoOpen")
-    return saved !== null ? saved === "true" : false
-  })
+  const { useMetric, numberFormat, autoOpen } = useLeaderboardState()
 
   const getDefaultAccordionValue = React.useCallback(() => {
     if (!autoOpen) return undefined
@@ -90,18 +47,6 @@ function LeaderboardContent({
     if (Object.keys(totals).length > 0) return "endurance"
     return undefined
   }, [autoOpen, rides, totals])
-
-  React.useEffect(() => {
-    localStorage.setItem("useMetric", useMetric.toString())
-  }, [useMetric])
-
-  React.useEffect(() => {
-    localStorage.setItem("numberFormat", numberFormat)
-  }, [numberFormat])
-
-  React.useEffect(() => {
-    localStorage.setItem("autoOpen", autoOpen.toString())
-  }, [autoOpen])
 
   const handleAccordionChange = (value: string) => {
     if (value && accordionRef.current) {
@@ -151,135 +96,6 @@ function LeaderboardContent({
 
   return (
     <>
-      <div className="absolute right-3 top-3">
-        <Dialog>
-          <Tooltip>
-            <DialogTrigger asChild>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  aria-label="Settings & Info"
-                >
-                  <Settings />
-                </Button>
-              </TooltipTrigger>
-            </DialogTrigger>
-            <TooltipContent>
-              <VisuallyHidden>
-                <DialogTitle>Settings & Info</DialogTitle>
-              </VisuallyHidden>
-              <p>Settings & Info</p>
-            </TooltipContent>
-          </Tooltip>
-          <DialogContent
-            className="max-w-md gap-2 p-2"
-            hideClose
-            onCloseAutoFocus={(e) => e.preventDefault()}
-          >
-            <Tabs defaultValue="settings">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="settings">Settings</TabsTrigger>
-                <TabsTrigger value="info">Info</TabsTrigger>
-              </TabsList>
-              <TabsContent value="settings">
-                <div className="grid grid-cols-5 gap-4 p-4">
-                  <div className="col-span-2 mr-2 text-right">
-                    <Label
-                      htmlFor="distance-units"
-                      className="text-muted-foreground"
-                    >
-                      Distance Units
-                    </Label>
-                  </div>
-                  <div className="col-span-3 flex items-center space-x-2">
-                    <Label
-                      htmlFor="distance-units"
-                      onClick={() => setUseMetric(true)}
-                      className="text-right"
-                    >
-                      Imperial (mi)
-                    </Label>
-                    <Switch
-                      id="distance-units"
-                      checked={useMetric}
-                      onCheckedChange={setUseMetric}
-                      className="data-[state=checked]:bg-zinc-300 data-[state=unchecked]:bg-zinc-300"
-                    />
-                    <Label
-                      htmlFor="distance-units"
-                      onClick={() => setUseMetric(false)}
-                    >
-                      Metric (km)
-                    </Label>
-                  </div>
-                  <div className="col-span-2 mr-2 text-right">
-                    <Label
-                      htmlFor="number-format"
-                      className="align-middle text-muted-foreground"
-                    >
-                      Number Format
-                    </Label>
-                  </div>
-                  <Select value={numberFormat} onValueChange={setNumberFormat}>
-                    <SelectTrigger className="col-span-3">
-                      <SelectValue
-                        placeholder={`1,234.56 ${useMetric ? "km" : "mi"}`}
-                      />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="en-US">
-                        1,234.56 {useMetric ? "km" : "mi"}
-                      </SelectItem>
-                      <SelectItem value="de-DE">
-                        1.234,56 {useMetric ? "km" : "mi"}
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <div className="col-span-2 mr-2 text-right">
-                    <Label
-                      htmlFor="auto-open"
-                      className="align-middle text-muted-foreground"
-                    >
-                      Auto-open first leaderboard
-                    </Label>
-                  </div>
-                  <div className="col-span-3 flex items-center space-x-2">
-                    <Switch
-                      id="auto-open"
-                      checked={autoOpen}
-                      onCheckedChange={setAutoOpen}
-                      className="data-[state=checked]:bg-primary"
-                    />
-                  </div>
-                </div>
-              </TabsContent>
-              <TabsContent value="info">
-                <div className="p-4">
-                  <p>
-                    Ride leaderboards are delayed by one day to allow more
-                    people to participate. They include all riders in the tag
-                    that did the ride from 12 hours before NL until the start of
-                    NL's stream the following day.
-                  </p>
-                  <p className="mt-4">
-                    Don't want to be on the leaderboard? Setting your Peloton
-                    profile to private, or blocking Lionbot, will hide you from
-                    future leaderboards.
-                  </p>
-                </div>
-              </TabsContent>
-            </Tabs>
-            <DialogFooter className="items-center justify-center">
-              <DialogClose asChild>
-                <Button type="button" variant="secondary">
-                  Close
-                </Button>
-              </DialogClose>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
       <Accordion
         ref={accordionRef}
         type="single"

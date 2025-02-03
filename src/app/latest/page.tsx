@@ -6,15 +6,13 @@ import {
 } from "@services/leaderboard"
 
 export default async function LatestPage() {
-  const [leaderboard, dateRange] = await Promise.all([
-    getLatestLeaderboard(),
-    getLeaderboardDateRange(),
-  ])
+  const leaderboard = await getLatestLeaderboard()
   const date = leaderboard?.date || new Date().toISOString().split("T")[0]
 
   if (!leaderboard || !leaderboard.json) {
-    return <NoLeaderboard date={date} dateRange={dateRange} />
+    return <NoLeaderboard />
   }
+  const dateRange = getLeaderboardDateRange()
 
   return (
     <LeaderboardPage

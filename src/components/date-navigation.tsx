@@ -1,38 +1,34 @@
 "use client"
 
+import { parseDate } from "@lib/utils"
 import { addDays, format, isSameDay, subDays } from "date-fns"
 import { ArrowLeft, ArrowRight } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { useLeaderboardState } from "./leaderboard-state"
 import { Calendar } from "./ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover"
-import React from "react"
 
-type Props = {
-  date: Date
-  startDate: Date
-  endDate: Date
-}
-
-export function DateNavigation({ date, startDate, endDate }: Props) {
+export function DateNavigation() {
   const router = useRouter()
-  const [selectedDate, setSelectedDate] = React.useState<Date>(date)
+  const { date, dateRange } = useLeaderboardState()
 
-  React.useEffect(() => {
-    setSelectedDate(date)
-  }, [date])
+  // Default to yesterday if no date or date range is provided
+  const yesterday = parseDate(format(subDays(new Date(), 1), "yyyy-MM-dd"))
+  const displayDate = date ? parseDate(date) : yesterday
+  const startDate = dateRange ? parseDate(dateRange.startDate) : yesterday
+  const endDate = dateRange ? parseDate(dateRange.endDate) : yesterday
 
-  const prevDate = format(subDays(date, 1), "yyyy-MM-dd")
-  const nextDate = format(addDays(date, 1), "yyyy-MM-dd")
-  const isPrevDisabled = isSameDay(date, startDate)
-  const isNextDisabled = isSameDay(date, endDate)
-  const nextLink = isSameDay(addDays(date, 1), endDate)
+  const prevDate = format(subDays(displayDate, 1), "yyyy-MM-dd")
+  const nextDate = format(addDays(displayDate, 1), "yyyy-MM-dd")
+  const isPrevDisabled = isSameDay(displayDate, startDate)
+  const isNextDisabled = isSameDay(displayDate, endDate)
+  const nextLink = isSameDay(addDays(displayDate, 1), endDate)
     ? "/latest"
     : `/archive/${nextDate}`
 
   const handleDateSelect = (newDate: Date | undefined) => {
     if (newDate) {
-      setSelectedDate(newDate)
       if (isSameDay(newDate, endDate)) {
         router.push("/latest")
       } else {
@@ -58,18 +54,18 @@ export function DateNavigation({ date, startDate, endDate }: Props) {
       <Popover>
         <PopoverTrigger asChild>
           <span className="cursor-pointer select-none">
-            {format(date, "yyyy-MM-dd")}
+            {format(displayDate, "yyyy-MM-dd")}
           </span>
         </PopoverTrigger>
         <PopoverContent className="bg-zinc-950">
           <Calendar
             mode="single"
-            selected={selectedDate}
+            selected={displayDate}
             onSelect={handleDateSelect}
             disabled={{ after: endDate, before: startDate }}
             startMonth={startDate}
             endMonth={endDate}
-            defaultMonth={date}
+            defaultMonth={displayDate}
             required
           />
         </PopoverContent>

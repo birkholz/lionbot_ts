@@ -1,11 +1,11 @@
 import { LeaderboardPage } from "@components/leaderboard-page"
 import { NoLeaderboard } from "@components/no-leaderboard"
-import { isMatch } from "date-fns"
-import { notFound } from "next/navigation"
 import {
   getLeaderboardByDate,
   getLeaderboardDateRange,
 } from "@services/leaderboard"
+import { isMatch } from "date-fns"
+import { notFound } from "next/navigation"
 
 export default async function DatePage({
   params,
@@ -18,14 +18,13 @@ export default async function DatePage({
     notFound()
   }
 
-  const [leaderboard, dateRange] = await Promise.all([
-    getLeaderboardByDate(date),
-    getLeaderboardDateRange(),
-  ])
+  const leaderboard = await getLeaderboardByDate(date)
 
   if (!leaderboard || !leaderboard.json) {
-    return <NoLeaderboard date={date} dateRange={dateRange} />
+    return <NoLeaderboard />
   }
+
+  const dateRange = getLeaderboardDateRange()
 
   return (
     <LeaderboardPage

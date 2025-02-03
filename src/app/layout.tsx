@@ -3,7 +3,10 @@ import { ThemeProvider } from "@components/theme-provider"
 import { TooltipProvider } from "@components/ui/tooltip"
 import { Analytics } from "@vercel/analytics/react"
 import Link from "next/link"
-
+import { LeaderboardProvider } from "@components/leaderboard-state"
+import { DateNavigation } from "@components/date-navigation"
+import { Separator } from "@components/ui/separator"
+import { LeaderboardSettings } from "@components/leaderboard-settings"
 export const viewport = {
   width: "device-width",
   initialScale: 1.0,
@@ -36,15 +39,20 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <TooltipProvider delayDuration={0}>
-            <article className="relative mx-auto max-w-2xl bg-zinc-900 p-3 lg:mt-4 lg:rounded-xl lg:shadow-md">
-              <h1 className="text-center text-3xl font-bold tracking-tight">
-                <Link href="/latest" className="cursor-pointer">
-                  <span className="text-primary">#TheEggCarton</span>{" "}
-                  Leaderboards
-                </Link>
-              </h1>
-              {children}
-            </article>
+            <LeaderboardProvider>
+              <article className="relative mx-auto max-w-2xl bg-zinc-900 p-3 lg:mt-4 lg:rounded-xl lg:shadow-md">
+                <h1 className="text-center text-3xl font-bold tracking-tight">
+                  <Link href="/latest" className="cursor-pointer">
+                    <span className="text-primary">#TheEggCarton</span>{" "}
+                    Leaderboards
+                  </Link>
+                </h1>
+                <DateNavigation />
+                <LeaderboardSettings />
+                <Separator className="mt-2" />
+                {children}
+              </article>
+            </LeaderboardProvider>
           </TooltipProvider>
         </ThemeProvider>
         <Analytics />
