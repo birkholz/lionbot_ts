@@ -371,8 +371,8 @@ async function getAndPostWorkouts(): Promise<void> {
   const api = new PelotonAPI()
   await api.login()
 
-  // const nlUserId = "efc2317a6aad48218488a27bf8b0e460"
-  // await postWorkouts(api, nlUserId)
+  const nlUserId = "efc2317a6aad48218488a27bf8b0e460"
+  await postWorkouts(api, nlUserId)
 
   const leaderboardUserId =
     process.env["LEADERBOARD_USER_ID"] ?? "efc2317a6aad48218488a27bf8b0e460"

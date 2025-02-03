@@ -14,6 +14,10 @@ export async function GET() {
   // Cron runs at 9 AM PST and PDT
   // we only want to run if its currently 9 AM in the Pacific timezone
   const jsNow = new Date()
+  console.log(
+    `Server timezone: ${Intl.DateTimeFormat().resolvedOptions().timeZone}`,
+  )
+  console.log(`Current Time: ${jsNow.toISOString()}`)
   const now = new TZDate(
     jsNow.getFullYear(),
     jsNow.getMonth(),
