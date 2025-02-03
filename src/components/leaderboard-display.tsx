@@ -195,7 +195,7 @@ function LeaderboardContent({
                       id="distance-units"
                       checked={useMetric}
                       onCheckedChange={setUseMetric}
-                      className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-primary"
+                      className="data-[state=checked]:bg-zinc-300 data-[state=unchecked]:bg-zinc-300"
                     />
                     <Label
                       htmlFor="distance-units"
