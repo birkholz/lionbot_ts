@@ -33,8 +33,6 @@ export async function GET() {
     0,
     "America/Los_Angeles",
   )
-  console.log(`Current Time: ${now.toISOString()}`)
-  console.log(`Target Time: ${targetTime.toISOString()}`)
 
   if (
     isWithinInterval(now, {
