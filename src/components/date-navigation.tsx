@@ -26,7 +26,9 @@ export function DateNavigation({ date, startDate, endDate }: Props) {
   const nextDate = format(addDays(date, 1), "yyyy-MM-dd")
   const isPrevDisabled = isSameDay(date, startDate)
   const isNextDisabled = isSameDay(date, endDate)
-  const nextLink = isNextDisabled ? "/latest" : `/archive/${nextDate}`
+  const nextLink = isSameDay(addDays(date, 1), endDate)
+    ? "/latest"
+    : `/archive/${nextDate}`
 
   const handleDateSelect = (newDate: Date | undefined) => {
     if (newDate) {
