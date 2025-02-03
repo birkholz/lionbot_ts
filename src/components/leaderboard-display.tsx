@@ -215,15 +215,15 @@ function LeaderboardContent({
                   <Select value={numberFormat} onValueChange={setNumberFormat}>
                     <SelectTrigger className="col-span-3">
                       <SelectValue
-                        placeholder={`1,234.56 ${useMetric ? "mi" : "km"}`}
+                        placeholder={`1,234.56 ${useMetric ? "km" : "mi"}`}
                       />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="en-US">
-                        1,234.56 {useMetric ? "mi" : "km"}
+                        1,234.56 {useMetric ? "km" : "mi"}
                       </SelectItem>
                       <SelectItem value="de-DE">
-                        1.234,56 {useMetric ? "mi" : "km"}
+                        1.234,56 {useMetric ? "km" : "mi"}
                       </SelectItem>
                     </SelectContent>
                   </Select>
