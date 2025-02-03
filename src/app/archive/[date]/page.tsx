@@ -7,13 +7,11 @@ import {
   getLeaderboardDateRange,
 } from "@services/leaderboard"
 
-interface Props {
-  params: {
-    date: string
-  }
-}
-
-export default async function DatePage({ params }: Props) {
+export default async function DatePage({
+  params,
+}: {
+  params: Promise<{ date: string }>
+}) {
   const { date } = await params
 
   if (!isMatch(date, "yyyy-MM-dd")) {
