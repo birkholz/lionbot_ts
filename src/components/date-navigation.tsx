@@ -18,13 +18,6 @@ export function DateNavigation({ date, startDate, endDate }: Props) {
   const router = useRouter()
   const [selectedDate, setSelectedDate] = React.useState<Date>(date)
 
-  const handleDateSelect = (newDate: Date | undefined) => {
-    if (newDate) {
-      setSelectedDate(newDate)
-      router.push(`/archive/${format(newDate, "yyyy-MM-dd")}`)
-    }
-  }
-
   React.useEffect(() => {
     setSelectedDate(date)
   }, [date])
@@ -33,6 +26,18 @@ export function DateNavigation({ date, startDate, endDate }: Props) {
   const nextDate = format(addDays(date, 1), "yyyy-MM-dd")
   const isPrevDisabled = isSameDay(date, startDate)
   const isNextDisabled = isSameDay(date, endDate)
+  const nextLink = isNextDisabled ? "/latest" : `/archive/${nextDate}`
+
+  const handleDateSelect = (newDate: Date | undefined) => {
+    if (newDate) {
+      setSelectedDate(newDate)
+      if (isSameDay(newDate, endDate)) {
+        router.push("/latest")
+      } else {
+        router.push(`/archive/${format(newDate, "yyyy-MM-dd")}`)
+      }
+    }
+  }
 
   return (
     <div className="mt-2 flex items-center justify-center gap-2 text-center text-2xl font-semibold tracking-tight">
@@ -73,7 +78,7 @@ export function DateNavigation({ date, startDate, endDate }: Props) {
         </span>
       ) : (
         <Link
-          href={`/archive/${nextDate}`}
+          href={nextLink}
           className="text-blue-500 hover:text-blue-400 hover:underline"
         >
           <ArrowRight size={30} />

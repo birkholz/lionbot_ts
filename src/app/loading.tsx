@@ -13,9 +13,18 @@ export default function Loading() {
         <Skeleton className="h-[30px] w-[30px]" />
       </div>
       <Separator className="mt-2" />
-      <div className="mt-2 flex items-center justify-center gap-2">
-        <Skeleton className="h-[300px] w-full" />
+      <div className="border-b py-4">
+        <Skeleton className="mt-2 h-[1.5rem] w-[24rem]" />
       </div>
+      <div className="border-b py-4">
+        <Skeleton className="mt-2 h-[1.5rem] w-[24rem]" />
+      </div>
+      <div className="border-b py-4">
+        <Skeleton className="mt-2 h-[1.5rem] w-[24rem]" />
+      </div>
+      {/* <div className="mt-2 flex items-center justify-center gap-2">
+        <Skeleton className="h-[300px] w-full" />
+      </div> */}
     </>
   )
 }
