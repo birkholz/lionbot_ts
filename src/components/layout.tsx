@@ -19,7 +19,7 @@ export function Layout({ children, date, dateRange }: Props) {
         startDate={parseDate(dateRange.startDate)}
         endDate={parseDate(dateRange.endDate)}
       />
-      <Separator />
+      <Separator className="mt-2" />
       {children}
     </>
   )

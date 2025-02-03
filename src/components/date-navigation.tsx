@@ -29,7 +29,7 @@ export function DateNavigation({ date, startDate, endDate }: Props) {
   }, [date])
 
   return (
-    <div className="mt-1 flex items-center justify-center gap-2 text-center text-2xl font-semibold tracking-tight">
+    <div className="mt-2 flex items-center justify-center gap-2 text-center text-2xl font-semibold tracking-tight">
       <button
         className="text-blue-500 hover:text-blue-400 hover:underline disabled:cursor-not-allowed disabled:text-zinc-500 disabled:hover:text-zinc-500 disabled:hover:no-underline"
         onClick={() =>

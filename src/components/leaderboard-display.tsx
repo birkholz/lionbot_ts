@@ -172,7 +172,11 @@ function LeaderboardContent({
               <p>Settings & Info</p>
             </TooltipContent>
           </Tooltip>
-          <DialogContent className="max-w-md gap-2 p-2" hideClose>
+          <DialogContent
+            className="max-w-md gap-2 p-2"
+            hideClose
+            onCloseAutoFocus={(e) => e.preventDefault()}
+          >
             <Tabs defaultValue="settings">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="settings">Settings</TabsTrigger>
