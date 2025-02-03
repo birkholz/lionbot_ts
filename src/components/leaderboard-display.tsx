@@ -196,6 +196,7 @@ function LeaderboardContent({
                     <Label
                       htmlFor="distance-units"
                       onClick={() => setUseMetric(false)}
+                      className="text-right"
                     >
                       Imperial (mi)
                     </Label>
