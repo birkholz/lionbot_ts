@@ -159,7 +159,11 @@ function LeaderboardContent({
           <Tooltip>
             <DialogTrigger asChild>
               <TooltipTrigger asChild>
-                <Button variant="outline" aria-label="Settings & Info">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  aria-label="Settings & Info"
+                >
                   <Settings />
                 </Button>
               </TooltipTrigger>
