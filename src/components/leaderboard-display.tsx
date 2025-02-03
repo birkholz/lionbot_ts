@@ -68,9 +68,18 @@ function LeaderboardContent({
   PBList,
 }: LeaderboardDisplayProps) {
   const accordionRef = React.useRef<HTMLDivElement>(null)
-  const [useMetric, setUseMetric] = React.useState(true)
-  const [numberFormat, setNumberFormat] = React.useState("en-US")
-  const [autoOpen, setAutoOpen] = React.useState(true)
+  const [useMetric, setUseMetric] = React.useState(() => {
+    const saved = localStorage.getItem("useMetric")
+    return saved !== null ? saved === "true" : true
+  })
+  const [numberFormat, setNumberFormat] = React.useState(() => {
+    const saved = localStorage.getItem("numberFormat")
+    return saved || "en-US"
+  })
+  const [autoOpen, setAutoOpen] = React.useState(() => {
+    const saved = localStorage.getItem("autoOpen")
+    return saved !== null ? saved === "true" : false
+  })
 
   const getDefaultAccordionValue = React.useCallback(() => {
     if (!autoOpen) return undefined
@@ -78,21 +87,6 @@ function LeaderboardContent({
     if (Object.keys(totals).length > 0) return "endurance"
     return undefined
   }, [autoOpen, rides, totals])
-
-  React.useEffect(() => {
-    const savedMetric = localStorage.getItem("useMetric")
-    const savedFormat = localStorage.getItem("numberFormat")
-    const savedAutoOpen = localStorage.getItem("autoOpen")
-    if (savedMetric !== null) {
-      setUseMetric(savedMetric === "true")
-    }
-    if (savedFormat !== null) {
-      setNumberFormat(savedFormat)
-    }
-    if (savedAutoOpen !== null) {
-      setAutoOpen(savedAutoOpen === "true")
-    }
-  }, [])
 
   React.useEffect(() => {
     localStorage.setItem("useMetric", useMetric.toString())
