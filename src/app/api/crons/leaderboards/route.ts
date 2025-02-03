@@ -14,10 +14,7 @@ export async function GET() {
   // Cron runs at 9 AM PST and PDT
   // we only want to run if its currently 9 AM in the Pacific timezone
   const jsNow = new Date()
-  console.log(
-    `Server timezone: ${Intl.DateTimeFormat().resolvedOptions().timeZone}`,
-  )
-  console.log(`Current Time: ${jsNow.toISOString()}`)
+  // Vercel servers have UTC as the default timezone
   const now = new TZDate(
     jsNow.getFullYear(),
     jsNow.getMonth(),
@@ -25,7 +22,7 @@ export async function GET() {
     jsNow.getHours(),
     jsNow.getMinutes(),
     jsNow.getSeconds(),
-    "America/Los_Angeles",
+    "UTC",
   )
   const targetTime = new TZDate(
     now.getFullYear(),
@@ -36,6 +33,8 @@ export async function GET() {
     0,
     "America/Los_Angeles",
   )
+  console.log(`Current Time: ${now.toISOString()}`)
+  console.log(`Target Time: ${targetTime.toISOString()}`)
 
   if (
     isWithinInterval(now, {

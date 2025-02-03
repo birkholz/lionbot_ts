@@ -59,7 +59,6 @@ export function DateNavigation({ date, startDate, endDate }: Props) {
             mode="single"
             selected={selectedDate}
             onSelect={handleDateSelect}
-            // disabled={isDisabledDate}
             disabled={{ after: endDate, before: startDate }}
             startMonth={startDate}
             endMonth={endDate}
