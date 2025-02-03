@@ -239,12 +239,7 @@ export function parseDate(date: string): Date {
     throw new Error(`Invalid date format: ${date}`)
   }
 
-  return new TZDate(
-    year,
-    month - 1,
-    day,
-    Intl.DateTimeFormat().resolvedOptions().timeZone,
-  )
+  return new TZDate(year, month - 1, day, "America/Los_Angeles")
 }
 
 export function localizeNumber(
