@@ -54,6 +54,7 @@ export function DateNavigation({ date, startDate, endDate }: Props) {
             disabled={{ after: endDate, before: startDate }}
             startMonth={startDate}
             endMonth={endDate}
+            defaultMonth={date}
             required
           />
         </PopoverContent>
