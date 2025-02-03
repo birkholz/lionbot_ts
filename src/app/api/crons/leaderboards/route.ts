@@ -1,16 +1,14 @@
-"use server"
-
 import { TZDate } from "@date-fns/tz"
 import { addMinutes, isWithinInterval, subMinutes } from "date-fns"
-import { NextApiRequest, NextApiResponse } from "next"
+import { headers } from "next/headers"
+import { NextResponse } from "next/server"
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse,
-) {
-  const authHeader = req.headers.authorization
+export async function GET() {
+  const headersList = await headers()
+  const authHeader = headersList.get("authorization")
+
   if (authHeader !== `Bearer ${process.env["CRON_SECRET"]}`) {
-    return res.status(401).json({ error: "Unauthorized" })
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
   // Cron runs at 9 AM PST and PDT
@@ -47,8 +45,11 @@ export default async function handler(
     })
     proc.unref()
 
-    return res.status(204).send("")
+    return new NextResponse(null, { status: 204 })
   }
 
-  return res.status(400).json({ error: "Current time is not 9 AM PT" })
+  return NextResponse.json(
+    { error: "Current time is not 9 AM PT" },
+    { status: 400 },
+  )
 }

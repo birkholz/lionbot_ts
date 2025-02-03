@@ -17,6 +17,7 @@ import {
 } from "@components/ui/table"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip"
 import { humanize, localizeNumber } from "@lib/utils"
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
 import { Settings, Sparkle } from "lucide-react"
 import pluralize from "pluralize"
 import * as React from "react"
@@ -28,6 +29,7 @@ import {
   DialogClose,
   DialogContent,
   DialogFooter,
+  DialogTitle,
   DialogTrigger,
 } from "./ui/dialog"
 import { Label } from "./ui/label"
@@ -40,6 +42,7 @@ import {
 } from "./ui/select"
 import { Switch } from "./ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs"
+import Link from "next/link"
 function sortWorkouts(workouts: Workout[]): Workout[] {
   return [...workouts].sort((a, b) => b.total_work - a.total_work)
 }
@@ -163,6 +166,9 @@ function LeaderboardContent({
               </TooltipTrigger>
             </DialogTrigger>
             <TooltipContent>
+              <VisuallyHidden>
+                <DialogTitle>Settings & Info</DialogTitle>
+              </VisuallyHidden>
               <p>Settings & Info</p>
             </TooltipContent>
           </Tooltip>

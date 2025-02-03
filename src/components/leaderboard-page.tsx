@@ -1,9 +1,10 @@
-import { Layout } from "@components/layout"
+import { DateNavigation } from "@components/date-navigation"
 import { LeaderboardDisplay } from "@components/leaderboard-display"
-import type { LeaderboardJson } from "@types"
-import type { DateRange } from "../services/leaderboard"
-import { mean } from "mathjs"
+import { Separator } from "@components/ui/separator"
 import { parseDate } from "@lib/utils"
+import type { LeaderboardJson } from "@types"
+import { mean } from "mathjs"
+import type { DateRange } from "../services/leaderboard"
 
 interface Props {
   date: string
@@ -47,10 +48,18 @@ export function LeaderboardPage({ date, leaderboard, dateRange }: Props) {
     a[0].toLowerCase().localeCompare(b[0].toLowerCase()),
   )
 
+  const displayDate = parseDate(date)
+
   return (
-    <Layout date={date} dateRange={dateRange}>
+    <>
+      <DateNavigation
+        date={displayDate}
+        startDate={parseDate(dateRange.startDate)}
+        endDate={parseDate(dateRange.endDate)}
+      />
+      <Separator className="mt-2" />
       <LeaderboardDisplay
-        displayDate={parseDate(date)}
+        displayDate={displayDate}
         rides={rides}
         totals={totals}
         totalsList={totalsList}
@@ -59,6 +68,6 @@ export function LeaderboardPage({ date, leaderboard, dateRange }: Props) {
         totalOutput={totalOutput}
         PBList={PBList}
       />
-    </Layout>
+    </>
   )
 }

@@ -2,6 +2,7 @@
 
 import { addDays, format, isSameDay, subDays } from "date-fns"
 import { ArrowLeft, ArrowRight } from "lucide-react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Calendar } from "./ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover"
@@ -28,17 +29,25 @@ export function DateNavigation({ date, startDate, endDate }: Props) {
     setSelectedDate(date)
   }, [date])
 
+  const prevDate = format(subDays(date, 1), "yyyy-MM-dd")
+  const nextDate = format(addDays(date, 1), "yyyy-MM-dd")
+  const isPrevDisabled = isSameDay(date, startDate)
+  const isNextDisabled = isSameDay(date, endDate)
+
   return (
     <div className="mt-2 flex items-center justify-center gap-2 text-center text-2xl font-semibold tracking-tight">
-      <button
-        className="text-blue-500 hover:text-blue-400 hover:underline disabled:cursor-not-allowed disabled:text-zinc-500 disabled:hover:text-zinc-500 disabled:hover:no-underline"
-        onClick={() =>
-          router.push(`/archive/${format(subDays(date, 1), "yyyy-MM-dd")}`)
-        }
-        disabled={isSameDay(date, startDate)}
-      >
-        <ArrowLeft size={30} />
-      </button>
+      {isPrevDisabled ? (
+        <span className="cursor-not-allowed text-zinc-500">
+          <ArrowLeft size={30} />
+        </span>
+      ) : (
+        <Link
+          href={`/archive/${prevDate}`}
+          className="text-blue-500 hover:text-blue-400 hover:underline"
+        >
+          <ArrowLeft size={30} />
+        </Link>
+      )}
       <Popover>
         <PopoverTrigger asChild>
           <span className="cursor-pointer select-none">
@@ -59,15 +68,18 @@ export function DateNavigation({ date, startDate, endDate }: Props) {
           />
         </PopoverContent>
       </Popover>
-      <button
-        className="text-blue-500 hover:text-blue-400 hover:underline disabled:cursor-not-allowed disabled:text-zinc-500 disabled:hover:text-zinc-500 disabled:hover:no-underline"
-        onClick={() =>
-          router.push(`/archive/${format(addDays(date, 1), "yyyy-MM-dd")}`)
-        }
-        disabled={isSameDay(date, endDate)}
-      >
-        <ArrowRight size={30} />
-      </button>
+      {isNextDisabled ? (
+        <span className="text-zinc-500">
+          <ArrowRight size={30} />
+        </span>
+      ) : (
+        <Link
+          href={`/archive/${nextDate}`}
+          className="text-blue-500 hover:text-blue-400 hover:underline"
+        >
+          <ArrowRight size={30} />
+        </Link>
+      )}
     </div>
   )
 }

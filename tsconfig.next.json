@@ -27,7 +27,9 @@
       "@utils/*": ["utils/*"],
       "@lionbot/*": ["lionbot/*"],
       "@app/*": ["app/*"],
-      "@db/*": ["db/*"]
+      "@db/*": ["db/*"],
+      "@services/*": ["services/*"],
+      "@styles/*": ["styles/*"]
     }
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],
