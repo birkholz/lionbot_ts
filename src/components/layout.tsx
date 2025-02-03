@@ -1,4 +1,5 @@
 import { DateNavigation } from "@components/date-navigation"
+import { Separator } from "@components/ui/separator"
 import { parseDate } from "@lib/utils"
 import type { DateRange } from "../services/leaderboard"
 
@@ -18,6 +19,7 @@ export function Layout({ children, date, dateRange }: Props) {
         startDate={parseDate(dateRange.startDate)}
         endDate={parseDate(dateRange.endDate)}
       />
+      <Separator />
       {children}
     </>
   )

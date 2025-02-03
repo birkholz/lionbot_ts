@@ -8,11 +8,6 @@ import {
 } from "@components/ui/accordion"
 import { ChartConfig, ChartContainer } from "@components/ui/chart"
 import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "@components/ui/hover-card"
-import {
   Table,
   TableBody,
   TableCell,
@@ -20,15 +15,31 @@ import {
   TableHeader,
   TableRow,
 } from "@components/ui/table"
-import { Toggle } from "@components/ui/toggle"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip"
-import { formatNumber, humanize, localizeNumber } from "@lib/utils"
-import { BadgeHelp, Ruler, Sparkle } from "lucide-react"
+import { humanize, localizeNumber } from "@lib/utils"
+import { Settings, Sparkle } from "lucide-react"
 import pluralize from "pluralize"
 import * as React from "react"
 import { Pie, PieChart } from "recharts"
 import type { LeaderboardDisplayProps, Workout } from "../types/components"
-
+import { Button } from "./ui/button"
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogTrigger,
+} from "./ui/dialog"
+import { Label } from "./ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select"
+import { Switch } from "./ui/switch"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs"
 function sortWorkouts(workouts: Workout[]): Workout[] {
   return [...workouts].sort((a, b) => b.total_work - a.total_work)
 }
@@ -59,17 +70,26 @@ function LeaderboardContent({
   // const openAccordion = rides.length > 0 ? rides[0].id : "endurance"
   const accordionRef = React.useRef<HTMLDivElement>(null)
   const [useMetric, setUseMetric] = React.useState(true)
+  const [numberFormat, setNumberFormat] = React.useState("en-US")
 
   React.useEffect(() => {
     const savedMetric = localStorage.getItem("useMetric")
+    const savedFormat = localStorage.getItem("numberFormat")
     if (savedMetric !== null) {
       setUseMetric(savedMetric !== "false")
+    }
+    if (savedFormat !== null) {
+      setNumberFormat(savedFormat)
     }
   }, [])
 
   React.useEffect(() => {
     localStorage.setItem("useMetric", useMetric.toString())
   }, [useMetric])
+
+  React.useEffect(() => {
+    localStorage.setItem("numberFormat", numberFormat)
+  }, [numberFormat])
 
   const handleAccordionChange = (value: string) => {
     if (value && accordionRef.current) {
@@ -81,14 +101,14 @@ function LeaderboardContent({
     if (useMetric) {
       return (
         <>
-          {distance.toFixed(2)}
+          {localizeNumber(distance, numberFormat)}
           <span className="text-muted-foreground"> km</span>
         </>
       )
     }
     return (
       <>
-        {(distance * 0.621371).toFixed(2)}
+        {localizeNumber(distance * 0.621371, numberFormat)}
         <span className="text-muted-foreground"> mi</span>
       </>
     )
@@ -119,43 +139,106 @@ function LeaderboardContent({
 
   return (
     <>
-      <div className="absolute left-3 top-3">
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Toggle
-              variant="outline"
-              aria-label="Distance Units"
-              pressed={useMetric}
-              onPressedChange={setUseMetric}
-            >
-              <Ruler className="mr-1" />
-              <span>{useMetric ? "km" : "mi"}</span>
-            </Toggle>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Change the distance units</p>
-          </TooltipContent>
-        </Tooltip>
-      </div>
-      <div className="absolute right-3 top-3 hidden h-[2rem] w-[2rem] md:block">
-        <HoverCard>
-          <HoverCardTrigger>
-            <BadgeHelp width="2rem" height="2rem" className="opacity-25" />
-          </HoverCardTrigger>
-          <HoverCardContent>
-            <p className="text-sm">
-              Ride leaderboards are delayed by one day to allow more people to
-              participate. They include all riders in the tag that did the ride
-              from 12 hours before NL until the start of NL's stream the
-              following day.
-            </p>
-            <p className="text-sm">
-              Don't want to be on the leaderboard? Setting your Peloton profile
-              to private, or blocking Lionbot, will hide you from future
-              leaderboards.
-            </p>
-          </HoverCardContent>
-        </HoverCard>
+      <div className="absolute right-3 top-3">
+        <Dialog>
+          <Tooltip>
+            <DialogTrigger asChild>
+              <TooltipTrigger asChild>
+                <Button variant="outline" aria-label="Settings & Info">
+                  <Settings />
+                </Button>
+              </TooltipTrigger>
+            </DialogTrigger>
+            <TooltipContent>
+              <p>Settings & Info</p>
+            </TooltipContent>
+          </Tooltip>
+          <DialogContent className="max-w-md p-2" hideClose>
+            <Tabs defaultValue="settings">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="settings">Settings</TabsTrigger>
+                <TabsTrigger value="info">Info</TabsTrigger>
+              </TabsList>
+              <TabsContent value="settings">
+                <div className="grid grid-cols-5 gap-4 p-4">
+                  <div className="col-span-2 mr-2 text-right">
+                    <Label
+                      htmlFor="distance-units"
+                      className="text-muted-foreground"
+                    >
+                      Distance Units
+                    </Label>
+                  </div>
+                  <div className="col-span-3 flex items-center space-x-2">
+                    <Label
+                      htmlFor="distance-units"
+                      onClick={() => setUseMetric(true)}
+                    >
+                      Metric (km)
+                    </Label>
+                    <Switch
+                      id="distance-units"
+                      checked={useMetric}
+                      onCheckedChange={setUseMetric}
+                      className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-primary"
+                    />
+                    <Label
+                      htmlFor="distance-units"
+                      onClick={() => setUseMetric(false)}
+                    >
+                      Imperial (mi)
+                    </Label>
+                  </div>
+                  <div className="col-span-2 mr-2 text-right">
+                    <Label
+                      htmlFor="number-format"
+                      className="align-middle text-muted-foreground"
+                    >
+                      Number Format
+                    </Label>
+                  </div>
+                  <Select value={numberFormat} onValueChange={setNumberFormat}>
+                    <SelectTrigger className="col-span-3">
+                      <SelectValue
+                        placeholder={`1,234.56 ${useMetric ? "mi" : "km"}`}
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="en-US">
+                        1,234.56 {useMetric ? "mi" : "km"}
+                      </SelectItem>
+                      <SelectItem value="de-DE">
+                        1.234,56 {useMetric ? "mi" : "km"}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </TabsContent>
+              <TabsContent value="info">
+                <div className="p-4">
+                  <p>
+                    Ride leaderboards are delayed by one day to allow more
+                    people to participate. They include all riders in the tag
+                    that did the ride from 12 hours before NL until the start of
+                    NL's stream the following day.
+                  </p>
+                  <p className="mt-4">
+                    Don't want to be on the leaderboard? Setting your Peloton
+                    profile to private, or blocking Lionbot, will hide you from
+                    future leaderboards.
+                  </p>
+                </div>
+              </TabsContent>
+            </Tabs>
+            <DialogFooter className="items-center justify-center">
+              <DialogClose asChild>
+                <Button type="button" variant="secondary">
+                  Close
+                </Button>
+              </DialogClose>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
       <Accordion
         ref={accordionRef}
@@ -233,8 +316,10 @@ function LeaderboardContent({
                         </a>
                       </TableCell>
                       <TableCell>
-                        {/* TODO: Make the locale passed to localizeNumber a configurable option */}
-                        {localizeNumber(Math.round(workout.total_work / 1000))}
+                        {localizeNumber(
+                          Math.round(workout.total_work / 1000),
+                          numberFormat,
+                        )}
                         <span className="text-muted-foreground"> kJ </span>
                         {workout.is_new_pb && (
                           <Tooltip>
@@ -254,7 +339,10 @@ function LeaderboardContent({
                       </TableCell>
                       {workout.effort_zones?.total_effort_points ? (
                         <TableCell className="min-w-[6em] md:text-left">
-                          {workout.effort_zones.total_effort_points}
+                          {localizeNumber(
+                            workout.effort_zones.total_effort_points,
+                            numberFormat,
+                          )}
                           <ChartContainer
                             config={chartConfig}
                             className="float-left mr-1 inline-block h-[20px] w-[20px]"
@@ -312,6 +400,7 @@ function LeaderboardContent({
                   <b className="text-4xl font-bold">
                     {localizeNumber(
                       Math.round((totalOutput / 1000000) * 100) / 100,
+                      numberFormat,
                     )}
                     <span className="text-base"> MJ</span>
                   </b>
@@ -321,7 +410,7 @@ function LeaderboardContent({
                 </div>
                 <div>
                   <b className="text-2xl font-bold">
-                    {formatNumber(averageRideCount)}
+                    {localizeNumber(averageRideCount, numberFormat)}
                   </b>
                   <p className="text-sm text-muted-foreground">
                     Average ride count
@@ -352,7 +441,11 @@ function LeaderboardContent({
                         </a>
                       </TableCell>
                       <TableCell>
-                        {localizeNumber(Math.round(user.output / 1000))} kJ
+                        {localizeNumber(
+                          Math.round(user.output / 1000),
+                          numberFormat,
+                        )}{" "}
+                        kJ
                       </TableCell>
                       <TableCell>
                         {user.rides} {pluralize("ride", user.rides)}
@@ -408,7 +501,10 @@ function LeaderboardContent({
                         {pbs.map((pb) => (
                           <p key={`${username}-pb-${pb.total_work}`}>
                             <b>
-                              {localizeNumber(Math.round(pb.total_work / 1000))}
+                              {localizeNumber(
+                                Math.round(pb.total_work / 1000),
+                                numberFormat,
+                              )}
                             </b>{" "}
                             kJ / {pb.duration} mins
                           </p>

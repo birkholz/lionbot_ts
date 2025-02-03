@@ -247,6 +247,12 @@ export function parseDate(date: string): Date {
   )
 }
 
-export function localizeNumber(x: number, locale: string = "en-US"): string {
-  return new Intl.NumberFormat(locale).format(x)
+export function localizeNumber(
+  x: number,
+  locale: string = "en-US",
+  fractionDigits: number = 2,
+): string {
+  return new Intl.NumberFormat(locale, {
+    maximumFractionDigits: fractionDigits,
+  }).format(x)
 }
