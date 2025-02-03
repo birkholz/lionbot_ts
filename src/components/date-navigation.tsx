@@ -11,7 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover"
 
 export function DateNavigation() {
   const router = useRouter()
-  const { date, dateRange } = useLeaderboardState()
+  const { date, dateRange, setDate } = useLeaderboardState()
 
   // Default to yesterday if no date or date range is provided
   const yesterday = parseDate(format(subDays(new Date(), 1), "yyyy-MM-dd"))
@@ -30,10 +30,26 @@ export function DateNavigation() {
   const handleDateSelect = (newDate: Date | undefined) => {
     if (newDate) {
       if (isSameDay(newDate, endDate)) {
+        setDate(format(newDate, "yyyy-MM-dd"))
         router.push("/latest")
       } else {
-        router.push(`/archive/${format(newDate, "yyyy-MM-dd")}`)
+        const formattedDate = format(newDate, "yyyy-MM-dd")
+        setDate(formattedDate)
+        router.push(`/archive/${formattedDate}`)
       }
+    }
+  }
+
+  const handlePrevClick = () => {
+    if (!isPrevDisabled) {
+      setDate(prevDate)
+    }
+  }
+
+  const handleNextClick = () => {
+    if (!isNextDisabled) {
+      const nextDateStr = format(addDays(displayDate, 1), "yyyy-MM-dd")
+      setDate(nextDateStr)
     }
   }
 
@@ -47,6 +63,7 @@ export function DateNavigation() {
         <Link
           href={`/archive/${prevDate}`}
           className="text-blue-500 hover:text-blue-400 hover:underline"
+          onClick={handlePrevClick}
         >
           <ArrowLeft size={30} />
         </Link>
@@ -78,6 +95,7 @@ export function DateNavigation() {
         <Link
           href={nextLink}
           className="text-blue-500 hover:text-blue-400 hover:underline"
+          onClick={handleNextClick}
         >
           <ArrowRight size={30} />
         </Link>
