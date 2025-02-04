@@ -21,7 +21,11 @@ import { Sparkle } from "lucide-react"
 import pluralize from "pluralize"
 import * as React from "react"
 import { Pie, PieChart } from "recharts"
-import type { LeaderboardDisplayProps, Workout } from "../types/components"
+import type {
+  LeaderboardDisplayProps,
+  Ride,
+  Workout,
+} from "../types/components"
 import { useLeaderboardState } from "./leaderboard-state"
 
 function sortWorkouts(workouts: Workout[]): Workout[] {
@@ -94,6 +98,9 @@ export function LeaderboardDisplay(props: LeaderboardDisplayProps) {
     },
   }
 
+  const isScenicRide = (ride: Ride) =>
+    ride.instructor_name.split(" ").length > 2
+
   return (
     <>
       <Accordion
@@ -114,11 +121,32 @@ export function LeaderboardDisplay(props: LeaderboardDisplayProps) {
                 target="_blank"
                 className="inset-shadow-xs block rounded-lg p-2 hover:bg-black/20"
               >
-                <div className="relative flex flex-nowrap items-center gap-4">
-                  <div className="z-20 order-1 md:order-3">
+                <div className="relative mb-2 flex min-h-24 flex-nowrap items-center gap-4 md:mb-0 md:min-h-px">
+                  <div
+                    className={
+                      isScenicRide(ride)
+                        ? "z-20 order-1 md:order-2"
+                        : "z-20 order-1 grow text-center text-2xl font-bold md:order-3 md:text-2xl"
+                    }
+                  >
                     <p>{ride.instructor_name}</p>
+                    <p
+                      className={
+                        isScenicRide(ride)
+                          ? "hidden"
+                          : "text-base font-normal text-muted-foreground md:text-sm"
+                      }
+                    >
+                      Instructor
+                    </p>
                   </div>
-                  <div className="z-20 order-2 min-w-[50%] grow text-center md:order-1 md:min-w-fit">
+                  <div
+                    className={
+                      isScenicRide(ride)
+                        ? "z-20 order-2 min-w-[50%] grow text-center md:order-1 md:min-w-fit"
+                        : "z-20 order-2 min-w-[50%] grow text-center md:order-1 md:min-w-fit"
+                    }
+                  >
                     <b className="text-4xl font-bold md:text-3xl">
                       {ride.workouts.length}
                     </b>
@@ -130,7 +158,11 @@ export function LeaderboardDisplay(props: LeaderboardDisplayProps) {
                     <img
                       src={ride.image_url}
                       alt={ride.title}
-                      className="absolute right-0 z-10 order-2 block w-[50%] rounded-lg opacity-40 md:static md:w-[180px] md:opacity-100"
+                      className={
+                        isScenicRide(ride)
+                          ? "absolute right-0 z-10 order-3 block w-[50%] rounded-lg opacity-40 md:static md:w-[180px] md:opacity-100"
+                          : "absolute right-0 z-10 order-3 block w-[50%] rounded-lg opacity-40 md:static md:order-2 md:w-[180px] md:opacity-100"
+                      }
                     />
                   )}
                 </div>

@@ -222,3 +222,31 @@ export function localizeNumber(
     maximumFractionDigits: fractionDigits,
   }).format(x)
 }
+
+export async function withRetry<T>(
+  operation: () => Promise<T>,
+  maxRetries: number = 5,
+  initialDelay: number = 2000,
+): Promise<T> {
+  let delay = initialDelay
+  let retryCount = 0
+
+  while (true) {
+    try {
+      return await operation()
+    } catch (error) {
+      retryCount++
+      if (retryCount > maxRetries) {
+        console.error(`Failed after ${maxRetries} retries:`, error)
+        throw error
+      }
+
+      console.warn(
+        `Attempt ${retryCount} failed, retrying in ${delay}ms:`,
+        error,
+      )
+      await new Promise((resolve) => setTimeout(resolve, delay))
+      delay *= 2 // Exponential backoff
+    }
+  }
+}
