@@ -4,8 +4,15 @@ const nextConfig = {
   compress: true,
   reactStrictMode: true,
   images: {
-    domains: [], // Add any image domains you need
-    unoptimized: false,
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "s3.amazonaws.com",
+        port: "",
+        pathname: "/peloton-ride-images/**",
+        search: "",
+      },
+    ],
   },
   // Add Content Security Policy headers
   async headers() {

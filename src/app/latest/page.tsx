@@ -5,6 +5,9 @@ import {
   getLeaderboardDateRange,
 } from "@services/leaderboard"
 
+// Force dynamic rendering, revalidation happens in the cron job
+export const dynamic = "force-dynamic"
+
 export default async function LatestPage() {
   const leaderboard = await getLatestLeaderboard()
   const date = leaderboard?.date || new Date().toISOString().split("T")[0]

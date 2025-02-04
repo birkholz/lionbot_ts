@@ -2,6 +2,8 @@ import { TZDate } from "@date-fns/tz"
 import { addMinutes, isWithinInterval, subMinutes } from "date-fns"
 import { headers } from "next/headers"
 import { NextResponse } from "next/server"
+import { revalidatePath } from "next/cache"
+import { spawn } from "child_process"
 
 export async function GET() {
   const headersList = await headers()
@@ -41,10 +43,13 @@ export async function GET() {
     })
   ) {
     // Start the process and let it run in the background
-    const proc = Bun.spawn(["bun", "run", "leaderboards"], {
-      stdout: "inherit",
+    const proc = spawn("npm", ["run", "leaderboards"], {
+      stdio: "inherit",
+      detached: true,
     })
     proc.unref()
+
+    revalidatePath("/leaderboard")
 
     return new NextResponse(null, { status: 204 })
   }

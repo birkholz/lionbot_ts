@@ -18,6 +18,7 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip"
 import { humanize, localizeNumber } from "@lib/utils"
 import { Sparkle } from "lucide-react"
+import Image from "next/image"
 import pluralize from "pluralize"
 import * as React from "react"
 import { Pie, PieChart } from "recharts"
@@ -27,7 +28,6 @@ import type {
   Workout,
 } from "../types/components"
 import { useLeaderboardState } from "./leaderboard-state"
-
 function sortWorkouts(workouts: Workout[]): Workout[] {
   return [...workouts].sort((a, b) => b.total_work - a.total_work)
 }
@@ -155,15 +155,21 @@ export function LeaderboardDisplay(props: LeaderboardDisplayProps) {
                     </p>
                   </div>
                   {ride.image_url && (
-                    <img
-                      src={ride.image_url}
-                      alt={ride.title}
+                    <div
                       className={
                         isScenicRide(ride)
-                          ? "absolute right-0 z-10 order-3 block w-[50%] rounded-lg opacity-40 md:static md:w-[180px] md:opacity-100"
-                          : "absolute right-0 z-10 order-3 block w-[50%] rounded-lg opacity-40 md:static md:order-2 md:w-[180px] md:opacity-100"
+                          ? "absolute right-0 z-10 order-3 block aspect-video h-auto w-[50%] rounded-lg opacity-40 md:relative md:min-h-[calc(180px*9/16)] md:w-[180px] md:opacity-100"
+                          : "absolute right-0 z-10 order-3 block aspect-video h-auto w-[50%] rounded-lg opacity-40 md:relative md:order-2 md:min-h-[calc(180px*9/16)] md:w-[180px] md:opacity-100"
                       }
-                    />
+                    >
+                      <Image
+                        src={ride.image_url}
+                        alt={ride.title}
+                        sizes="(max-width: 768px) 50%, 180px"
+                        className="rounded-lg"
+                        fill
+                      />
+                    </div>
                   )}
                 </div>
               </a>
