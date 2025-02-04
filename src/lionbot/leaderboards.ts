@@ -192,20 +192,14 @@ export async function postLeaderboard(
       for (const workout of validUserWorkouts) {
         const workoutRideId = workout.ride.id
 
-        const tzDate = new TZDate(dateStr, workout.timezone)
-        const minTime = set(tzDate, {
-          hours: 0,
-          minutes: 0,
-          seconds: 0,
-          milliseconds: 0,
-        })
-        const maxTime = addDays(minTime, 1)
         const workoutTime = new TZDate(
           workout.start_time * 1000,
           workout.timezone,
         )
+        const workoutDateStr = format(workoutTime, "yyyy-MM-dd")
 
-        if (workoutTime > minTime && workoutTime < maxTime) {
+        // If this workout's date matches our target date, process it
+        if (workoutDateStr === dateStr) {
           const userWorkout = await api.getWorkout(workout.id)
           const isPb = userWorkout.achievement_templates.some(
             (a) => a.slug === "best_output",
@@ -424,9 +418,12 @@ export async function postLeaderboard(
 
 async function getAndPostWorkouts(): Promise<void> {
   // Get target date from command line args if provided, otherwise use yesterday
+  const serverTimezone =
+    process.env.NODE_ENV === "production" ? "UTC" : "America/Chicago"
+
   const dateStr =
     process.argv[2] ??
-    format(subDays(new TZDate(new Date(), "America/Chicago"), 1), "yyyy-MM-dd")
+    format(subDays(new TZDate(new Date(), serverTimezone), 1), "yyyy-MM-dd")
 
   // Validate date format
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
@@ -437,14 +434,12 @@ async function getAndPostWorkouts(): Promise<void> {
   const api = new PelotonAPI()
   await api.login()
 
-  // const nlUserId = "efc2317a6aad48218488a27bf8b0e460"
-  // await postWorkouts(api, nlUserId)
+  const nlUserId = "efc2317a6aad48218488a27bf8b0e460"
+  await postWorkouts(api, nlUserId)
 
   const leaderboardUserId =
     process.env["LEADERBOARD_USER_ID"] ?? "efc2317a6aad48218488a27bf8b0e460"
-  await postLeaderboard(api, leaderboardUserId, false, dateStr)
-
-  console.log("Done")
+  await postLeaderboard(api, leaderboardUserId, true, dateStr)
 }
 
 await getAndPostWorkouts()
