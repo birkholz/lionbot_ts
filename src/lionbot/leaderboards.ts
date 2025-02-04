@@ -1,5 +1,5 @@
 import * as Sentry from "@sentry/bun"
-import { format, subDays, subHours } from "date-fns"
+import { format, subDays, subHours, addDays, set } from "date-fns"
 import { mean, median } from "mathjs"
 import pMap from "p-map"
 import pluralize from "pluralize"
@@ -12,7 +12,6 @@ import {
   getInstructorName,
   hasNoDuration,
   humanize,
-  isPreviousDay,
   isWithinInterval,
   pbListStr,
   rideCountStr,
@@ -21,6 +20,7 @@ import {
 } from "@lib/utils"
 import { RideInfo, WorkoutInfo } from "@types"
 import type { DiscordEmbed, PBInfo, UserTotal } from "@types"
+import { TZDate } from "@date-fns/tz"
 
 export async function postWorkouts(
   api: PelotonAPI,
@@ -120,13 +120,52 @@ export async function postWorkouts(
 export async function postLeaderboard(
   api: PelotonAPI,
   nlUserId: string,
+  postEmbeds: boolean,
+  dateStr: string,
 ): Promise<void> {
-  const workouts = await api.getWorkouts(nlUserId)
-  const recentWorkouts = workouts.filter((workout) => isPreviousDay(workout))
-  const validWorkouts = recentWorkouts.filter(validWorkout).reverse()
+  // Validate date format
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    throw new Error("Date must be in YYYY-MM-DD format")
+  }
+
+  const targetDate = new Date(dateStr)
+  // Check if date is valid
+  if (isNaN(targetDate.getTime())) {
+    throw new Error("Invalid date provided")
+  }
+
+  const [year, month, day] = dateStr.split("-").map(Number) as [
+    number,
+    number,
+    number,
+  ]
+  const date = new TZDate(year, month - 1, day, "America/Los_Angeles")
+  const startDt = set(date, {
+    hours: 6,
+    minutes: 0,
+    seconds: 0,
+    milliseconds: 0,
+  })
+  const dayStart = set(date, {
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+    milliseconds: 0,
+  })
+  const dayEnd = addDays(dayStart, 1)
+  const minDt = subHours(startDt, 12)
+  const streamStart = set(addDays(minDt, 2), {
+    hours: 9,
+    minutes: 0,
+    seconds: 0,
+    milliseconds: 0,
+  })
+
+  const nlWorkouts = await api.getWorkouts(nlUserId, dayStart, dayEnd)
+  const validNLWorkouts = nlWorkouts.filter(validWorkout)
 
   const rides: Record<string, RideInfo> = {}
-  for (const workout of validWorkouts) {
+  for (const workout of validNLWorkouts) {
     if (!workout.ride?.id || !workout.ride?.title) continue
     const ride = new RideInfo(
       workout.ride.id,
@@ -147,13 +186,26 @@ export async function postLeaderboard(
   await pMap(
     users,
     async (user) => {
-      const userWorkouts = await api.getWorkouts(user.id)
+      const userWorkouts = await api.getWorkouts(user.id, minDt, streamStart)
       const validUserWorkouts = userWorkouts.filter(validWorkout)
 
       for (const workout of validUserWorkouts) {
         const workoutRideId = workout.ride.id
 
-        if (isPreviousDay(workout)) {
+        const tzDate = new TZDate(dateStr, workout.timezone)
+        const minTime = set(tzDate, {
+          hours: 0,
+          minutes: 0,
+          seconds: 0,
+          milliseconds: 0,
+        })
+        const maxTime = addDays(minTime, 1)
+        const workoutTime = new TZDate(
+          workout.start_time * 1000,
+          workout.timezone,
+        )
+
+        if (workoutTime > minTime && workoutTime < maxTime) {
           const userWorkout = await api.getWorkout(workout.id)
           const isPb = userWorkout.achievement_templates.some(
             (a) => a.slug === "best_output",
@@ -194,15 +246,16 @@ export async function postLeaderboard(
           }
         }
 
-        // Add workout to ride leaderboard
         const ride = rides[workoutRideId]
         if (!ride) continue
 
         // was ride recent?
-        // These rides can be up to 12 hours before NL
-        const startTime = new Date(workout.start_time * 1000)
-        const minDt = subHours(new Date(ride.start_time * 1000), 12)
-        if (startTime < minDt) continue
+        // Leaderboard rides can be up to 12 hours before NL until stream start the following day
+        const workoutDate = new TZDate(
+          workout.start_time * 1000,
+          workout.timezone,
+        )
+        if (workoutDate < minDt || workoutDate > streamStart) continue
 
         const performanceData = await api.getWorkoutPerformanceData(workout.id)
         const avgCadence =
@@ -234,13 +287,16 @@ export async function postLeaderboard(
     { concurrency: 20 },
   )
 
-  const yesterday = subDays(new Date(), 1)
   // Dump all the rides to the db
   const ridesJson: typeof leaderboardsTable.$inferInsert = {
     json: { rides, totals, playersWhoPbd },
-    date: format(yesterday, "yyyy-MM-dd"),
+    date: dateStr,
   }
   await db.insert(leaderboardsTable).values(ridesJson)
+
+  if (!postEmbeds) {
+    return
+  }
 
   const embeds: DiscordEmbed[] = []
   const leaderboardSize = Number(process.env["LEADERBOARD_SIZE"]) || 10
@@ -295,9 +351,9 @@ export async function postLeaderboard(
 
     const embed: DiscordEmbed = {
       type: "rich",
-      title: `Endurance Leaderboard ${yesterday.toISOString().split("T")[0]}`,
+      title: `Endurance Leaderboard ${dateStr}`,
       description:
-        `Combined output across all of yesterday's rides.\r` +
+        `Combined output from all of #TheEggCarton's rides.\r` +
         `Total riders: **${totalRiders}**\r` +
         `Median/Average ride count: **${formatNumber(medianRideCount)}** / **${formatNumber(averageRideCount)}**\r` +
         `Combined Output: ${totalOutputStr}`,
@@ -367,16 +423,28 @@ export async function postLeaderboard(
 }
 
 async function getAndPostWorkouts(): Promise<void> {
-  // Scheduler calls this every interval
+  // Get target date from command line args if provided, otherwise use yesterday
+  const dateStr =
+    process.argv[2] ??
+    format(subDays(new TZDate(new Date(), "America/Chicago"), 1), "yyyy-MM-dd")
+
+  // Validate date format
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    console.error("Date must be in YYYY-MM-DD format")
+    process.exit(1)
+  }
+
   const api = new PelotonAPI()
   await api.login()
 
-  const nlUserId = "efc2317a6aad48218488a27bf8b0e460"
-  await postWorkouts(api, nlUserId)
+  // const nlUserId = "efc2317a6aad48218488a27bf8b0e460"
+  // await postWorkouts(api, nlUserId)
 
   const leaderboardUserId =
     process.env["LEADERBOARD_USER_ID"] ?? "efc2317a6aad48218488a27bf8b0e460"
-  await postLeaderboard(api, leaderboardUserId)
+  await postLeaderboard(api, leaderboardUserId, false, dateStr)
+
+  console.log("Done")
 }
 
 await getAndPostWorkouts()

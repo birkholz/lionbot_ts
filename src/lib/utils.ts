@@ -192,35 +192,6 @@ export function isWithinInterval(
   return dt > minDt
 }
 
-export function isPreviousDay(workout: {
-  created_at: number
-  timezone: string | null
-}): boolean {
-  if (!workout.timezone) {
-    return false
-  }
-
-  const dt = new Date(workout.created_at * 1000)
-  const now = new Date()
-
-  // Get yesterday's date in user's timezone
-  const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000)
-
-  // Set to user's timezone
-  const userDt = new Date(
-    dt.toLocaleString("en-US", { timeZone: workout.timezone }),
-  )
-  const userYesterday = new Date(
-    yesterday.toLocaleString("en-US", { timeZone: workout.timezone }),
-  )
-
-  // Get start and end of yesterday in user's timezone
-  const minDt = new Date(userYesterday.setHours(0, 0, 0, 0))
-  const maxDt = new Date(userYesterday.setHours(23, 59, 59, 999))
-
-  return userDt > minDt && userDt < maxDt
-}
-
 export function humanize(i: number): string {
   return ordinal(i + 1)
 }

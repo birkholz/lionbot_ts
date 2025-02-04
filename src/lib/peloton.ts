@@ -1,5 +1,6 @@
+import { TZDate } from "@date-fns/tz"
+import { format } from "date-fns"
 import makeFetchCookie, { type FetchCookieImpl } from "fetch-cookie"
-
 // Types
 interface LoginPayload {
   username_or_email: string
@@ -399,31 +400,51 @@ export class PelotonAPI {
     })
   }
 
-  async getWorkouts(userId: string): Promise<Workout[]> {
-    const requestUrl = `https://api.onepeloton.com/api/user/${userId}/workouts?joins=ride,ride.instructor`
+  async getWorkouts(
+    userId: string,
+    startTime?: Date,
+    endTime?: Date,
+  ): Promise<Workout[]> {
+    const allWorkouts: Workout[] = []
+    let page = 0
+    let hasMore = true
+    const limit = 100 // Max allowed by Peloton API
 
-    try {
-      const response = await this.fetch(requestUrl, this.defaultOptions)
+    while (hasMore) {
+      let requestUrl = `https://api.onepeloton.com/api/user/${userId}/workouts?joins=ride,ride.instructor&page=${page}&limit=${limit}`
 
-      if (response.status === 401) {
-        await this.login()
-        return this.getWorkouts(userId)
-      }
-      if (response.status === 403) {
-        // Private user, must accept follow to view workouts
-        return []
-      }
-      if (response.status >= 500) {
-        console.error(`Peloton API returned ${response.status}.`)
-        process.exit(1)
+      if (startTime && endTime) {
+        requestUrl += `&from=${startTime.toISOString()}&to=${endTime.toISOString()}`
       }
 
-      const data = (await response.json()) as WorkoutResponse
-      return data.data
-    } catch (error) {
-      console.error("Failed to fetch workouts:", error)
-      throw error
+      try {
+        const response = await this.fetch(requestUrl, this.defaultOptions)
+
+        if (response.status === 401) {
+          await this.login()
+          return this.getWorkouts(userId, startTime, endTime)
+        }
+        if (response.status === 403) {
+          // Private user, must accept follow to view workouts
+          return []
+        }
+        if (response.status >= 500) {
+          console.error(`Peloton API returned ${response.status}.`)
+          process.exit(1)
+        }
+
+        const data = (await response.json()) as WorkoutResponse
+        allWorkouts.push(...data.data)
+        hasMore = data.show_next
+
+        page++
+      } catch (error) {
+        console.error("Failed to fetch workouts:", error)
+        throw error
+      }
     }
+
+    return allWorkouts
   }
 
   async getUsersInTag(
