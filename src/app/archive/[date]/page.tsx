@@ -53,7 +53,12 @@ export default async function DatePage({ params }: Props) {
   const leaderboard = await getLeaderboardByDate(date)
 
   if (!leaderboard || !leaderboard.json) {
-    return <NoLeaderboard />
+    return (
+      <div className="relative">
+        <DateNavigation />
+        <NoLeaderboard />
+      </div>
+    )
   }
 
   const dateRange = getLeaderboardDateRange()

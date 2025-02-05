@@ -16,7 +16,12 @@ export default async function LatestPage() {
   const date = leaderboard?.date || new Date().toISOString().split("T")[0]
 
   if (!leaderboard || !leaderboard.json) {
-    return <NoLeaderboard />
+    return (
+      <div className="relative">
+        <DateNavigation />
+        <NoLeaderboard />
+      </div>
+    )
   }
   const dateRange = getLeaderboardDateRange()
 

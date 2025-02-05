@@ -126,6 +126,16 @@ export async function getUserStats(): Promise<UserStats[]> {
 
 export async function getUserStatsWithAvatars(): Promise<UserStats[]> {
   const stats = await getUserStats()
+
+  if (process.env.NODE_ENV === "development") {
+    // In development, use placeholder images for faster loading
+    return stats.map((user) => ({
+      ...user,
+      avatar_url: `https://placehold.co/21x21/red/red.webp`,
+    }))
+  }
+
+  // In production, fetch real avatars from Peloton
   const peloton = new PelotonAPI()
   await peloton.login()
   const { users: tagUsers } = await peloton.getUsersInTag("TheEggCarton")
