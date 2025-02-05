@@ -5,6 +5,7 @@ import { TZDate } from "@date-fns/tz"
 import {
   getLeaderboardByDate,
   getLeaderboardDateRange,
+  getUserAvatars,
 } from "@services/leaderboard"
 import { addDays, format, isMatch, subDays } from "date-fns"
 import { notFound } from "next/navigation"
@@ -50,7 +51,10 @@ export default async function DatePage({ params }: Props) {
     notFound()
   }
 
-  const leaderboard = await getLeaderboardByDate(date)
+  const [leaderboard, avatars] = await Promise.all([
+    getLeaderboardByDate(date),
+    getUserAvatars(),
+  ])
 
   if (!leaderboard || !leaderboard.json) {
     return (
@@ -70,6 +74,7 @@ export default async function DatePage({ params }: Props) {
         date={date}
         leaderboard={leaderboard}
         dateRange={dateRange}
+        avatars={avatars}
       />
     </div>
   )

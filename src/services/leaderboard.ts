@@ -1,9 +1,10 @@
+"use server"
+
 import { db } from "@db/client"
 import { leaderboardsTable } from "@db/schema"
-import type { LeaderboardJson, EffortZones } from "@types"
+import type { EffortZones, LeaderboardJson } from "@types"
 import { format } from "date-fns"
 import { asc, desc, eq } from "drizzle-orm"
-import { PelotonAPI } from "@lib/peloton"
 
 export interface Leaderboard {
   date: string
@@ -134,31 +135,52 @@ export async function getUserStats(): Promise<UserStats[]> {
   )
 }
 
-export async function getUserStatsWithAvatars(): Promise<UserStats[]> {
-  const stats = await getUserStats()
-
+export async function getUserAvatars(): Promise<
+  Array<{ username: string; avatar_url: string }>
+> {
   if (process.env.NODE_ENV === "development") {
     // In development, use placeholder images for faster loading
-    return stats.map((user) => ({
-      ...user,
-      avatar_url: `https://placehold.co/21x21/red/red.webp`,
-    }))
+    return []
   }
 
-  // In production, fetch real avatars from Peloton
-  const peloton = new PelotonAPI()
-  await peloton.login()
-  const { users: tagUsers } = await peloton.getUsersInTag("TheEggCarton")
-
-  // Create a map of username to avatar URL for quick lookups
-  const avatarMap = new Map(
-    tagUsers.map((user) => [user.username, user.avatar_url]),
+  // Use Next.js data cache with fetch
+  const response = await fetch(
+    "https://gql-graphql-gateway.prod.k8s.onepeloton.com/graphql?query=TagDetail",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env["PELOTON_TOKEN"]}`,
+      },
+      body: JSON.stringify({
+        operationName: "TagDetail",
+        query:
+          "query TagDetail($tagName: String!) {tag(tagName: $tagName) {name followingCount assets { backgroundImage { location __typename } detailBackgroundImage { location __typename } __typename } users { totalCount edges { node { id username assets { image { location __typename } __typename } followStatus protectedFields { ... on UserProtectedFields { totalWorkoutCounts __typename } ... on UserPrivacyError { code message __typename } __typename } __typename } __typename } pageInfo { hasNextPage endCursor __typename } __typename } __typename } }",
+        variables: {
+          tagName: "TheEggCarton",
+        },
+      }),
+      // Use force-cache to ensure Next.js caches this request
+      cache: "force-cache",
+    },
   )
 
-  // Add avatar URLs to the stats
-  return stats.map((user) => ({
-    ...user,
-    avatar_url: avatarMap.get(user.username),
+  if (!response.ok) {
+    console.error("Failed to fetch users in tag:", response.status)
+    return []
+  }
+
+  const data = await response.json()
+
+  // Check if we got valid data back
+  if (!data?.data?.tag?.users?.edges) {
+    console.error("Invalid response from Peloton API:", data)
+    return []
+  }
+
+  return data.data.tag.users.edges.map((edge: any) => ({
+    username: edge.node.username,
+    avatar_url: edge.node.assets.image.location,
   }))
 }
 

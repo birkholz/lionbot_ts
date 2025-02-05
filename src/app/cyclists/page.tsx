@@ -8,7 +8,8 @@ import {
   TableRow,
 } from "@components/ui/table"
 import { UserAvatar } from "@components/user-avatar"
-import { getCachedUserStats } from "@lib/data"
+import { getAvatarUrl } from "@lib/utils"
+import { getUserAvatars, getUserStats } from "@services/leaderboard"
 import type { Metadata } from "next"
 import Link from "next/link"
 
@@ -43,7 +44,10 @@ function getOutputUnit(output: number): string {
 }
 
 export default async function Users() {
-  const userStats = await getCachedUserStats()
+  const [userStats, avatars] = await Promise.all([
+    getUserStats(),
+    getUserAvatars(),
+  ])
 
   return (
     <div>
@@ -81,13 +85,11 @@ export default async function Users() {
             <TableRow key={user.username}>
               <TableCell>
                 <div className="flex items-center gap-2">
-                  {user.avatar_url && (
-                    <UserAvatar
-                      avatar_url={user.avatar_url}
-                      width={21}
-                      height={21}
-                    />
-                  )}
+                  <UserAvatar
+                    avatar_url={getAvatarUrl(user.username, avatars)}
+                    width={21}
+                    height={21}
+                  />
                   <Link
                     href={`/cyclist/${user.username}`}
                     className="text-primary hover:text-primary/80 hover:underline"

@@ -13,9 +13,15 @@ interface Props {
     json: LeaderboardJson
   }
   dateRange: Promise<DateRange>
+  avatars: Array<{ username: string; avatar_url: string }>
 }
 
-export function LeaderboardPage({ date, leaderboard, dateRange }: Props) {
+export function LeaderboardPage({
+  date,
+  leaderboard,
+  dateRange,
+  avatars,
+}: Props) {
   const { setDate, setDateRange } = useLeaderboardState()
   const range = use(dateRange)
   const initializedRef = useRef(false)
@@ -70,6 +76,7 @@ export function LeaderboardPage({ date, leaderboard, dateRange }: Props) {
       averageRideCount={averageRideCount}
       totalOutput={totalOutput}
       PBList={PBList}
+      avatars={avatars}
     />
   )
 }

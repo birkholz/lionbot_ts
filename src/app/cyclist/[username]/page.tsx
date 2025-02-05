@@ -7,7 +7,12 @@ import {
   TableRow,
 } from "@components/ui/table"
 import { UserAvatar } from "@components/user-avatar"
-import { getCachedUserRides, getCachedUserStats } from "@lib/data"
+import { getAvatarUrl } from "@lib/utils"
+import {
+  getUserAvatars,
+  getUserRides,
+  getUserStats,
+} from "@services/leaderboard"
 import { ExternalLink } from "lucide-react"
 import type { Metadata } from "next"
 import Link from "next/link"
@@ -19,18 +24,15 @@ interface Props {
   }>
 }
 
-// TODO: Uncomment this when we fix whatever is causing the build to fail
-// export async function generateStaticParams() {
-//   if (process.env.NODE_ENV === "development") {
-//     return []
-//   }
-//   const userStats = await getCachedUserStats()
-//   return userStats.map((user) => ({
-//     username: user.username,
-//   }))
-// }
-
-export const maxDuration = 45
+export async function generateStaticParams() {
+  if (process.env.NODE_ENV === "development") {
+    return []
+  }
+  const userStats = await getUserStats()
+  return userStats.map((user) => ({
+    username: user.username,
+  }))
+}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { username } = await params
@@ -41,9 +43,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function CyclistProfile({ params }: Props) {
   const { username } = await params
-  const userStats = await getCachedUserStats()
+  const [userStats, avatars, rides] = await Promise.all([
+    getUserStats(),
+    getUserAvatars(),
+    getUserRides(username),
+  ])
   const stats = userStats.find((user) => user.username === username)
-  const rides = await getCachedUserRides(username)
+  const avatar_url = getAvatarUrl(username, avatars)
 
   if (!stats) {
     notFound()
@@ -52,9 +58,7 @@ export default async function CyclistProfile({ params }: Props) {
   return (
     <>
       <div className="mb-8 flex items-center justify-center gap-4">
-        {stats.avatar_url && (
-          <UserAvatar avatar_url={stats.avatar_url} width={80} height={80} />
-        )}
+        <UserAvatar avatar_url={avatar_url} width={80} height={80} />
         <div>
           <h1 className="text-3xl font-bold">
             <a

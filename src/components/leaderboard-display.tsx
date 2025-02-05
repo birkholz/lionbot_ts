@@ -16,7 +16,8 @@ import {
   TableRow,
 } from "@components/ui/table"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip"
-import { humanize, localizeNumber } from "@lib/utils"
+import { UserAvatar } from "@components/user-avatar"
+import { getAvatarUrl, humanize, localizeNumber } from "@lib/utils"
 import { Sparkle } from "lucide-react"
 import Image from "next/image"
 import pluralize from "pluralize"
@@ -41,6 +42,7 @@ export function LeaderboardDisplay(props: LeaderboardDisplayProps) {
     averageRideCount,
     totalOutput,
     PBList,
+    avatars,
   } = props
   const accordionRef = React.useRef<HTMLDivElement>(null)
   const { useMetric, numberFormat, autoOpen } = useLeaderboardState()
@@ -203,13 +205,23 @@ export function LeaderboardDisplay(props: LeaderboardDisplayProps) {
                     >
                       <TableCell>{humanize(i)}</TableCell>
                       <TableCell>
-                        <a
-                          target="_blank"
-                          className="text-primary hover:text-primary/80 hover:underline"
-                          href={`https://members.onepeloton.com/members/${workout.user_username}/overview`}
-                        >
-                          {workout.user_username}
-                        </a>
+                        <div className="flex items-center gap-2">
+                          <UserAvatar
+                            avatar_url={getAvatarUrl(
+                              workout.user_username,
+                              avatars,
+                            )}
+                            width={21}
+                            height={21}
+                          />
+                          <a
+                            target="_blank"
+                            className="text-primary hover:text-primary/80 hover:underline"
+                            href={`https://members.onepeloton.com/members/${workout.user_username}/overview`}
+                          >
+                            {workout.user_username}
+                          </a>
+                        </div>
                       </TableCell>
                       <TableCell>
                         {localizeNumber(
@@ -330,13 +342,20 @@ export function LeaderboardDisplay(props: LeaderboardDisplayProps) {
                     <TableRow key={user.username}>
                       <TableCell>{humanize(i)}</TableCell>
                       <TableCell>
-                        <a
-                          target="_blank"
-                          className="text-primary hover:text-primary/80 hover:underline"
-                          href={`https://members.onepeloton.com/members/${user.username}/overview`}
-                        >
-                          {user.username}
-                        </a>
+                        <div className="flex items-center gap-2">
+                          <UserAvatar
+                            avatar_url={getAvatarUrl(user.username, avatars)}
+                            width={21}
+                            height={21}
+                          />
+                          <a
+                            target="_blank"
+                            className="text-primary hover:text-primary/80 hover:underline"
+                            href={`https://members.onepeloton.com/members/${user.username}/overview`}
+                          >
+                            {user.username}
+                          </a>
+                        </div>
                       </TableCell>
                       <TableCell>
                         {localizeNumber(
@@ -387,13 +406,20 @@ export function LeaderboardDisplay(props: LeaderboardDisplayProps) {
                   {PBList.map(([username, pbs]) => (
                     <TableRow key={username}>
                       <TableCell>
-                        <a
-                          target="_blank"
-                          className="text-primary hover:text-primary/80 hover:underline"
-                          href={`https://members.onepeloton.com/members/${username}/overview`}
-                        >
-                          {username}
-                        </a>
+                        <div className="flex items-center gap-2">
+                          <UserAvatar
+                            avatar_url={getAvatarUrl(username, avatars)}
+                            width={21}
+                            height={21}
+                          />
+                          <a
+                            target="_blank"
+                            className="text-primary hover:text-primary/80 hover:underline"
+                            href={`https://members.onepeloton.com/members/${username}/overview`}
+                          >
+                            {username}
+                          </a>
+                        </div>
                       </TableCell>
                       <TableCell>
                         {pbs.map((pb) => (

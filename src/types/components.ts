@@ -29,4 +29,5 @@ export type LeaderboardDisplayProps = {
   averageRideCount: number
   totalOutput: number
   PBList: [string, { total_work: number; duration: number }[]][]
+  avatars: Array<{ username: string; avatar_url: string }>
 }

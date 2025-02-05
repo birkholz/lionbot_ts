@@ -375,29 +375,12 @@ interface TagDetailVariables {
 }
 
 export class PelotonAPI {
-  private fetch: FetchCookieImpl<string | URL | Request, RequestInit, Response>
   private readonly defaultOptions: RequestInit = {
     credentials: "include",
     headers: {
       "Content-Type": "application/json",
+      Authorization: `Bearer ${process.env["PELOTON_TOKEN"]}`,
     },
-  }
-
-  constructor() {
-    this.fetch = makeFetchCookie(fetch)
-  }
-
-  async login(): Promise<void> {
-    const payload: LoginPayload = {
-      username_or_email: process.env["PELOTON_USERNAME"] || "",
-      password: process.env["PELOTON_PASSWORD"] || "",
-    }
-
-    await this.fetch("https://api.onepeloton.com/auth/login", {
-      ...this.defaultOptions,
-      method: "POST",
-      body: JSON.stringify(payload),
-    })
   }
 
   async getWorkouts(
@@ -418,10 +401,10 @@ export class PelotonAPI {
       }
 
       try {
-        const response = await this.fetch(requestUrl, this.defaultOptions)
+        const response = await fetch(requestUrl, this.defaultOptions)
 
         if (response.status === 401) {
-          await this.login()
+          // await this.login()
           return this.getWorkouts(userId, startTime, endTime)
         }
         if (response.status === 403) {
@@ -472,23 +455,31 @@ export class PelotonAPI {
     }
 
     try {
-      const response = await this.fetch(requestUrl, {
+      const response = await fetch(requestUrl, {
         ...this.defaultOptions,
         method: "POST",
         body: JSON.stringify(body),
       })
 
       if (response.status === 401) {
-        await this.login()
+        // await this.login()
         return this.getUsersInTag(tag, after)
       }
       if (response.status === 503) {
         console.error("Peloton API returned 503.")
-        process.exit(1)
+        // Return empty list instead of exiting
+        return { users: [] }
       }
 
-      const data = (await response.json()) as TagDetailResponse
-      const users = data.data.tag.users.edges.map((edge) => ({
+      const data = await response.json()
+
+      // Check if we got valid data back
+      if (!data?.data?.tag?.users?.edges) {
+        console.error("Invalid response from Peloton API:", data)
+        return { users: [] }
+      }
+
+      const users = data.data.tag.users.edges.map((edge: UserEdge) => ({
         id: edge.node.id,
         username: edge.node.username,
         avatar_url: edge.node.assets.image.location,
@@ -508,7 +499,8 @@ export class PelotonAPI {
       return { users }
     } catch (error) {
       console.error("Failed to fetch users in tag:", error)
-      throw error
+      // Return empty list instead of throwing
+      return { users: [] }
     }
   }
 
@@ -518,10 +510,10 @@ export class PelotonAPI {
     const requestUrl = `https://api.onepeloton.com/api/workout/${workoutId}/performance_graph`
 
     try {
-      const response = await this.fetch(requestUrl, this.defaultOptions)
+      const response = await fetch(requestUrl, this.defaultOptions)
 
       if (response.status === 401) {
-        await this.login()
+        // await this.login()
         return this.getWorkoutPerformanceData(workoutId)
       }
       if (response.status >= 400) {
@@ -541,10 +533,10 @@ export class PelotonAPI {
     const requestUrl = `https://api.onepeloton.com/api/workout/${workoutId}`
 
     try {
-      const response = await this.fetch(requestUrl, this.defaultOptions)
+      const response = await fetch(requestUrl, this.defaultOptions)
 
       if (response.status === 401) {
-        await this.login()
+        // await this.login()
         return this.getWorkout(workoutId)
       }
       if (response.status >= 400) {

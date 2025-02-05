@@ -3,6 +3,7 @@ const nextConfig = {
   poweredByHeader: false,
   compress: true,
   reactStrictMode: true,
+  productionBrowserSourceMaps: true,
   images: {
     remotePatterns: [
       {
@@ -46,6 +47,21 @@ const nextConfig = {
         ],
       },
     ]
+  },
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        net: false,
+        tls: false,
+        crypto: false,
+        stream: false,
+        fs: false,
+        os: false,
+        perf_hooks: false,
+      }
+    }
+    return config
   },
 }
 

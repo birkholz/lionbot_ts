@@ -439,7 +439,6 @@ async function getAndPostWorkouts(): Promise<void> {
   }
 
   const api = new PelotonAPI()
-  await api.login()
 
   const nlUserId = "efc2317a6aad48218488a27bf8b0e460"
   await postWorkouts(api, nlUserId)
@@ -451,7 +450,6 @@ async function getAndPostWorkouts(): Promise<void> {
 
 async function getAllPastLeaderboards(): Promise<void> {
   const api = new PelotonAPI()
-  await api.login()
 
   // Publish date of the supercut
   let dateStr = "2023-09-21"

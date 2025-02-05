@@ -223,6 +223,14 @@ export function localizeNumber(
   }).format(x)
 }
 
+export function getAvatarUrl(
+  username: string,
+  avatars: Array<{ username: string; avatar_url: string }>,
+): string {
+  const avatar = avatars.find((a) => a.username === username)
+  return avatar?.avatar_url ?? `https://placehold.co/21x21/red/red.webp`
+}
+
 export async function withRetry<T>(
   operation: () => Promise<T>,
   maxRetries: number = 5,
