@@ -14,9 +14,9 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 
 interface Props {
-  params: {
+  params: Promise<{
     username: string
-  }
+  }>
 }
 
 export async function generateStaticParams() {
