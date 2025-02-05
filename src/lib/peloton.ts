@@ -450,9 +450,11 @@ export class PelotonAPI {
   async getUsersInTag(
     tag: string,
     after?: string,
-  ): Promise<{ users: Array<{ id: string; username: string }> }> {
+  ): Promise<{
+    users: Array<{ id: string; username: string; avatar_url: string }>
+  }> {
     const requestUrl =
-      "https://gql-graphql-gateway.prod.k8s.onepeloton.com/graphql"
+      "https://gql-graphql-gateway.prod.k8s.onepeloton.com/graphql?query=TagDetail"
     const body: {
       operationName: string
       query: string
@@ -489,6 +491,7 @@ export class PelotonAPI {
       const users = data.data.tag.users.edges.map((edge) => ({
         id: edge.node.id,
         username: edge.node.username,
+        avatar_url: edge.node.assets.image.location,
       }))
 
       // Check if there are more pages

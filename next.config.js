@@ -10,7 +10,12 @@ const nextConfig = {
         hostname: "s3.amazonaws.com",
         port: "",
         pathname: "/peloton-ride-images/**",
-        search: "",
+      },
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+        port: "",
+        pathname: "/**",
       },
     ],
   },

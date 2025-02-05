@@ -3,6 +3,7 @@ import { leaderboardsTable } from "@db/schema"
 import type { LeaderboardJson } from "@types"
 import { format } from "date-fns"
 import { asc, desc, eq } from "drizzle-orm"
+import { PelotonAPI } from "@lib/peloton"
 
 export interface Leaderboard {
   date: string
@@ -20,6 +21,7 @@ export interface UserStats {
   totalRides: number
   highestPbRate?: number
   highestOutput?: number
+  avatar_url?: string
 }
 
 export async function getLeaderboardDateRange(): Promise<DateRange> {
@@ -120,4 +122,22 @@ export async function getUserStats(): Promise<UserStats[]> {
   return Array.from(userStats.values()).sort(
     (a, b) => b.totalRides - a.totalRides,
   )
+}
+
+export async function getUserStatsWithAvatars(): Promise<UserStats[]> {
+  const stats = await getUserStats()
+  const peloton = new PelotonAPI()
+  await peloton.login()
+  const { users: tagUsers } = await peloton.getUsersInTag("TheEggCarton")
+
+  // Create a map of username to avatar URL for quick lookups
+  const avatarMap = new Map(
+    tagUsers.map((user) => [user.username, user.avatar_url]),
+  )
+
+  // Add avatar URLs to the stats
+  return stats.map((user) => ({
+    ...user,
+    avatar_url: avatarMap.get(user.username),
+  }))
 }

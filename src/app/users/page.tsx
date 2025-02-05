@@ -6,17 +6,15 @@ import {
   TableHeader,
   TableRow,
 } from "@components/ui/table"
+import { UserAvatar } from "@components/user-avatar"
 import { UsersChart } from "@components/users-chart"
-import { getUserStats } from "@services/leaderboard"
+import { getUserStatsWithAvatars } from "@services/leaderboard"
 import type { Metadata } from "next"
 import Link from "next/link"
 
 export const metadata: Metadata = {
   title: "#TheEggCarton Users",
 }
-
-// Force dynamic rendering, revalidation happens in the cron job
-export const dynamic = "force-dynamic"
 
 function formatRate(rate?: number): string {
   if (!rate) return "-"
@@ -45,7 +43,7 @@ function getOutputUnit(output: number): string {
 }
 
 export default async function Users() {
-  const userStats = await getUserStats()
+  const userStats = await getUserStatsWithAvatars()
 
   return (
     <div>
@@ -76,13 +74,22 @@ export default async function Users() {
           {userStats.map((user) => (
             <TableRow key={user.username}>
               <TableCell>
-                <a
-                  href={`https://members.onepeloton.com/members/${user.username}/overview`}
-                  target="_blank"
-                  className="text-blue-500 hover:text-blue-400 hover:underline"
-                >
-                  {user.username}
-                </a>
+                <div className="flex items-center gap-2">
+                  {user.avatar_url && (
+                    <UserAvatar
+                      avatar_url={user.avatar_url}
+                      width={21}
+                      height={21}
+                    />
+                  )}
+                  <a
+                    href={`https://members.onepeloton.com/members/${user.username}/overview`}
+                    target="_blank"
+                    className="text-blue-500 hover:text-blue-400 hover:underline"
+                  >
+                    {user.username}
+                  </a>
+                </div>
               </TableCell>
               <TableCell>
                 <Link

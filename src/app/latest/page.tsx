@@ -7,9 +7,6 @@ import {
 } from "@services/leaderboard"
 import type { Metadata } from "next"
 
-// Force dynamic rendering, revalidation happens in the cron job
-export const dynamic = "force-dynamic"
-
 export const metadata: Metadata = {
   title: "#TheEggCarton Leaderboards",
 }

@@ -33,7 +33,10 @@ export default function Loading() {
           {Array.from({ length: 10 }).map((_, i) => (
             <TableRow key={i}>
               <TableCell>
-                <Skeleton className="h-4 w-40" />
+                <div className="flex items-center gap-2">
+                  <Skeleton className="h-[21px] w-[21px] rounded-full" />
+                  <Skeleton className="h-4 w-40" />
+                </div>
               </TableCell>
               <TableCell>
                 <Skeleton className="h-4 w-24" />
