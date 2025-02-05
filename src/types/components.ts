@@ -1,8 +1,7 @@
-import type { EffortZones, PBInfo, UserTotal } from "./peloton"
+import type { EffortZones, UserTotal } from "./peloton"
 
 export type Workout = {
   user_username: string
-  avatar_url?: string
   total_work: number
   is_new_pb: boolean
   avg_cadence: number
@@ -22,20 +21,12 @@ export type Ride = {
   workouts: Workout[]
 }
 
-export type UserTotalWithAvatar = {
-  username: string
-  avatar_url?: string
-  output: number
-  rides: number
-  duration: number
-}
-
 export type LeaderboardDisplayProps = {
   rides: Ride[]
   totals: Record<string, UserTotal>
-  totalsList: UserTotalWithAvatar[]
+  totalsList: UserTotal[]
   totalRiders: number
   averageRideCount: number
   totalOutput: number
-  PBList: [string, string | undefined, PBInfo[]][]
+  PBList: [string, { total_work: number; duration: number }[]][]
 }

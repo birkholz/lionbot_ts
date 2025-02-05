@@ -5,11 +5,10 @@ import { TZDate } from "@date-fns/tz"
 import {
   getLeaderboardByDate,
   getLeaderboardDateRange,
-  getUserAvatars,
 } from "@services/leaderboard"
 import { addDays, format, isMatch, subDays } from "date-fns"
-import type { Metadata } from "next"
 import { notFound } from "next/navigation"
+import type { Metadata } from "next"
 
 export async function generateStaticParams() {
   if (process.env.NODE_ENV === "development") {
@@ -63,7 +62,6 @@ export default async function DatePage({ params }: Props) {
   }
 
   const dateRange = getLeaderboardDateRange()
-  const avatars = await getUserAvatars()
 
   return (
     <div className="relative">
@@ -72,7 +70,6 @@ export default async function DatePage({ params }: Props) {
         date={date}
         leaderboard={leaderboard}
         dateRange={dateRange}
-        avatars={avatars}
       />
     </div>
   )

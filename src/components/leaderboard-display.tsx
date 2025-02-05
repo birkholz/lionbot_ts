@@ -28,8 +28,6 @@ import type {
   Workout,
 } from "../types/components"
 import { useLeaderboardState } from "./leaderboard-state"
-import { UserAvatar } from "@components/user-avatar"
-
 function sortWorkouts(workouts: Workout[]): Workout[] {
   return [...workouts].sort((a, b) => b.total_work - a.total_work)
 }
@@ -205,22 +203,13 @@ export function LeaderboardDisplay(props: LeaderboardDisplayProps) {
                     >
                       <TableCell>{humanize(i)}</TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-2">
-                          {workout.avatar_url && (
-                            <UserAvatar
-                              avatar_url={workout.avatar_url}
-                              width={21}
-                              height={21}
-                            />
-                          )}
-                          <a
-                            target="_blank"
-                            className="text-blue-500 hover:text-blue-400 hover:underline"
-                            href={`https://members.onepeloton.com/members/${workout.user_username}/overview`}
-                          >
-                            {workout.user_username}
-                          </a>
-                        </div>
+                        <a
+                          target="_blank"
+                          className="text-blue-500 hover:text-blue-400 hover:underline"
+                          href={`https://members.onepeloton.com/members/${workout.user_username}/overview`}
+                        >
+                          {workout.user_username}
+                        </a>
                       </TableCell>
                       <TableCell>
                         {localizeNumber(
@@ -341,22 +330,13 @@ export function LeaderboardDisplay(props: LeaderboardDisplayProps) {
                     <TableRow key={user.username}>
                       <TableCell>{humanize(i)}</TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-2">
-                          {user.avatar_url && (
-                            <UserAvatar
-                              avatar_url={user.avatar_url}
-                              width={21}
-                              height={21}
-                            />
-                          )}
-                          <a
-                            target="_blank"
-                            className="text-blue-500 hover:text-blue-400 hover:underline"
-                            href={`https://members.onepeloton.com/members/${user.username}/overview`}
-                          >
-                            {user.username}
-                          </a>
-                        </div>
+                        <a
+                          target="_blank"
+                          className="text-blue-500 hover:text-blue-400 hover:underline"
+                          href={`https://members.onepeloton.com/members/${user.username}/overview`}
+                        >
+                          {user.username}
+                        </a>
                       </TableCell>
                       <TableCell>
                         {localizeNumber(
@@ -404,25 +384,16 @@ export function LeaderboardDisplay(props: LeaderboardDisplayProps) {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {PBList.map(([username, avatar_url, pbs]) => (
+                  {PBList.map(([username, pbs]) => (
                     <TableRow key={username}>
                       <TableCell>
-                        <div className="flex items-center gap-2">
-                          {avatar_url && (
-                            <UserAvatar
-                              avatar_url={avatar_url}
-                              width={21}
-                              height={21}
-                            />
-                          )}
-                          <a
-                            target="_blank"
-                            className="text-blue-500 hover:text-blue-400 hover:underline"
-                            href={`https://members.onepeloton.com/members/${username}/overview`}
-                          >
-                            {username}
-                          </a>
-                        </div>
+                        <a
+                          target="_blank"
+                          className="text-blue-500 hover:text-blue-400 hover:underline"
+                          href={`https://members.onepeloton.com/members/${username}/overview`}
+                        >
+                          {username}
+                        </a>
                       </TableCell>
                       <TableCell>
                         {pbs.map((pb) => (
