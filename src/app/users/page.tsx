@@ -48,7 +48,7 @@ export default async function Users() {
   return (
     <div>
       <h1 className="mb-6 text-center text-2xl font-bold">
-        <span className="text-primary">#{userStats.length}</span> Users
+        <span className="text-primary">{userStats.length}</span> Users
       </h1>
       <UsersChart users={userStats} />
       <p className="mx-4 mb-2 text-left text-sm text-muted-foreground">
