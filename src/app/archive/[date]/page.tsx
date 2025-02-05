@@ -31,9 +31,9 @@ export async function generateStaticParams() {
 }
 
 interface Props {
-  params: {
+  params: Promise<{
     date: string
-  }
+  }>
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -43,11 +43,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-export default async function DatePage({
-  params,
-}: {
-  params: Promise<{ date: string }>
-}) {
+export default async function DatePage({ params }: Props) {
   const { date } = await params
 
   if (!isMatch(date, "yyyy-MM-dd")) {
