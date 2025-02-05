@@ -17,7 +17,7 @@ export default function Loading() {
         <Skeleton className="h-[350px] w-full" />
       </div>
       <div className="mx-8 mb-2">
-        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-60 w-full" />
       </div>
       <Table>
         <TableHeader>

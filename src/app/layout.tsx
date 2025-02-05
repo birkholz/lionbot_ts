@@ -1,18 +1,12 @@
 import { LeaderboardSettings } from "@components/leaderboard-settings"
 import { LeaderboardProvider } from "@components/leaderboard-state"
+import { Navigation } from "@components/navigation"
 import { ThemeProvider } from "@components/theme-provider"
-import {
-  NavigationMenu,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  navigationMenuTriggerStyle,
-} from "@components/ui/navigation-menu"
 import { TooltipProvider } from "@components/ui/tooltip"
-import { cn } from "@lib/utils"
 import "@styles/globals.css"
 import { Analytics } from "@vercel/analytics/react"
 import Link from "next/link"
+
 export const viewport = {
   width: "device-width",
   initialScale: 1.0,
@@ -52,38 +46,7 @@ export default function RootLayout({
                     <span className="text-primary">#TheEggCarton</span>
                   </Link>
                 </h1>
-                <NavigationMenu className="my-4 max-w-full">
-                  <NavigationMenuList>
-                    <NavigationMenuItem>
-                      <Link href="/latest" legacyBehavior passHref>
-                        <NavigationMenuLink
-                          className={navigationMenuTriggerStyle()}
-                        >
-                          Leaderboards
-                        </NavigationMenuLink>
-                      </Link>
-                    </NavigationMenuItem>
-                    <NavigationMenuItem>
-                      <Link href="/users" legacyBehavior passHref>
-                        <NavigationMenuLink
-                          className={navigationMenuTriggerStyle()}
-                        >
-                          Users
-                        </NavigationMenuLink>
-                      </Link>
-                    </NavigationMenuItem>
-                    <NavigationMenuItem>
-                      <NavigationMenuLink
-                        className={cn(
-                          navigationMenuTriggerStyle(),
-                          "pointer-events-none opacity-50 hover:bg-background hover:text-foreground",
-                        )}
-                      >
-                        Daily Game
-                      </NavigationMenuLink>
-                    </NavigationMenuItem>
-                  </NavigationMenuList>
-                </NavigationMenu>
+                <Navigation />
                 <LeaderboardSettings />
                 {children}
               </article>

@@ -58,7 +58,11 @@ export default async function Users() {
         >
           2023-09-22
         </Link>
-        . Stats are based only on group rides.
+        .
+      </p>
+      <p className="mx-4 mb-2 text-left text-sm text-muted-foreground">
+        Total Rides only counts group rides, while Highest Wattage and Highest
+        Output are based on all rides since the start of the leaderboards.
       </p>
       <Table>
         <TableHeader>
