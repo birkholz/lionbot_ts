@@ -19,15 +19,16 @@ interface Props {
   }>
 }
 
-export async function generateStaticParams() {
-  if (process.env.NODE_ENV === "development") {
-    return []
-  }
-  const userStats = await getCachedUserStats()
-  return userStats.map((user) => ({
-    username: user.username,
-  }))
-}
+// TODO: Uncomment this when we fix whatever is causing the build to fail
+// export async function generateStaticParams() {
+//   if (process.env.NODE_ENV === "development") {
+//     return []
+//   }
+//   const userStats = await getCachedUserStats()
+//   return userStats.map((user) => ({
+//     username: user.username,
+//   }))
+// }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { username } = await params
