@@ -30,6 +30,8 @@ interface Props {
 //   }))
 // }
 
+export const maxDuration = 45
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { username } = await params
   return {
