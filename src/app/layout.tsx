@@ -1,12 +1,18 @@
-import "@styles/globals.css"
+import { LeaderboardSettings } from "@components/leaderboard-settings"
+import { LeaderboardProvider } from "@components/leaderboard-state"
 import { ThemeProvider } from "@components/theme-provider"
+import {
+  NavigationMenu,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  navigationMenuTriggerStyle,
+} from "@components/ui/navigation-menu"
 import { TooltipProvider } from "@components/ui/tooltip"
+import { cn } from "@lib/utils"
+import "@styles/globals.css"
 import { Analytics } from "@vercel/analytics/react"
 import Link from "next/link"
-import { LeaderboardProvider } from "@components/leaderboard-state"
-import { DateNavigation } from "@components/date-navigation"
-import { Separator } from "@components/ui/separator"
-import { LeaderboardSettings } from "@components/leaderboard-settings"
 export const viewport = {
   width: "device-width",
   initialScale: 1.0,
@@ -41,15 +47,44 @@ export default function RootLayout({
           <TooltipProvider delayDuration={0}>
             <LeaderboardProvider>
               <article className="relative mx-auto max-w-2xl bg-zinc-900 p-3 lg:mt-4 lg:rounded-xl lg:shadow-md">
-                <h1 className="text-center text-3xl font-bold tracking-tight">
+                <h1 className="text-center text-4xl font-bold tracking-tight">
                   <Link href="/latest" className="cursor-pointer">
-                    <span className="text-primary">#TheEggCarton</span>{" "}
-                    Leaderboards
+                    <span className="text-primary">#TheEggCarton</span>
                   </Link>
                 </h1>
-                <DateNavigation />
+                <NavigationMenu className="my-4 max-w-full">
+                  <NavigationMenuList>
+                    <NavigationMenuItem>
+                      <Link href="/latest" legacyBehavior passHref>
+                        <NavigationMenuLink
+                          className={navigationMenuTriggerStyle()}
+                        >
+                          Leaderboards
+                        </NavigationMenuLink>
+                      </Link>
+                    </NavigationMenuItem>
+                    <NavigationMenuItem>
+                      <Link href="/users" legacyBehavior passHref>
+                        <NavigationMenuLink
+                          className={navigationMenuTriggerStyle()}
+                        >
+                          Users
+                        </NavigationMenuLink>
+                      </Link>
+                    </NavigationMenuItem>
+                    <NavigationMenuItem>
+                      <NavigationMenuLink
+                        className={cn(
+                          navigationMenuTriggerStyle(),
+                          "pointer-events-none opacity-50 hover:bg-background hover:text-foreground",
+                        )}
+                      >
+                        Daily Game
+                      </NavigationMenuLink>
+                    </NavigationMenuItem>
+                  </NavigationMenuList>
+                </NavigationMenu>
                 <LeaderboardSettings />
-                <Separator className="mt-2" />
                 {children}
               </article>
             </LeaderboardProvider>

@@ -1,5 +1,3 @@
-import BaseLoading from "@app/loading"
+import Loading from "@app/latest/loading"
 
-export default function Loading() {
-  return <BaseLoading />
-}
+export default Loading

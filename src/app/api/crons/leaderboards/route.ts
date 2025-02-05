@@ -50,6 +50,7 @@ export async function GET() {
     proc.unref()
 
     revalidatePath("/leaderboard")
+    revalidatePath("/users")
 
     return new NextResponse(null, { status: 204 })
   }

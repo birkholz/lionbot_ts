@@ -54,9 +54,9 @@ export function DateNavigation() {
   }
 
   return (
-    <div className="mt-2 flex items-center justify-center gap-2 text-center text-2xl font-semibold tracking-tight">
+    <div className="mt-2 flex items-center justify-center gap-2 text-center text-3xl font-semibold tracking-tight">
       {isPrevDisabled ? (
-        <span className="cursor-not-allowed text-zinc-500">
+        <span className="pointer-events-none text-zinc-500">
           <ArrowLeft size={30} />
         </span>
       ) : (

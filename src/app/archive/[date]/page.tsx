@@ -1,3 +1,4 @@
+import { DateNavigation } from "@components/date-navigation"
 import { LeaderboardPage } from "@components/leaderboard-page"
 import { NoLeaderboard } from "@components/no-leaderboard"
 import { TZDate } from "@date-fns/tz"
@@ -7,8 +8,12 @@ import {
 } from "@services/leaderboard"
 import { addDays, format, isMatch, subDays } from "date-fns"
 import { notFound } from "next/navigation"
+import type { Metadata } from "next"
 
 export async function generateStaticParams() {
+  if (process.env.NODE_ENV === "development") {
+    return []
+  }
   const { startDate, endDate } = await getLeaderboardDateRange()
   const dates: string[] = []
   let currentDate = new TZDate(startDate, "UTC")
@@ -23,6 +28,19 @@ export async function generateStaticParams() {
   return dates.map((date) => ({
     date,
   }))
+}
+
+interface Props {
+  params: {
+    date: string
+  }
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { date } = await params
+  return {
+    title: `#TheEggCarton Leaderboards - ${date}`,
+  }
 }
 
 export default async function DatePage({
@@ -45,10 +63,13 @@ export default async function DatePage({
   const dateRange = getLeaderboardDateRange()
 
   return (
-    <LeaderboardPage
-      date={date}
-      leaderboard={leaderboard}
-      dateRange={dateRange}
-    />
+    <div className="relative">
+      <DateNavigation />
+      <LeaderboardPage
+        date={date}
+        leaderboard={leaderboard}
+        dateRange={dateRange}
+      />
+    </div>
   )
 }
