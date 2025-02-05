@@ -26,7 +26,7 @@ function formatRate(rate?: number): string {
 }
 
 function formatOutput(output?: number): string {
-  if (!output) return "-"
+  if (!output || !isFinite(output)) return "-"
   if (output >= 1000) {
     return `${(output / 1000).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} `
   }
