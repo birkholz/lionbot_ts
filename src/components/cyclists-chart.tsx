@@ -11,7 +11,7 @@ interface Props {
   users: UserStats[]
 }
 
-export function UsersChart({ users }: Props) {
+export function CyclistsChart({ users }: Props) {
   // Group users by week and count them
   const data = users.reduce<{ date: string; count: number }[]>((acc, user) => {
     // Get the start of the week for this user's first ride
@@ -43,7 +43,7 @@ export function UsersChart({ users }: Props) {
     <ChartContainer
       config={{
         count: {
-          label: "New Riders",
+          label: "New Cyclists",
           color: "hsl(var(--primary))",
         },
       }}
@@ -68,7 +68,7 @@ export function UsersChart({ users }: Props) {
           tickMargin={5}
           dataKey="count"
           label={{
-            value: "New Riders",
+            value: "New Cyclists",
             position: "insideLeft",
             angle: -90,
           }}

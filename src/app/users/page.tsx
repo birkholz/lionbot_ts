@@ -7,7 +7,7 @@ import {
   TableRow,
 } from "@components/ui/table"
 import { UserAvatar } from "@components/user-avatar"
-import { UsersChart } from "@components/users-chart"
+import { CyclistsChart } from "@components/cyclists-chart"
 import { getUserStatsWithAvatars } from "@services/leaderboard"
 import type { Metadata } from "next"
 import Link from "next/link"
@@ -48,12 +48,12 @@ export default async function Users() {
   return (
     <div>
       <h1 className="mb-6 text-center text-2xl font-bold">
-        <span className="text-primary">{userStats.length}</span> Users
+        <span className="text-primary">{userStats.length}</span> Cyclists
       </h1>
-      <UsersChart users={userStats} />
+      <CyclistsChart users={userStats} />
       <p className="mx-4 mb-2 text-left text-sm text-muted-foreground">
-        This is a list of all the users who have joined any of the group rides
-        since the leaderboards started on{" "}
+        This is a list of all the cyclists who have joined any of the group
+        rides since the leaderboards started on{" "}
         <Link
           href="/archive/2023-09-22"
           className="text-blue-500 hover:text-blue-400 hover:underline"

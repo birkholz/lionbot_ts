@@ -49,7 +49,7 @@ export function Navigation() {
                 className={getLinkClasses("/users")}
                 onClick={handleClick}
               >
-                Users
+                Cyclists
               </NavigationMenuLink>
             </Link>
           </NavigationMenuItem>
