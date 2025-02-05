@@ -1,3 +1,4 @@
+import { CyclistsChart } from "@components/cyclists-chart"
 import {
   Table,
   TableBody,
@@ -7,13 +8,12 @@ import {
   TableRow,
 } from "@components/ui/table"
 import { UserAvatar } from "@components/user-avatar"
-import { CyclistsChart } from "@components/cyclists-chart"
-import { getUserStatsWithAvatars } from "@services/leaderboard"
+import { getCachedUserStats } from "@lib/data"
 import type { Metadata } from "next"
 import Link from "next/link"
 
 export const metadata: Metadata = {
-  title: "#TheEggCarton Users",
+  title: "#TheEggCarton Cyclists",
 }
 
 function formatRate(rate?: number): string {
@@ -43,7 +43,7 @@ function getOutputUnit(output: number): string {
 }
 
 export default async function Users() {
-  const userStats = await getUserStatsWithAvatars()
+  const userStats = await getCachedUserStats()
 
   return (
     <div>
@@ -88,13 +88,12 @@ export default async function Users() {
                       height={21}
                     />
                   )}
-                  <a
-                    href={`https://members.onepeloton.com/members/${user.username}/overview`}
-                    target="_blank"
+                  <Link
+                    href={`/cyclist/${user.username}`}
                     className="text-primary hover:text-primary/80 hover:underline"
                   >
                     {user.username}
-                  </a>
+                  </Link>
                 </div>
               </TableCell>
               <TableCell>

@@ -17,7 +17,8 @@ export function Navigation() {
   const getLinkClasses = (href: string) => {
     const isActive =
       pathname === href ||
-      (href === "/latest" && pathname.startsWith("/archive/"))
+      (href === "/latest" && pathname.startsWith("/archive/")) ||
+      (href === "/cyclists" && pathname.startsWith("/cyclist/"))
     return cn(
       navigationMenuTriggerStyle(),
       "hover:bg-transparent hover:shadow-lg hover:shadow-primary/70",
@@ -44,9 +45,9 @@ export function Navigation() {
             </Link>
           </NavigationMenuItem>
           <NavigationMenuItem>
-            <Link href="/users" legacyBehavior passHref>
+            <Link href="/cyclists" legacyBehavior passHref>
               <NavigationMenuLink
-                className={getLinkClasses("/users")}
+                className={getLinkClasses("/cyclists")}
                 onClick={handleClick}
               >
                 Cyclists

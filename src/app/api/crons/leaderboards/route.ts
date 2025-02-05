@@ -57,7 +57,9 @@ export async function GET() {
       proc.on("exit", (code) => {
         if (code === 0) {
           revalidatePath("/leaderboard")
-          revalidatePath("/users")
+          revalidatePath("/cyclists")
+          revalidatePath("/cyclist/*")
+          // Maybe instead of revalidating, I could use Vercel's API to rebuild the app
           resolve(code)
         } else {
           console.error(`Leaderboards cron exited with code ${code}`)

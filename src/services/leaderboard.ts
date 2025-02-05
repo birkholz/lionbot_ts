@@ -1,6 +1,6 @@
 import { db } from "@db/client"
 import { leaderboardsTable } from "@db/schema"
-import type { LeaderboardJson } from "@types"
+import type { LeaderboardJson, EffortZones } from "@types"
 import { format } from "date-fns"
 import { asc, desc, eq } from "drizzle-orm"
 import { PelotonAPI } from "@lib/peloton"
@@ -22,6 +22,16 @@ export interface UserStats {
   highestPbRate?: number
   highestOutput?: number
   avatar_url?: string
+}
+
+export interface UserRide {
+  date: string
+  id: string
+  title: string
+  instructor_name: string
+  total_work: number
+  is_new_pb: boolean
+  effort_zones: EffortZones | null
 }
 
 export async function getLeaderboardDateRange(): Promise<DateRange> {
@@ -150,4 +160,34 @@ export async function getUserStatsWithAvatars(): Promise<UserStats[]> {
     ...user,
     avatar_url: avatarMap.get(user.username),
   }))
+}
+
+export async function getUserRides(username: string): Promise<UserRide[]> {
+  const leaderboards = await db
+    .select()
+    .from(leaderboardsTable)
+    .orderBy(desc(leaderboardsTable.date))
+
+  const rides: UserRide[] = []
+
+  for (const leaderboard of leaderboards) {
+    const data = leaderboard.json as LeaderboardJson
+
+    for (const ride of Object.values(data.rides)) {
+      const workout = ride.workouts.find((w) => w.user_username === username)
+      if (workout) {
+        rides.push({
+          date: leaderboard.date,
+          id: ride.id,
+          title: ride.title,
+          instructor_name: ride.instructor_name,
+          total_work: workout.total_work,
+          is_new_pb: workout.is_new_pb,
+          effort_zones: workout.effort_zones,
+        })
+      }
+    }
+  }
+
+  return rides
 }

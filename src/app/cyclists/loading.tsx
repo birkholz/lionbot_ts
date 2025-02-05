@@ -12,7 +12,7 @@ import { Skeleton } from "@components/ui/skeleton"
 export default function Loading() {
   return (
     <div>
-      <h1 className="mb-6 text-center text-2xl font-bold">Users</h1>
+      <h1 className="mb-6 text-center text-2xl font-bold">Cyclists</h1>
       <div className="mx-6 my-2">
         <Skeleton className="h-[350px] w-full" />
       </div>
