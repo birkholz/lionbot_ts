@@ -4,6 +4,7 @@ import { NoLeaderboard } from "@components/no-leaderboard"
 import {
   getLatestLeaderboard,
   getLeaderboardDateRange,
+  getUserAvatars,
 } from "@services/leaderboard"
 import type { Metadata } from "next"
 
@@ -24,6 +25,7 @@ export default async function LatestPage() {
     )
   }
   const dateRange = getLeaderboardDateRange()
+  const avatars = await getUserAvatars()
 
   return (
     <div className="relative">
@@ -32,6 +34,7 @@ export default async function LatestPage() {
         date={date}
         leaderboard={leaderboard}
         dateRange={dateRange}
+        avatars={avatars}
       />
     </div>
   )

@@ -151,3 +151,20 @@ export async function getUserStatsWithAvatars(): Promise<UserStats[]> {
     avatar_url: avatarMap.get(user.username),
   }))
 }
+
+export async function getUserAvatars(): Promise<Record<string, string>> {
+  if (process.env.NODE_ENV === "development") {
+    return {}
+  }
+
+  const peloton = new PelotonAPI()
+  await peloton.login()
+  const { users: tagUsers } = await peloton.getUsersInTag("TheEggCarton")
+
+  return tagUsers.reduce((acc: Record<string, string>, user) => {
+    if (user.username && user.avatar_url) {
+      acc[user.username] = user.avatar_url
+    }
+    return acc
+  }, {})
+}
