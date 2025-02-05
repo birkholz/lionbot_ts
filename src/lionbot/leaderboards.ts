@@ -17,6 +17,7 @@ import {
   rideCountStr,
   sendDiscordRequest,
   validWorkout,
+  withRetry,
 } from "@lib/utils"
 import { RideInfo, WorkoutInfo } from "@types"
 import type { DiscordEmbed, PBInfo, UserTotal } from "@types"
@@ -38,7 +39,7 @@ export async function postWorkouts(
     if (workout.status !== "COMPLETE" || workout.metrics_type !== "cycling") {
       continue
     }
-    const fullWorkout = await api.getWorkout(workout.id)
+    const fullWorkout = await withRetry(() => api.getWorkout(workout.id))
 
     const classId = workout.ride.id
     const classUrl = `https://members.onepeloton.com/classes/cycling?modal=classDetailsModal&classId=${classId}`
@@ -161,7 +162,9 @@ export async function postLeaderboard(
     milliseconds: 0,
   })
 
-  const nlWorkouts = await api.getWorkouts(nlUserId, dayStart, dayEnd)
+  const nlWorkouts = await withRetry(() =>
+    api.getWorkouts(nlUserId, dayStart, dayEnd),
+  )
   const validNLWorkouts = nlWorkouts.filter(validWorkout)
 
   const rides: Record<string, RideInfo> = {}
@@ -181,12 +184,14 @@ export async function postLeaderboard(
   const totals: Record<string, UserTotal> = {}
   const playersWhoPbd: Record<string, PBInfo[]> = {}
 
-  const { users } = await api.getUsersInTag("TheEggCarton")
+  const { users } = await withRetry(() => api.getUsersInTag("TheEggCarton"))
 
   await pMap(
     users,
     async (user) => {
-      const userWorkouts = await api.getWorkouts(user.id, minDt, streamStart)
+      const userWorkouts = await withRetry(() =>
+        api.getWorkouts(user.id, minDt, streamStart),
+      )
       const validUserWorkouts = userWorkouts.filter(validWorkout)
 
       for (const workout of validUserWorkouts) {
@@ -200,7 +205,7 @@ export async function postLeaderboard(
 
         // If this workout's date matches our target date, process it
         if (workoutDateStr === dateStr) {
-          const userWorkout = await api.getWorkout(workout.id)
+          const userWorkout = await withRetry(() => api.getWorkout(workout.id))
           const isPb = userWorkout.achievement_templates.some(
             (a) => a.slug === "best_output",
           )
@@ -251,7 +256,9 @@ export async function postLeaderboard(
         )
         if (workoutDate < minDt || workoutDate > streamStart) continue
 
-        const performanceData = await api.getWorkoutPerformanceData(workout.id)
+        const performanceData = await withRetry(() =>
+          api.getWorkoutPerformanceData(workout.id),
+        )
         const avgCadence =
           performanceData.average_summaries.find(
             (m) => m.slug === "avg_cadence",
@@ -278,7 +285,7 @@ export async function postLeaderboard(
         ride.workouts.push(workoutObj)
       }
     },
-    { concurrency: 20 },
+    { concurrency: 15 },
   )
 
   // Dump all the rides to the db
@@ -442,5 +449,42 @@ async function getAndPostWorkouts(): Promise<void> {
   await postLeaderboard(api, leaderboardUserId, true, dateStr)
 }
 
+async function getAllPastLeaderboards(): Promise<void> {
+  const api = new PelotonAPI()
+  await api.login()
+
+  // Publish date of the supercut
+  let dateStr = "2023-09-21"
+  let leaderboardUserId =
+    process.env["LEADERBOARD_USER_ID"] ?? "efc2317a6aad48218488a27bf8b0e460"
+  const endDate = new TZDate("2025-01-30", "UTC")
+  let date = new TZDate(dateStr, "UTC")
+  console.info(
+    `Getting leaderboards from ${dateStr} to ${format(endDate, "yyyy-MM-dd")}`,
+  )
+
+  // NL stopped posting stacks on 2023-12-30, dillwillhill took over until 2024-06-27
+  if (
+    date < new TZDate("2023-12-31", "UTC") ||
+    date > new TZDate("2024-06-27", "UTC")
+  ) {
+    // NL's ID
+    leaderboardUserId = "efc2317a6aad48218488a27bf8b0e460"
+  } else {
+    // Dillwillhill's ID
+    leaderboardUserId = "9d18f22c927743dfb18ee5a4f91af63f"
+  }
+
+  // Get all leaderboards from that date until now
+  while (new TZDate(dateStr, "UTC").getTime() < endDate.getTime()) {
+    await postLeaderboard(api, leaderboardUserId, false, dateStr)
+    console.info(`Posted leaderboard for ${dateStr}`)
+    date = addDays(date, 1)
+    dateStr = format(date, "yyyy-MM-dd")
+  }
+  console.info("Done")
+}
+
+// await getAllPastLeaderboards()
 await getAndPostWorkouts()
 process.exit(0)

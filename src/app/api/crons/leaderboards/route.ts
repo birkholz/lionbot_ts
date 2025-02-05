@@ -42,17 +42,36 @@ export async function GET() {
       end: addMinutes(targetTime, 5),
     })
   ) {
-    // Start the process and let it run in the background
-    const proc = spawn("npm", ["run", "leaderboards"], {
-      stdio: "inherit",
-      detached: true,
+    // Start the process and wait for it to complete
+    const processPromise = new Promise((resolve, reject) => {
+      const proc = spawn("npm", ["run", "leaderboards"])
+
+      proc.on("stdout", (data) => {
+        console.log(data.toString())
+      })
+
+      proc.on("stderr", (data) => {
+        console.error(data.toString())
+      })
+
+      proc.on("exit", (code) => {
+        if (code === 0) {
+          revalidatePath("/leaderboard")
+          revalidatePath("/users")
+          resolve(code)
+        } else {
+          console.error(`Leaderboards cron exited with code ${code}`)
+          reject(new Error(`Leaderboards cron exited with code ${code}`))
+        }
+      })
     })
-    proc.unref()
 
-    revalidatePath("/leaderboard")
-    revalidatePath("/users")
-
-    return new NextResponse(null, { status: 204 })
+    try {
+      await processPromise
+      return new NextResponse(null, { status: 204 })
+    } catch (error) {
+      return NextResponse.json({ error }, { status: 500 })
+    }
   }
 
   return NextResponse.json(
