@@ -113,7 +113,7 @@ export function LeaderboardDisplay(props: LeaderboardDisplayProps) {
         {rides.map((ride) => (
           <AccordionItem key={ride.id} value={ride.id}>
             <AccordionTrigger>
-              <h3 className="select-none text-xl">{ride.title}</h3>
+              <h3 className="select-none text-lg md:text-xl">{ride.title}</h3>
             </AccordionTrigger>
             <AccordionContent>
               <a
@@ -284,7 +284,9 @@ export function LeaderboardDisplay(props: LeaderboardDisplayProps) {
         {Object.keys(totals).length > 0 && (
           <AccordionItem value="endurance">
             <AccordionTrigger>
-              <h3 className="select-none text-xl">Endurance Leaderboard</h3>
+              <h3 className="select-none text-lg md:text-xl">
+                Endurance Leaderboard
+              </h3>
             </AccordionTrigger>
             <AccordionContent>
               <div className="mb-2 flex grow items-end justify-center gap-6 text-center">
@@ -357,7 +359,7 @@ export function LeaderboardDisplay(props: LeaderboardDisplayProps) {
         {PBList.length > 0 && (
           <AccordionItem value="pbs">
             <AccordionTrigger>
-              <h3 className="select-none text-xl">
+              <h3 className="select-none text-lg md:text-xl">
                 <div
                   className="inline-block h-[1em] align-middle"
                   title="New PB"

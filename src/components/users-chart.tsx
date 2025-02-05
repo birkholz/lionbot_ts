@@ -47,7 +47,7 @@ export function UsersChart({ users }: Props) {
           color: "hsl(var(--primary))",
         },
       }}
-      className="my-2 mr-6"
+      className="my-2 mr-4 md:mr-6"
     >
       <AreaChart accessibilityLayer data={data} width={600} height={300}>
         <CartesianGrid horizontal={false} vertical={false} />

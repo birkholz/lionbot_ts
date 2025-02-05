@@ -20,7 +20,7 @@ export function Navigation() {
       (href === "/latest" && pathname.startsWith("/archive/"))
     return cn(
       navigationMenuTriggerStyle(),
-      "bg-zinc-900 hover:bg-zinc-900 hover:shadow-lg hover:shadow-primary/70",
+      "hover:bg-transparent hover:shadow-lg hover:shadow-primary/70",
       isActive && "shadow-md shadow-primary/50",
     )
   }
@@ -30,8 +30,8 @@ export function Navigation() {
   }
 
   return (
-    <div className="mb-2 flex max-w-full items-center justify-center">
-      <NavigationMenu className="my-4 rounded-lg">
+    <div className="flex max-w-full items-center justify-center">
+      <NavigationMenu className="m-1 rounded-lg md:mt-4">
         <NavigationMenuList>
           <NavigationMenuItem>
             <Link href="/latest" legacyBehavior passHref>

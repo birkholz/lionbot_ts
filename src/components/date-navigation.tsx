@@ -54,7 +54,7 @@ export function DateNavigation() {
   }
 
   return (
-    <div className="mt-2 flex items-center justify-center gap-2 text-center text-3xl font-semibold tracking-tight">
+    <div className="flex items-center justify-center gap-2 text-center text-3xl font-semibold tracking-tight md:mt-2">
       {isPrevDisabled ? (
         <span className="pointer-events-none text-zinc-500">
           <ArrowLeft size={30} />
@@ -74,7 +74,7 @@ export function DateNavigation() {
             {format(displayDate, "yyyy-MM-dd")}
           </span>
         </PopoverTrigger>
-        <PopoverContent className="bg-zinc-950">
+        <PopoverContent>
           <Calendar
             mode="single"
             selected={displayDate}
