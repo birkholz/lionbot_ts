@@ -56,7 +56,7 @@ export default async function Users() {
         rides since the leaderboards started on{" "}
         <Link
           href="/archive/2023-09-22"
-          className="text-blue-500 hover:text-blue-400 hover:underline"
+          className="text-primary hover:text-primary/80 hover:underline"
         >
           2023-09-22
         </Link>
@@ -91,7 +91,7 @@ export default async function Users() {
                   <a
                     href={`https://members.onepeloton.com/members/${user.username}/overview`}
                     target="_blank"
-                    className="text-blue-500 hover:text-blue-400 hover:underline"
+                    className="text-primary hover:text-primary/80 hover:underline"
                   >
                     {user.username}
                   </a>
@@ -100,7 +100,7 @@ export default async function Users() {
               <TableCell>
                 <Link
                   href={`/archive/${user.firstRide}`}
-                  className="text-blue-500 hover:text-blue-400 hover:underline"
+                  className="text-primary hover:text-primary/80 hover:underline"
                 >
                   {user.firstRide}
                 </Link>

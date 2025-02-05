@@ -5,7 +5,7 @@ export default function NotFound() {
     <p className="mt-4 text-center">
       Page Not Found.{" "}
       <Link
-        className="text-blue-500 hover:text-blue-400 hover:underline"
+        className="text-primary hover:text-primary/80 hover:underline"
         href="/latest"
       >
         Go to latest leaderboard

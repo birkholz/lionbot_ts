@@ -205,7 +205,7 @@ export function LeaderboardDisplay(props: LeaderboardDisplayProps) {
                       <TableCell>
                         <a
                           target="_blank"
-                          className="text-blue-500 hover:text-blue-400 hover:underline"
+                          className="text-primary hover:text-primary/80 hover:underline"
                           href={`https://members.onepeloton.com/members/${workout.user_username}/overview`}
                         >
                           {workout.user_username}
@@ -332,7 +332,7 @@ export function LeaderboardDisplay(props: LeaderboardDisplayProps) {
                       <TableCell>
                         <a
                           target="_blank"
-                          className="text-blue-500 hover:text-blue-400 hover:underline"
+                          className="text-primary hover:text-primary/80 hover:underline"
                           href={`https://members.onepeloton.com/members/${user.username}/overview`}
                         >
                           {user.username}
@@ -389,7 +389,7 @@ export function LeaderboardDisplay(props: LeaderboardDisplayProps) {
                       <TableCell>
                         <a
                           target="_blank"
-                          className="text-blue-500 hover:text-blue-400 hover:underline"
+                          className="text-primary hover:text-primary/80 hover:underline"
                           href={`https://members.onepeloton.com/members/${username}/overview`}
                         >
                           {username}
