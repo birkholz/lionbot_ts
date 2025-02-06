@@ -20,6 +20,7 @@ import { UserAvatar } from "@components/user-avatar"
 import { getAvatarUrl, humanize, localizeNumber } from "@lib/utils"
 import { Sparkle } from "lucide-react"
 import Image from "next/image"
+import Link from "next/link"
 import pluralize from "pluralize"
 import * as React from "react"
 import { Pie, PieChart } from "recharts"
@@ -29,6 +30,7 @@ import type {
   Workout,
 } from "../types/components"
 import { useLeaderboardState } from "./leaderboard-state"
+
 function sortWorkouts(workouts: Workout[]): Workout[] {
   return [...workouts].sort((a, b) => b.total_work - a.total_work)
 }
@@ -214,13 +216,12 @@ export function LeaderboardDisplay(props: LeaderboardDisplayProps) {
                             width={21}
                             height={21}
                           />
-                          <a
-                            target="_blank"
+                          <Link
                             className="text-primary hover:text-primary/80 hover:underline"
-                            href={`https://members.onepeloton.com/members/${workout.user_username}/overview`}
+                            href={`/cyclist/${workout.user_username}`}
                           >
                             {workout.user_username}
-                          </a>
+                          </Link>
                         </div>
                       </TableCell>
                       <TableCell>
@@ -348,13 +349,12 @@ export function LeaderboardDisplay(props: LeaderboardDisplayProps) {
                             width={21}
                             height={21}
                           />
-                          <a
-                            target="_blank"
+                          <Link
                             className="text-primary hover:text-primary/80 hover:underline"
-                            href={`https://members.onepeloton.com/members/${user.username}/overview`}
+                            href={`/cyclist/${user.username}`}
                           >
                             {user.username}
-                          </a>
+                          </Link>
                         </div>
                       </TableCell>
                       <TableCell>
@@ -412,13 +412,12 @@ export function LeaderboardDisplay(props: LeaderboardDisplayProps) {
                             width={21}
                             height={21}
                           />
-                          <a
-                            target="_blank"
+                          <Link
                             className="text-primary hover:text-primary/80 hover:underline"
-                            href={`https://members.onepeloton.com/members/${username}/overview`}
+                            href={`/cyclist/${username}`}
                           >
                             {username}
-                          </a>
+                          </Link>
                         </div>
                       </TableCell>
                       <TableCell>

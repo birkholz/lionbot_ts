@@ -1,10 +1,10 @@
 "use server"
 
 import { db } from "@db/client"
-import { leaderboardsTable, userAvatarsTable } from "@db/schema"
+import { leaderboardsTable, cyclistsTable } from "@db/schema"
 import type { EffortZones, LeaderboardJson } from "@types"
 import { format } from "date-fns"
-import { asc, desc, eq, sql } from "drizzle-orm"
+import { asc, desc, eq, isNotNull, sql } from "drizzle-orm"
 import { unstable_cache } from "next/cache"
 
 export interface Leaderboard {
@@ -31,9 +31,6 @@ export interface UserRide {
   id: string
   title: string
   instructor_name: string
-  total_work: number
-  is_new_pb: boolean
-  effort_zones: EffortZones | null
 }
 
 const getCachedDateRange = unstable_cache(
@@ -93,60 +90,25 @@ export async function getLeaderboardByDate(
 
 const getCachedUserStats = unstable_cache(
   async () => {
-    // Get all leaderboards ordered by date ascending to get accurate first ride dates
-    const leaderboards = await db
-      .select()
-      .from(leaderboardsTable)
-      .orderBy(asc(leaderboardsTable.date))
+    const result = await db
+      .select({
+        username: cyclistsTable.username,
+        first_ride: cyclistsTable.first_ride,
+        total_rides: cyclistsTable.total_rides,
+        highest_output: cyclistsTable.highest_output,
+        avatar_url: cyclistsTable.avatar_url,
+      })
+      .from(cyclistsTable)
+      .where(isNotNull(cyclistsTable.first_ride))
+      .orderBy(desc(cyclistsTable.total_rides))
 
-    const userStats = new Map<string, UserStats>()
-
-    // Process each leaderboard to gather user stats
-    for (const leaderboard of leaderboards) {
-      const data = leaderboard.json as LeaderboardJson
-
-      // Process workouts for first ride and total rides
-      for (const ride of Object.values(data.rides)) {
-        for (const workout of ride.workouts) {
-          const username = workout.user_username
-
-          if (!userStats.has(username)) {
-            userStats.set(username, {
-              username,
-              firstRide: leaderboard.date,
-              totalRides: 1,
-            })
-          } else {
-            const stats = userStats.get(username)!
-            stats.totalRides += 1
-          }
-        }
-      }
-
-      // Process PBs for highest output rate and total output
-      for (const [username, pbs] of Object.entries(data.playersWhoPbd)) {
-        const stats = userStats.get(username)
-        if (stats) {
-          for (const pb of pbs) {
-            // Update highest output if this is higher
-            if (!stats.highestOutput || pb.total_work > stats.highestOutput) {
-              stats.highestOutput = pb.total_work
-            }
-
-            // Update highest rate if this is higher
-            const rate = pb.total_work / pb.duration
-            if (!stats.highestPbRate || rate > stats.highestPbRate) {
-              stats.highestPbRate = rate
-            }
-          }
-        }
-      }
-    }
-
-    // Return all users sorted by total rides
-    return Array.from(userStats.values()).sort(
-      (a, b) => b.totalRides - a.totalRides,
-    )
+    return result.map((row) => ({
+      username: row.username,
+      firstRide: row.first_ride ? format(row.first_ride, "yyyy-MM-dd") : "",
+      totalRides: row.total_rides ?? 0,
+      highestOutput: row.highest_output ?? undefined,
+      avatar_url: row.avatar_url,
+    }))
   },
   ["user-stats"],
   {
@@ -163,11 +125,11 @@ const getCachedUserAvatars = unstable_cache(
   async () => {
     const avatars = await db
       .select({
-        username: userAvatarsTable.username,
-        user_id: userAvatarsTable.user_id,
-        avatar_url: userAvatarsTable.avatar_url,
+        username: cyclistsTable.username,
+        user_id: cyclistsTable.user_id,
+        avatar_url: cyclistsTable.avatar_url,
       })
-      .from(userAvatarsTable)
+      .from(cyclistsTable)
 
     return avatars
   },
@@ -178,6 +140,33 @@ const getCachedUserAvatars = unstable_cache(
   },
 )
 
+export async function getCyclist(username: string): Promise<
+  | {
+      username: string
+      user_id: string
+      avatar_url: string
+      first_ride: string | null
+      total_rides: number | null
+      highest_output: number | null
+    }
+  | undefined
+> {
+  const [avatar] = await db
+    .select({
+      username: cyclistsTable.username,
+      user_id: cyclistsTable.user_id,
+      avatar_url: cyclistsTable.avatar_url,
+      first_ride: cyclistsTable.first_ride,
+      total_rides: cyclistsTable.total_rides,
+      highest_output: cyclistsTable.highest_output,
+    })
+    .from(cyclistsTable)
+    .where(eq(cyclistsTable.username, username))
+    .limit(1)
+
+  return avatar
+}
+
 export async function getUserAvatars(): Promise<
   Array<{ username: string; user_id: string; avatar_url: string }>
 > {
@@ -185,31 +174,40 @@ export async function getUserAvatars(): Promise<
 }
 
 export async function getUserRides(username: string): Promise<UserRide[]> {
-  const leaderboards = await db
-    .select()
+  const rides = await db
+    .select({
+      date: leaderboardsTable.date,
+      ride_data: sql<string>`
+        jsonb_build_object(
+          'id', ride.value->>'id',
+          'title', ride.value->>'title',
+          'instructor_name', ride.value->>'instructor_name'
+        )::text
+      `,
+    })
     .from(leaderboardsTable)
+    .leftJoin(
+      sql`jsonb_each(${leaderboardsTable.json}->'rides') AS ride`,
+      sql`true`,
+    )
+    .where(
+      sql`
+      EXISTS (
+        SELECT 1
+        FROM jsonb_array_elements(ride.value->'workouts') workout
+        WHERE workout->>'user_username' = ${sql.param(username)}
+      )
+    `,
+    )
     .orderBy(desc(leaderboardsTable.date))
 
-  const rides: UserRide[] = []
-
-  for (const leaderboard of leaderboards) {
-    const data = leaderboard.json as LeaderboardJson
-
-    for (const ride of Object.values(data.rides)) {
-      const workout = ride.workouts.find((w) => w.user_username === username)
-      if (workout) {
-        rides.push({
-          date: leaderboard.date,
-          id: ride.id,
-          title: ride.title,
-          instructor_name: ride.instructor_name,
-          total_work: workout.total_work,
-          is_new_pb: workout.is_new_pb,
-          effort_zones: workout.effort_zones,
-        })
-      }
+  return rides.map((ride) => {
+    const data = JSON.parse(ride.ride_data)
+    return {
+      date: ride.date,
+      id: data.id,
+      title: data.title,
+      instructor_name: data.instructor_name,
     }
-  }
-
-  return rides
+  })
 }

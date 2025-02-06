@@ -121,8 +121,11 @@ export const leaderboardsTable = pgTable("leaderboards", {
   date: date("date").notNull().defaultNow(),
 })
 
-export const userAvatarsTable = pgTable("user_avatars", {
+export const cyclistsTable = pgTable("cyclists", {
   username: text("username").primaryKey(),
   user_id: text("user_id").notNull(),
   avatar_url: text("avatar_url").notNull(),
+  first_ride: date("first_ride"),
+  total_rides: integer("total_rides").default(0),
+  highest_output: integer("highest_output"),
 })

@@ -14,21 +14,25 @@ export default function Loading() {
       <div className="mb-8 flex items-center justify-center gap-4">
         <Skeleton className="h-[80px] w-[80px] rounded-full" />
         <div>
-          <Skeleton className="mb-2 h-9 w-48" />
-          <Skeleton className="mb-1 h-4 w-40" />
-          <Skeleton className="h-4 w-32" />
+          <h1 className="text-3xl font-bold">
+            <Skeleton className="h-8 w-48" />
+          </h1>
+          <div className="text-sm text-muted-foreground">
+            <Skeleton className="mt-2 h-4 w-36" />
+          </div>
         </div>
       </div>
 
       <div className="mb-4">
-        <h2 className="mb-4 text-center text-xl font-bold">Group Rides</h2>
+        <h2 className="mb-4 text-center text-xl font-bold">
+          <Skeleton className="mx-auto h-6 w-48" />
+        </h2>
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Date</TableHead>
               <TableHead>Ride</TableHead>
               <TableHead>Instructor/Description</TableHead>
-              <TableHead className="text-right">Output</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -38,13 +42,10 @@ export default function Loading() {
                   <Skeleton className="h-4 w-24" />
                 </TableCell>
                 <TableCell>
-                  <Skeleton className="h-4 w-48" />
+                  <Skeleton className="h-4 w-64" />
                 </TableCell>
                 <TableCell>
-                  <Skeleton className="h-4 w-40" />
-                </TableCell>
-                <TableCell className="text-nowrap text-right">
-                  <Skeleton className="ml-auto h-4 w-16" />
+                  <Skeleton className="h-4 w-48" />
                 </TableCell>
               </TableRow>
             ))}

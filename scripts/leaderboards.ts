@@ -4,7 +4,7 @@ import { mean, median } from "mathjs"
 import pMap from "p-map"
 import pluralize from "pluralize"
 import { db } from "@db/client"
-import { leaderboardsTable } from "@db/schema"
+import { leaderboardsTable, cyclistsTable } from "@db/schema"
 import "./instrument"
 import { PelotonAPI } from "@lib/peloton"
 import { getUserAvatars } from "@services/leaderboard"
@@ -23,6 +23,7 @@ import {
 import { RideInfo, WorkoutInfo } from "@types"
 import type { DiscordEmbed, PBInfo, UserTotal } from "@types"
 import { TZDate } from "@date-fns/tz"
+import { eq, sql } from "drizzle-orm"
 
 export async function postWorkouts(
   api: PelotonAPI,
@@ -295,6 +296,46 @@ export async function postLeaderboard(
     date: dateStr,
   }
   await db.insert(leaderboardsTable).values(ridesJson)
+
+  // Track which users we've seen to avoid double counting rides
+  const seenUsers = new Set<string>()
+
+  // Update user statistics
+  for (const ride of Object.values(rides)) {
+    for (const workout of ride.workouts) {
+      const username = workout.user_username
+      if (seenUsers.has(username)) {
+        continue
+      }
+      seenUsers.add(username)
+
+      // Get the highest output from any PBs this user achieved today
+      const userPbs = playersWhoPbd[username] || []
+      const highestPbOutput =
+        userPbs.length > 0 ? Math.max(...userPbs.map((pb) => pb.total_work)) : 0
+
+      await db
+        .insert(cyclistsTable)
+        .values({
+          username,
+          user_id: "", // This will be filled by fetch-avatars.ts
+          avatar_url: "", // This will be filled by fetch-avatars.ts
+          first_ride: dateStr,
+          total_rides: 1,
+          highest_output: highestPbOutput,
+        })
+        .onConflictDoUpdate({
+          target: cyclistsTable.username,
+          set: {
+            total_rides: sql`COALESCE(${cyclistsTable.total_rides}, 0) + 1`,
+            highest_output: sql`CASE
+              WHEN ${highestPbOutput} > 0 THEN GREATEST(COALESCE(${cyclistsTable.highest_output}, 0), ${highestPbOutput})
+              ELSE COALESCE(${cyclistsTable.highest_output}, 0)
+            END`,
+          },
+        })
+    }
+  }
 
   if (!postEmbeds) {
     return

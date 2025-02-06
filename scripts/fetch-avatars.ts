@@ -1,11 +1,11 @@
 import { db } from "@db/client"
-import { userAvatarsTable } from "@db/schema"
+import { cyclistsTable } from "@db/schema"
 import { GraphQLClient, gql } from "graphql-request"
 
 const GET_TAG_USERS = gql`
   query TagDetail($tagName: String!, $after: Cursor) {
     tag(tagName: $tagName) {
-      users(first: 100, after: $after) {
+      users(after: $after) {
         edges {
           node {
             id
@@ -107,13 +107,13 @@ async function fetchAndStoreAvatars() {
 
   try {
     await db
-      .insert(userAvatarsTable)
+      .insert(cyclistsTable)
       .values(allUsers)
       .onConflictDoUpdate({
-        target: userAvatarsTable.username,
+        target: cyclistsTable.username,
         set: {
-          user_id: userAvatarsTable.user_id,
-          avatar_url: userAvatarsTable.avatar_url,
+          user_id: cyclistsTable.user_id,
+          avatar_url: cyclistsTable.avatar_url,
         },
       })
 

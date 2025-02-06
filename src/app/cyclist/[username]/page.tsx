@@ -7,16 +7,14 @@ import {
   TableRow,
 } from "@components/ui/table"
 import { UserAvatar } from "@components/user-avatar"
-import { getAvatarUrl } from "@lib/utils"
-import {
-  getUserAvatars,
-  getUserRides,
-  getUserStats,
-} from "@services/leaderboard"
+import { getCyclist, getUserRides } from "@services/leaderboard"
 import { ExternalLink } from "lucide-react"
 import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
+import { db } from "@db/client"
+import { cyclistsTable } from "@db/schema"
+import { RideList } from "./ride-list"
 
 interface Props {
   params: Promise<{
@@ -28,10 +26,9 @@ export async function generateStaticParams() {
   if (process.env.NODE_ENV === "development") {
     return []
   }
-  const userStats = await getUserStats()
-  return userStats.map((user) => ({
-    username: user.username,
-  }))
+  return await db
+    .select({ username: cyclistsTable.username })
+    .from(cyclistsTable)
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -43,15 +40,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function CyclistProfile({ params }: Props) {
   const { username } = await params
-  const [userStats, avatars, rides] = await Promise.all([
-    getUserStats(),
-    getUserAvatars(),
+  const [cyclist, rides] = await Promise.all([
+    getCyclist(username),
     getUserRides(username),
   ])
-  const stats = userStats.find((user) => user.username === username)
-  const avatar_url = getAvatarUrl(username, avatars)
+  const avatar_url =
+    cyclist?.avatar_url ?? `https://placehold.co/21x21/red/red.webp`
 
-  if (!stats) {
+  if (!cyclist) {
     notFound()
   }
 
@@ -73,53 +69,20 @@ export default async function CyclistProfile({ params }: Props) {
           <p className="text-sm text-muted-foreground">
             First group ride on{" "}
             <Link
-              href={`/archive/${stats.firstRide}`}
+              href={`/archive/${cyclist.first_ride}`}
               className="text-primary hover:text-primary/80 hover:underline"
             >
-              {stats.firstRide}
+              {cyclist.first_ride}
             </Link>
-          </p>
-          <p className="text-sm text-muted-foreground">
-            Total group rides:{" "}
-            <span className="font-bold text-foreground">
-              {stats.totalRides}
-            </span>
           </p>
         </div>
       </div>
 
       <div className="mb-4">
-        <h2 className="mb-4 text-center text-xl font-bold">Group Rides</h2>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Date</TableHead>
-              <TableHead>Ride</TableHead>
-              <TableHead>Instructor/Description</TableHead>
-              <TableHead className="text-right">Output</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {rides.map((ride) => (
-              <TableRow key={`${ride.date}-${ride.id}`}>
-                <TableCell className="text-nowrap">
-                  <Link
-                    href={`/archive/${ride.date}`}
-                    className="text-primary hover:text-primary/80 hover:underline"
-                  >
-                    {ride.date}
-                  </Link>
-                </TableCell>
-                <TableCell>{ride.title}</TableCell>
-                <TableCell>{ride.instructor_name}</TableCell>
-                <TableCell className="text-nowrap text-right">
-                  {Math.round(ride.total_work / 1000)} kJ
-                  {ride.is_new_pb && " ⭐"}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <h2 className="mb-4 text-center text-xl font-bold">
+          <span className="text-primary">{rides.length}</span> Group Rides
+        </h2>
+        <RideList rides={rides} />
       </div>
     </>
   )
