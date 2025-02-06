@@ -5,6 +5,8 @@ import { leaderboardsTable } from "@db/schema"
 import type { EffortZones, LeaderboardJson } from "@types"
 import { format } from "date-fns"
 import { asc, desc, eq } from "drizzle-orm"
+import { unstable_cache } from "next/cache"
+import { PelotonAPI } from "@lib/peloton"
 
 export interface Leaderboard {
   date: string
@@ -80,6 +82,24 @@ export async function getLeaderboardByDate(
 }
 
 export async function getUserStats(): Promise<UserStats[]> {
+  // Cache the user stats with fetch
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_BASE_URL}/api/stats`,
+    {
+      cache: "force-cache",
+    },
+  )
+
+  if (!response.ok) {
+    console.error("Failed to fetch user stats:", response.status)
+    return []
+  }
+
+  return response.json()
+}
+
+// Move the actual stats computation to an API route
+export async function computeUserStats(): Promise<UserStats[]> {
   // Get all leaderboards ordered by date ascending to get accurate first ride dates
   const leaderboards = await db
     .select()
@@ -135,6 +155,23 @@ export async function getUserStats(): Promise<UserStats[]> {
   )
 }
 
+const getCachedPelotonUsers = unstable_cache(
+  async (cursor?: string) => {
+    try {
+      const api = new PelotonAPI()
+      return await api.getUsersInTag("TheEggCarton", cursor)
+    } catch (error) {
+      console.error("Failed to fetch Peloton users:", error)
+      return null
+    }
+  },
+  ["peloton-users"],
+  {
+    revalidate: 60 * 60 * 24, // Cache for 24 hours
+    tags: ["peloton-users"],
+  },
+)
+
 export async function getUserAvatars(): Promise<
   Array<{ username: string; avatar_url: string }>
 > {
@@ -143,45 +180,23 @@ export async function getUserAvatars(): Promise<
     return []
   }
 
-  // Use Next.js data cache with fetch
-  const response = await fetch(
-    "https://gql-graphql-gateway.prod.k8s.onepeloton.com/graphql?query=TagDetail",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env["PELOTON_TOKEN"]}`,
-      },
-      body: JSON.stringify({
-        operationName: "TagDetail",
-        query:
-          "query TagDetail($tagName: String!) {tag(tagName: $tagName) {name followingCount assets { backgroundImage { location __typename } detailBackgroundImage { location __typename } __typename } users { totalCount edges { node { id username assets { image { location __typename } __typename } followStatus protectedFields { ... on UserProtectedFields { totalWorkoutCounts __typename } ... on UserPrivacyError { code message __typename } __typename } __typename } __typename } pageInfo { hasNextPage endCursor __typename } __typename } __typename } }",
-        variables: {
-          tagName: "TheEggCarton",
-        },
-      }),
-      // Use force-cache to ensure Next.js caches this request
-      cache: "force-cache",
-    },
-  )
+  const allUsers: Array<{ username: string; avatar_url: string }> = []
+  let hasNextPage = true
+  let cursor: string | undefined = undefined
 
-  if (!response.ok) {
-    console.error("Failed to fetch users in tag:", response.status)
-    return []
+  while (hasNextPage) {
+    const result = await getCachedPelotonUsers(cursor)
+
+    if (!result) {
+      return allUsers
+    }
+
+    allUsers.push(...result.users)
+    hasNextPage = result.hasNextPage
+    cursor = result.endCursor ?? undefined
   }
 
-  const data = await response.json()
-
-  // Check if we got valid data back
-  if (!data?.data?.tag?.users?.edges) {
-    console.error("Invalid response from Peloton API:", data)
-    return []
-  }
-
-  return data.data.tag.users.edges.map((edge: any) => ({
-    username: edge.node.username,
-    avatar_url: edge.node.assets.image.location,
-  }))
+  return allUsers
 }
 
 export async function getUserRides(username: string): Promise<UserRide[]> {

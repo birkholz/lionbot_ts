@@ -1,6 +1,7 @@
 import { TZDate } from "@date-fns/tz"
 import { format } from "date-fns"
 import makeFetchCookie, { type FetchCookieImpl } from "fetch-cookie"
+import { GraphQLClient, gql } from "graphql-request"
 // Types
 interface LoginPayload {
   username_or_email: string
@@ -374,6 +375,52 @@ interface TagDetailVariables {
   after?: string
 }
 
+interface TagUsersResponse {
+  tag: {
+    users: {
+      edges: Array<{
+        node: {
+          id: string
+          username: string
+          assets: {
+            image: {
+              location: string
+            }
+          }
+        }
+      }>
+      pageInfo: {
+        hasNextPage: boolean
+        endCursor: string
+      }
+    }
+  }
+}
+
+const GET_TAG_USERS = gql`
+  query TagDetail($tagName: String!, $after: Cursor) {
+    tag(tagName: $tagName) {
+      users(after: $after) {
+        edges {
+          node {
+            id
+            username
+            assets {
+              image {
+                location
+              }
+            }
+          }
+        }
+        pageInfo {
+          hasNextPage
+          endCursor
+        }
+      }
+    }
+  }
+`
+
 export class PelotonAPI {
   private readonly defaultOptions: RequestInit = {
     credentials: "include",
@@ -381,6 +428,19 @@ export class PelotonAPI {
       "Content-Type": "application/json",
       Authorization: `Bearer ${process.env["PELOTON_TOKEN"]}`,
     },
+  }
+
+  private readonly graphqlClient: GraphQLClient
+
+  constructor() {
+    this.graphqlClient = new GraphQLClient(
+      "https://gql-graphql-gateway.prod.k8s.onepeloton.com/graphql",
+      {
+        headers: {
+          Authorization: `Bearer ${process.env["PELOTON_TOKEN"]}`,
+        },
+      },
+    )
   }
 
   async getWorkouts(
@@ -435,72 +495,29 @@ export class PelotonAPI {
     after?: string,
   ): Promise<{
     users: Array<{ id: string; username: string; avatar_url: string }>
+    hasNextPage: boolean
+    endCursor: string | null
   }> {
-    const requestUrl =
-      "https://gql-graphql-gateway.prod.k8s.onepeloton.com/graphql?query=TagDetail"
-    const body: {
-      operationName: string
-      query: string
-      variables: TagDetailVariables
-    } = {
-      operationName: "TagDetail",
-      query:
-        "query TagDetail($tagName: String!, $after: Cursor) {tag(tagName: $tagName) {name followingCount assets { backgroundImage { location __typename } detailBackgroundImage { location __typename } __typename } users(after: $after) { totalCount edges { node { id username assets { image { location __typename } __typename } followStatus protectedFields { ... on UserProtectedFields { totalWorkoutCounts __typename } ... on UserPrivacyError { code message __typename } __typename } __typename } __typename } pageInfo { hasNextPage endCursor __typename } __typename } __typename } }",
-      variables: {
+    const data = await this.graphqlClient.request<TagUsersResponse>(
+      GET_TAG_USERS,
+      {
         tagName: tag,
+        after,
       },
+    )
+
+    if (!data?.tag?.users?.edges) {
+      throw new Error("Invalid response from Peloton API")
     }
-    if (after) {
-      body.variables.after = after
-    }
 
-    try {
-      const response = await fetch(requestUrl, {
-        ...this.defaultOptions,
-        method: "POST",
-        body: JSON.stringify(body),
-      })
-
-      if (response.status === 401) {
-        // await this.login()
-        return this.getUsersInTag(tag, after)
-      }
-      if (response.status === 503) {
-        console.error("Peloton API returned 503.")
-        // Return empty list instead of exiting
-        return { users: [] }
-      }
-
-      const data = await response.json()
-
-      // Check if we got valid data back
-      if (!data?.data?.tag?.users?.edges) {
-        console.error("Invalid response from Peloton API:", data)
-        return { users: [] }
-      }
-
-      const users = data.data.tag.users.edges.map((edge: UserEdge) => ({
+    return {
+      users: data.tag.users.edges.map((edge) => ({
         id: edge.node.id,
         username: edge.node.username,
         avatar_url: edge.node.assets.image.location,
-      }))
-
-      // Check if there are more pages
-      if (data.data.tag.users.pageInfo.hasNextPage) {
-        const nextPage = await this.getUsersInTag(
-          tag,
-          data.data.tag.users.pageInfo.endCursor,
-        )
-        return {
-          users: [...users, ...nextPage.users],
-        }
-      }
-
-      return { users }
-    } catch (error) {
-      console.error("Failed to fetch users in tag:", error)
-      // Return empty list instead of throwing
-      return { users: [] }
+      })),
+      hasNextPage: data.tag.users.pageInfo.hasNextPage,
+      endCursor: data.tag.users.pageInfo.endCursor,
     }
   }
 
