@@ -15,7 +15,7 @@ import { notFound } from "next/navigation"
 import { db } from "@db/client"
 import { cyclistsTable } from "@db/schema"
 import { RideList } from "./ride-list"
-
+import { isNotNull } from "drizzle-orm"
 interface Props {
   params: Promise<{
     username: string
@@ -29,6 +29,7 @@ export async function generateStaticParams() {
   return await db
     .select({ username: cyclistsTable.username })
     .from(cyclistsTable)
+    .where(isNotNull(cyclistsTable.first_ride))
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -47,7 +48,7 @@ export default async function CyclistProfile({ params }: Props) {
   const avatar_url =
     cyclist?.avatar_url ?? `https://placehold.co/21x21/red/red.webp`
 
-  if (!cyclist) {
+  if (!cyclist || !cyclist.first_ride) {
     notFound()
   }
 
