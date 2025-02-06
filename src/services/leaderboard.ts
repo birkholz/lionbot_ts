@@ -81,21 +81,19 @@ export async function getLeaderboardByDate(
     : null
 }
 
+const getCachedUserStats = unstable_cache(
+  async () => {
+    return computeUserStats()
+  },
+  ["user-stats"],
+  {
+    revalidate: 60 * 60 * 24, // Cache for 24 hours
+    tags: ["user-stats"],
+  },
+)
+
 export async function getUserStats(): Promise<UserStats[]> {
-  // Cache the user stats with fetch
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_URL}/api/stats`,
-    {
-      cache: "force-cache",
-    },
-  )
-
-  if (!response.ok) {
-    console.error("Failed to fetch user stats:", response.status)
-    return []
-  }
-
-  return response.json()
+  return getCachedUserStats()
 }
 
 // Move the actual stats computation to an API route
