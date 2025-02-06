@@ -161,9 +161,20 @@ export async function postLeaderboard(
   const nlWorkouts = await withRetry(() =>
     api.getWorkouts(nlUserId, dayStart, dayEnd),
   )
-  const validNLWorkouts = nlWorkouts.filter(validWorkout)
+  const validNLWorkouts = nlWorkouts
+    .filter(validWorkout)
+    .filter(
+      (workout) => workout.ride?.id !== "00000000000000000000000000000000",
+    )
 
-  const rides: Record<string, RideInfo> = {}
+  let rides: Record<string, RideInfo> = {}
+  const rideParticipationCount: Record<string, Set<string>> = {}
+  const rideDetails: Record<
+    string,
+    { title: string; instructor: string; image_url: string; start_time: number }
+  > = {}
+
+  // Initialize rides from NL's workouts if they exist
   for (const workout of validNLWorkouts) {
     if (!workout.ride?.id || !workout.ride?.title) continue
     const ride = new RideInfo(
@@ -186,7 +197,6 @@ export async function postLeaderboard(
       username: cyclistsTable.username,
     })
     .from(cyclistsTable)
-    .where(isNotNull(cyclistsTable.user_id))
 
   await pMap(
     users,
@@ -198,6 +208,12 @@ export async function postLeaderboard(
 
       for (const workout of validUserWorkouts) {
         const workoutRideId = workout.ride.id
+        if (workoutRideId === "00000000000000000000000000000000") continue
+
+        if (validNLWorkouts.length > 0) {
+          const ride = rides[workoutRideId]
+          if (!ride) continue
+        }
 
         const workoutTime = new TZDate(
           workout.start_time * 1000,
@@ -247,9 +263,6 @@ export async function postLeaderboard(
           }
         }
 
-        const ride = rides[workoutRideId]
-        if (!ride) continue
-
         // was ride recent?
         // Leaderboard rides can be up to 12 hours before NL until stream start the following day
         const workoutDate = new TZDate(
@@ -257,6 +270,20 @@ export async function postLeaderboard(
           workout.timezone,
         )
         if (workoutDate < minDt || workoutDate > streamStart) continue
+
+        // Track participation count for each ride
+        if (!rideParticipationCount[workoutRideId]) {
+          rideParticipationCount[workoutRideId] = new Set()
+        }
+        rideParticipationCount[workoutRideId].add(user.username)
+        if (!rideDetails[workoutRideId]) {
+          rideDetails[workoutRideId] = {
+            title: workout.ride.title,
+            instructor: getInstructorName(workout),
+            image_url: workout.ride.image_url,
+            start_time: workout.start_time,
+          }
+        }
 
         const performanceData = await withRetry(() =>
           api.getWorkoutPerformanceData(workout.id),
@@ -284,11 +311,68 @@ export async function postLeaderboard(
           duration,
           performanceData.effort_zones,
         )
-        ride.workouts.push(workoutObj)
+
+        let ride = rides[workoutRideId]
+
+        // If we don't have NL's rides, add all rides to the tracking
+        if (validNLWorkouts.length === 0) {
+          if (!ride) {
+            const details = rideDetails[workoutRideId]
+            ride = new RideInfo(
+              workoutRideId,
+              details.title,
+              details.instructor,
+              details.start_time,
+              `https://members.onepeloton.com/classes/cycling?modal=classDetailsModal&classId=${workoutRideId}`,
+              details.image_url,
+            )
+            rides[workoutRideId] = ride
+          }
+        }
+        if (ride) {
+          ride.workouts.push(workoutObj)
+        }
       }
     },
     { concurrency: 15 },
   )
+
+  // If we don't have NL's rides, only keep the most popular rides
+  if (
+    validNLWorkouts.length === 0 &&
+    Object.keys(rideParticipationCount).length > 0
+  ) {
+    // Convert Sets to counts and filter out rides with less than 3 riders
+    const rideCounts = Object.entries(rideParticipationCount)
+      .map(([rideId, users]) => ({
+        rideId,
+        count: users.size,
+      }))
+      .filter(({ count }) => count >= 3)
+
+    if (rideCounts.length === 0) {
+      rides = {}
+    } else {
+      const maxParticipation = Math.max(...rideCounts.map((r) => r.count))
+      // Find all rides with max participation
+      const mostPopularRides = rideCounts
+        .filter(({ count }) => count === maxParticipation)
+        .map(({ rideId }) => ({
+          rideId,
+          startTime: rideDetails[rideId].start_time,
+        }))
+        // Sort by start time to get the earliest one
+        .sort((a, b) => a.startTime - b.startTime)
+
+      // Only keep the single most popular ride (earliest in case of ties)
+      const popularRide = mostPopularRides[0]
+      if (popularRide && rides[popularRide.rideId]) {
+        rides = { [popularRide.rideId]: rides[popularRide.rideId] }
+      } else {
+        rides = {}
+      }
+    }
+  }
 
   // Dump all the rides to the db
   const ridesJson: typeof leaderboardsTable.$inferInsert = {
@@ -312,7 +396,9 @@ export async function postLeaderboard(
       // Get the highest output from any PBs this user achieved today
       const userPbs = playersWhoPbd[username] || []
       const highestPbOutput =
-        userPbs.length > 0 ? Math.max(...userPbs.map((pb) => pb.total_work)) : 0
+        userPbs.length > 0
+          ? Math.round(Math.max(...userPbs.map((pb) => pb.total_work)))
+          : 0
 
       await db
         .insert(cyclistsTable)

@@ -70,7 +70,6 @@ async function fetchAndStoreAvatars() {
 
   while (hasNextPage) {
     try {
-      console.log("Fetching page", cursor ? `after ${cursor}` : "1")
       const response: TagUsersResponse = await client.request<TagUsersResponse>(
         GET_TAG_USERS,
         {
@@ -92,7 +91,6 @@ async function fetchAndStoreAvatars() {
       )
 
       allUsers.push(...users)
-      console.log(`Found ${users.length} users on this page`)
 
       hasNextPage = response.tag.users.pageInfo.hasNextPage
       cursor = response.tag.users.pageInfo.endCursor ?? undefined
