@@ -1,12 +1,11 @@
 "use server"
 
 import { db } from "@db/client"
-import { leaderboardsTable } from "@db/schema"
+import { leaderboardsTable, userAvatarsTable } from "@db/schema"
 import type { EffortZones, LeaderboardJson } from "@types"
 import { format } from "date-fns"
 import { asc, desc, eq } from "drizzle-orm"
 import { unstable_cache } from "next/cache"
-import { PelotonAPI } from "@lib/peloton"
 
 export interface Leaderboard {
   date: string
@@ -153,48 +152,18 @@ export async function computeUserStats(): Promise<UserStats[]> {
   )
 }
 
-const getCachedPelotonUsers = unstable_cache(
-  async (cursor?: string) => {
-    try {
-      const api = new PelotonAPI()
-      return await api.getUsersInTag("TheEggCarton", cursor)
-    } catch (error) {
-      console.error("Failed to fetch Peloton users:", error)
-      return null
-    }
-  },
-  ["peloton-users"],
-  {
-    revalidate: 60 * 60 * 24, // Cache for 24 hours
-    tags: ["peloton-users"],
-  },
-)
-
 export async function getUserAvatars(): Promise<
-  Array<{ username: string; avatar_url: string }>
+  Array<{ username: string; user_id: string; avatar_url: string }>
 > {
-  if (process.env.NODE_ENV === "development") {
-    // In development, use placeholder images for faster loading
-    return []
-  }
+  const avatars = await db
+    .select({
+      username: userAvatarsTable.username,
+      user_id: userAvatarsTable.user_id,
+      avatar_url: userAvatarsTable.avatar_url,
+    })
+    .from(userAvatarsTable)
 
-  const allUsers: Array<{ username: string; avatar_url: string }> = []
-  let hasNextPage = true
-  let cursor: string | undefined = undefined
-
-  while (hasNextPage) {
-    const result = await getCachedPelotonUsers(cursor)
-
-    if (!result) {
-      return allUsers
-    }
-
-    allUsers.push(...result.users)
-    hasNextPage = result.hasNextPage
-    cursor = result.endCursor ?? undefined
-  }
-
-  return allUsers
+  return avatars
 }
 
 export async function getUserRides(username: string): Promise<UserRide[]> {

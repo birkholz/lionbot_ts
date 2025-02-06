@@ -10,6 +10,8 @@ import {
   jsonb,
   type PgTableWithColumns,
   date,
+  text,
+  timestamp,
 } from "drizzle-orm/pg-core"
 
 export const streams: PgTableWithColumns<any> = pgTable(
@@ -117,4 +119,10 @@ export const leaderboardsTable = pgTable("leaderboards", {
   id: serial().primaryKey().notNull(),
   json: jsonb("json"),
   date: date("date").notNull().defaultNow(),
+})
+
+export const userAvatarsTable = pgTable("user_avatars", {
+  username: text("username").primaryKey(),
+  user_id: text("user_id").notNull(),
+  avatar_url: text("avatar_url").notNull(),
 })

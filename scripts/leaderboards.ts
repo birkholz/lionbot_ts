@@ -7,6 +7,7 @@ import { db } from "@db/client"
 import { leaderboardsTable } from "@db/schema"
 import "./instrument"
 import { PelotonAPI } from "@lib/peloton"
+import { getUserAvatars } from "@services/leaderboard"
 import {
   formatNumber,
   getInstructorName,
@@ -184,13 +185,13 @@ export async function postLeaderboard(
   const totals: Record<string, UserTotal> = {}
   const playersWhoPbd: Record<string, PBInfo[]> = {}
 
-  const { users } = await withRetry(() => api.getUsersInTag("TheEggCarton"))
+  const users = await getUserAvatars()
 
   await pMap(
     users,
     async (user) => {
       const userWorkouts = await withRetry(() =>
-        api.getWorkouts(user.id, minDt, streamStart),
+        api.getWorkouts(user.user_id, minDt, streamStart),
       )
       const validUserWorkouts = userWorkouts.filter(validWorkout)
 

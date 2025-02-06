@@ -15,6 +15,20 @@
       "when": 1738370494781,
       "tag": "0001_chilly_black_tom",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1738803227670,
+      "tag": "0002_serious_molten_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1738805359903,
+      "tag": "0003_fresh_lily_hollister",
+      "breakpoints": true
     }
   ]
 }

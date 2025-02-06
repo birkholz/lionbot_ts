@@ -13,7 +13,7 @@ function getOptimizedAvatarUrl(
   width: number,
   height: number,
 ): string {
-  if (url.startsWith("https://placehold.co/")) {
+  if (url.startsWith("https://res.cloudinary.com/")) {
     return url
   }
   return `https://res.cloudinary.com/peloton-cycle/image/fetch/ar_1,c_fill,dpr_2.0,f_auto,g_face,h_${height},q_auto:good,w_${width}/${url}`

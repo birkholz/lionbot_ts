@@ -1,13 +1,4 @@
-import { TZDate } from "@date-fns/tz"
-import { format } from "date-fns"
-import makeFetchCookie, { type FetchCookieImpl } from "fetch-cookie"
-import { GraphQLClient, gql } from "graphql-request"
 // Types
-interface LoginPayload {
-  username_or_email: string
-  password: string
-}
-
 interface PerformanceGraphResponse {
   duration: number
   is_class_plan_shown: boolean
@@ -302,125 +293,6 @@ interface Instructor {
   default_cue_delay: number
 }
 
-interface TagDetailResponse {
-  data: {
-    tag: Tag
-  }
-}
-
-interface Tag {
-  name: string
-  followingCount: number
-  assets: TagAssets
-  users: UserPaginatedList
-  __typename: "Tag"
-}
-
-interface TagAssets {
-  backgroundImage: Media
-  detailBackgroundImage: Media
-  __typename: "TagAssets"
-}
-
-interface Media {
-  location: string
-  __typename: "Media"
-}
-
-interface UserPaginatedList {
-  totalCount: number
-  edges: UserEdge[]
-  pageInfo: PageInfo
-  __typename: "UserPaginatedList"
-}
-
-interface UserEdge {
-  node: User
-  __typename: "UserEdge"
-}
-
-interface User {
-  id: string
-  username: string
-  assets: UserAssets
-  followStatus: "SELF" | "FOLLOWING" | "NONE"
-  protectedFields: UserProtectedFields | UserPrivacyError
-  __typename: "User"
-}
-
-interface UserAssets {
-  image: Media
-  __typename: "UserAssets"
-}
-
-interface UserProtectedFields {
-  totalWorkoutCounts: number
-  __typename: "UserProtectedFields"
-}
-
-interface UserPrivacyError {
-  code: string
-  message: string
-  __typename: "UserPrivacyError"
-}
-
-interface PageInfo {
-  hasNextPage: boolean
-  endCursor: string
-  __typename: "PageInfo"
-}
-
-interface TagDetailVariables {
-  tagName: string
-  after?: string
-}
-
-interface TagUsersResponse {
-  tag: {
-    users: {
-      edges: Array<{
-        node: {
-          id: string
-          username: string
-          assets: {
-            image: {
-              location: string
-            }
-          }
-        }
-      }>
-      pageInfo: {
-        hasNextPage: boolean
-        endCursor: string
-      }
-    }
-  }
-}
-
-const GET_TAG_USERS = gql`
-  query TagDetail($tagName: String!, $after: Cursor) {
-    tag(tagName: $tagName) {
-      users(after: $after) {
-        edges {
-          node {
-            id
-            username
-            assets {
-              image {
-                location
-              }
-            }
-          }
-        }
-        pageInfo {
-          hasNextPage
-          endCursor
-        }
-      }
-    }
-  }
-`
-
 export class PelotonAPI {
   private readonly defaultOptions: RequestInit = {
     credentials: "include",
@@ -428,19 +300,6 @@ export class PelotonAPI {
       "Content-Type": "application/json",
       Authorization: `Bearer ${process.env["PELOTON_TOKEN"]}`,
     },
-  }
-
-  private readonly graphqlClient: GraphQLClient
-
-  constructor() {
-    this.graphqlClient = new GraphQLClient(
-      "https://gql-graphql-gateway.prod.k8s.onepeloton.com/graphql",
-      {
-        headers: {
-          Authorization: `Bearer ${process.env["PELOTON_TOKEN"]}`,
-        },
-      },
-    )
   }
 
   async getWorkouts(
@@ -488,37 +347,6 @@ export class PelotonAPI {
     }
 
     return allWorkouts
-  }
-
-  async getUsersInTag(
-    tag: string,
-    after?: string,
-  ): Promise<{
-    users: Array<{ id: string; username: string; avatar_url: string }>
-    hasNextPage: boolean
-    endCursor: string | null
-  }> {
-    const data = await this.graphqlClient.request<TagUsersResponse>(
-      GET_TAG_USERS,
-      {
-        tagName: tag,
-        after,
-      },
-    )
-
-    if (!data?.tag?.users?.edges) {
-      throw new Error("Invalid response from Peloton API")
-    }
-
-    return {
-      users: data.tag.users.edges.map((edge) => ({
-        id: edge.node.id,
-        username: edge.node.username,
-        avatar_url: edge.node.assets.image.location,
-      })),
-      hasNextPage: data.tag.users.pageInfo.hasNextPage,
-      endCursor: data.tag.users.pageInfo.endCursor,
-    }
   }
 
   async getWorkoutPerformanceData(
