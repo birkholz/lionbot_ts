@@ -14,15 +14,15 @@ export default function Loading() {
       <h1 className="mb-6 text-center text-2xl font-bold">
         <Skeleton className="mx-auto h-8 w-32" />
       </h1>
-      <p className="mx-4 mb-6 text-center">
+      <div className="mx-4 mb-6 text-center">
         <Skeleton className="mx-auto h-4 w-64" />
-      </p>
-      <p className="mx-4 mb-2 text-left text-sm text-muted-foreground">
+      </div>
+      <div className="mx-4 mb-2 text-left text-sm text-muted-foreground">
         <Skeleton className="h-4 w-full" />
-      </p>
-      <p className="mx-4 mb-2 text-left text-sm text-muted-foreground">
+      </div>
+      <div className="mx-4 mb-2 text-left text-sm text-muted-foreground">
         <Skeleton className="h-4 w-full" />
-      </p>
+      </div>
       <Table>
         <TableHeader>
           <TableRow>

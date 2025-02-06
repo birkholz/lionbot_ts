@@ -17,15 +17,29 @@ export const metadata: Metadata = {
 }
 
 function formatOutput(output?: number): string {
-  if (!output || !isFinite(output)) return "-"
+  if (
+    output === undefined ||
+    output === null ||
+    !isFinite(output) ||
+    output === 0
+  )
+    return "-"
   if (output >= 1000) {
-    return `${(output / 1000).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} `
+    return `${(output / 1000).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
   }
-  return `${Math.round(output).toLocaleString()} `
+  return `${Math.round(output).toLocaleString()}`
 }
 
-function getOutputUnit(output: number): string {
-  return output >= 1000 ? "MJ" : "kJ"
+function formatOutputUnit(output?: number) {
+  if (
+    output === undefined ||
+    output === null ||
+    !isFinite(output) ||
+    output === 0
+  )
+    return <></>
+  const unit = output >= 1000 ? "MJ" : "kJ"
+  return <span className="text-muted-foreground">{unit}</span>
 }
 
 export default async function Cyclists() {
@@ -104,9 +118,7 @@ export default async function Cyclists() {
               </TableCell>
               <TableCell>
                 {formatOutput(user.highestOutput)}
-                <span className="text-muted-foreground">
-                  {user.highestOutput && getOutputUnit(user.highestOutput)}
-                </span>
+                {formatOutputUnit(user.highestOutput)}
               </TableCell>
             </TableRow>
           ))}
