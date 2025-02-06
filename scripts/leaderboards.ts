@@ -337,40 +337,27 @@ export async function postLeaderboard(
     { concurrency: 15 },
   )
 
-  // If we don't have NL's rides, only keep the most popular rides
+  // If we don't have NL's rides, only keep rides with enough participants
   if (
     validNLWorkouts.length === 0 &&
     Object.keys(rideParticipationCount).length > 0
   ) {
-    // Convert Sets to counts and filter out rides with less than 3 riders
-    const rideCounts = Object.entries(rideParticipationCount)
-      .map(([rideId, users]) => ({
-        rideId,
-        count: users.size,
-      }))
-      .filter(({ count }) => count >= 3)
+    // Convert Sets to counts and filter out rides with less than 10 riders
+    const popularRideIds = Object.entries(rideParticipationCount)
+      .filter(([_, users]) => users.size >= 10)
+      .map(([rideId]) => rideId)
 
-    if (rideCounts.length === 0) {
+    if (popularRideIds.length === 0) {
       rides = {}
     } else {
-      const maxParticipation = Math.max(...rideCounts.map((r) => r.count))
-      // Find all rides with max participation
-      const mostPopularRides = rideCounts
-        .filter(({ count }) => count === maxParticipation)
-        .map(({ rideId }) => ({
-          rideId,
-          startTime: rideDetails[rideId].start_time,
-        }))
-        // Sort by start time to get the earliest one
-        .sort((a, b) => a.startTime - b.startTime)
-
-      // Only keep the single most popular ride (earliest in case of ties)
-      const popularRide = mostPopularRides[0]
-      if (popularRide && rides[popularRide.rideId]) {
-        rides = { [popularRide.rideId]: rides[popularRide.rideId] }
-      } else {
-        rides = {}
+      // Keep only the rides that had 10+ riders
+      const popularRides: Record<string, RideInfo> = {}
+      for (const rideId of popularRideIds) {
+        if (rides[rideId]) {
+          popularRides[rideId] = rides[rideId]
+        }
       }
+      rides = popularRides
     }
   }
 
