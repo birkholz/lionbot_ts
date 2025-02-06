@@ -86,7 +86,7 @@ const getCachedUserStats = unstable_cache(
   },
   ["user-stats"],
   {
-    revalidate: 60 * 60 * 24, // Cache for 24 hours
+    revalidate: 60 * 60, // Cache for 1 hour
     tags: ["user-stats"],
   },
 )
@@ -152,18 +152,29 @@ export async function computeUserStats(): Promise<UserStats[]> {
   )
 }
 
+const getCachedUserAvatars = unstable_cache(
+  async () => {
+    const avatars = await db
+      .select({
+        username: userAvatarsTable.username,
+        user_id: userAvatarsTable.user_id,
+        avatar_url: userAvatarsTable.avatar_url,
+      })
+      .from(userAvatarsTable)
+
+    return avatars
+  },
+  ["user-avatars"],
+  {
+    revalidate: 60 * 60, // Cache for 1 hour
+    tags: ["user-avatars"],
+  },
+)
+
 export async function getUserAvatars(): Promise<
   Array<{ username: string; user_id: string; avatar_url: string }>
 > {
-  const avatars = await db
-    .select({
-      username: userAvatarsTable.username,
-      user_id: userAvatarsTable.user_id,
-      avatar_url: userAvatarsTable.avatar_url,
-    })
-    .from(userAvatarsTable)
-
-  return avatars
+  return getCachedUserAvatars()
 }
 
 export async function getUserRides(username: string): Promise<UserRide[]> {
