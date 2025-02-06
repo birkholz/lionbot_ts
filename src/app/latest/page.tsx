@@ -2,9 +2,9 @@ import { DateNavigation } from "@components/date-navigation"
 import { LeaderboardPage } from "@components/leaderboard-page"
 import { NoLeaderboard } from "@components/no-leaderboard"
 import {
+  getCachedUserAvatars,
   getLatestLeaderboard,
   getLeaderboardDateRange,
-  getUserAvatars,
 } from "@services/leaderboard"
 import type { Metadata } from "next"
 
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 export default async function LatestPage() {
   const [leaderboard, avatars] = await Promise.all([
     getLatestLeaderboard(),
-    getUserAvatars(),
+    getCachedUserAvatars(),
   ])
   const date = leaderboard?.date || new Date().toISOString().split("T")[0]
 

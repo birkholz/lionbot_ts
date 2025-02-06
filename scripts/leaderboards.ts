@@ -1,13 +1,7 @@
-import * as Sentry from "@sentry/bun"
-import { format, subDays, subHours, addDays, set } from "date-fns"
-import { mean, median } from "mathjs"
-import pMap from "p-map"
-import pluralize from "pluralize"
+import { TZDate } from "@date-fns/tz"
 import { db } from "@db/client"
-import { leaderboardsTable, cyclistsTable } from "@db/schema"
-import "./instrument"
+import { cyclistsTable, leaderboardsTable } from "@db/schema"
 import { PelotonAPI } from "@lib/peloton"
-import { getUserAvatars } from "@services/leaderboard"
 import {
   formatNumber,
   getInstructorName,
@@ -20,10 +14,13 @@ import {
   validWorkout,
   withRetry,
 } from "@lib/utils"
-import { RideInfo, WorkoutInfo } from "@types"
 import type { DiscordEmbed, PBInfo, UserTotal } from "@types"
-import { TZDate } from "@date-fns/tz"
-import { eq, sql } from "drizzle-orm"
+import { RideInfo, WorkoutInfo } from "@types"
+import { addDays, format, set, subDays, subHours } from "date-fns"
+import { isNotNull, sql } from "drizzle-orm"
+import { mean, median } from "mathjs"
+import pMap from "p-map"
+import pluralize from "pluralize"
 
 export async function postWorkouts(
   api: PelotonAPI,
@@ -110,14 +107,11 @@ export async function postWorkouts(
   }
 
   const channelId = process.env["PELOTON_CHANNEL_ID"]
-  try {
-    await sendDiscordRequest("post", `channels/${channelId}/messages`, jsonBody)
-    console.info(
-      `Successfully posted Peloton ride ids: ${recentWorkouts.map((workout) => workout.ride.id)}`,
-    )
-  } catch (error) {
-    Sentry.captureException(error)
-  }
+
+  await sendDiscordRequest("post", `channels/${channelId}/messages`, jsonBody)
+  console.info(
+    `Successfully posted Peloton ride ids: ${recentWorkouts.map((workout) => workout.ride.id)}`,
+  )
 }
 
 export async function postLeaderboard(
@@ -186,7 +180,13 @@ export async function postLeaderboard(
   const totals: Record<string, UserTotal> = {}
   const playersWhoPbd: Record<string, PBInfo[]> = {}
 
-  const users = await getUserAvatars()
+  const users = await db
+    .select({
+      user_id: cyclistsTable.user_id,
+      username: cyclistsTable.username,
+    })
+    .from(cyclistsTable)
+    .where(isNotNull(cyclistsTable.user_id))
 
   await pMap(
     users,
@@ -455,14 +455,11 @@ export async function postLeaderboard(
   }
 
   const channelId = process.env["PELOTON_CHANNEL_ID"]
-  try {
-    await sendDiscordRequest("post", `channels/${channelId}/messages`, jsonBody)
-    console.info(
-      `Successfully posted leaderboard with ride ids: ${Object.keys(rides)}`,
-    )
-  } catch (error) {
-    Sentry.captureException(error)
-  }
+
+  await sendDiscordRequest("post", `channels/${channelId}/messages`, jsonBody)
+  console.info(
+    `Successfully posted leaderboard with ride ids: ${Object.keys(rides)}`,
+  )
 }
 
 async function getAndPostWorkouts(): Promise<void> {

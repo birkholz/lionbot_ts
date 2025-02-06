@@ -121,24 +121,34 @@ export async function getUserStats(): Promise<UserStats[]> {
   return getCachedUserStats()
 }
 
-const getCachedUserAvatars = unstable_cache(
-  async () => {
-    const avatars = await db
-      .select({
-        username: cyclistsTable.username,
-        user_id: cyclistsTable.user_id,
-        avatar_url: cyclistsTable.avatar_url,
-      })
-      .from(cyclistsTable)
+export async function getUserAvatarsBase(): Promise<
+  Array<{ username: string; user_id: string; avatar_url: string }>
+> {
+  const avatars = await db
+    .select({
+      username: cyclistsTable.username,
+      user_id: cyclistsTable.user_id,
+      avatar_url: cyclistsTable.avatar_url,
+    })
+    .from(cyclistsTable)
 
-    return avatars
-  },
-  ["user-avatars"],
-  {
+  return avatars
+}
+
+export async function getCachedUserAvatars(): Promise<
+  Array<{ username: string; user_id: string; avatar_url: string }>
+> {
+  return unstable_cache(getUserAvatarsBase, ["user-avatars"], {
     revalidate: 60 * 60, // Cache for 1 hour
     tags: ["user-avatars"],
-  },
-)
+  })()
+}
+
+export async function getUserAvatars(): Promise<
+  Array<{ username: string; user_id: string; avatar_url: string }>
+> {
+  return getCachedUserAvatars()
+}
 
 export async function getCyclist(username: string): Promise<
   | {
@@ -165,12 +175,6 @@ export async function getCyclist(username: string): Promise<
     .limit(1)
 
   return avatar
-}
-
-export async function getUserAvatars(): Promise<
-  Array<{ username: string; user_id: string; avatar_url: string }>
-> {
-  return getCachedUserAvatars()
 }
 
 export async function getUserRides(username: string): Promise<UserRide[]> {

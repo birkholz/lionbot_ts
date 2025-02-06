@@ -3,9 +3,9 @@ import { LeaderboardPage } from "@components/leaderboard-page"
 import { NoLeaderboard } from "@components/no-leaderboard"
 import { TZDate } from "@date-fns/tz"
 import {
+  getCachedUserAvatars,
   getLeaderboardByDate,
   getLeaderboardDateRange,
-  getUserAvatars,
 } from "@services/leaderboard"
 import { addDays, format, isMatch, subDays } from "date-fns"
 import { notFound } from "next/navigation"
@@ -53,7 +53,7 @@ export default async function DatePage({ params }: Props) {
 
   const [leaderboard, avatars] = await Promise.all([
     getLeaderboardByDate(date),
-    getUserAvatars(),
+    getCachedUserAvatars(),
   ])
 
   if (!leaderboard || !leaderboard.json) {
