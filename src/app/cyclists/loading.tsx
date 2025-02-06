@@ -1,4 +1,3 @@
-import { Separator } from "@components/ui/separator"
 import {
   Table,
   TableBody,
@@ -12,20 +11,24 @@ import { Skeleton } from "@components/ui/skeleton"
 export default function Loading() {
   return (
     <div>
-      <h1 className="mb-6 text-center text-2xl font-bold">Cyclists</h1>
-      <div className="mx-6 my-2">
-        <Skeleton className="h-[350px] w-full" />
-      </div>
-      <div className="mx-8 mb-2">
-        <Skeleton className="h-60 w-full" />
-      </div>
+      <h1 className="mb-6 text-center text-2xl font-bold">
+        <Skeleton className="mx-auto h-8 w-32" />
+      </h1>
+      <p className="mx-4 mb-6 text-center">
+        <Skeleton className="mx-auto h-4 w-64" />
+      </p>
+      <p className="mx-4 mb-2 text-left text-sm text-muted-foreground">
+        <Skeleton className="h-4 w-full" />
+      </p>
+      <p className="mx-4 mb-2 text-left text-sm text-muted-foreground">
+        <Skeleton className="h-4 w-full" />
+      </p>
       <Table>
         <TableHeader>
           <TableRow>
             <TableHead>Username</TableHead>
             <TableHead>First Ride</TableHead>
             <TableHead>Total Rides</TableHead>
-            <TableHead>Highest Wattage</TableHead>
             <TableHead>Highest Output</TableHead>
           </TableRow>
         </TableHeader>
@@ -43,9 +46,6 @@ export default function Loading() {
               </TableCell>
               <TableCell>
                 <Skeleton className="h-4 w-20" />
-              </TableCell>
-              <TableCell>
-                <Skeleton className="h-4 w-28" />
               </TableCell>
               <TableCell>
                 <Skeleton className="h-4 w-28" />

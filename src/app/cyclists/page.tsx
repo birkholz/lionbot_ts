@@ -1,4 +1,3 @@
-import { CyclistsChart } from "@components/cyclists-chart"
 import {
   Table,
   TableBody,
@@ -14,6 +13,7 @@ import Link from "next/link"
 
 export const metadata: Metadata = {
   title: "#TheEggCarton Cyclists",
+  description: "The recognized members of #TheEggCarton",
 }
 
 function formatOutput(output?: number): string {
@@ -28,7 +28,7 @@ function getOutputUnit(output: number): string {
   return output >= 1000 ? "MJ" : "kJ"
 }
 
-export default async function Users() {
+export default async function Cyclists() {
   const userStats = await getUserStats()
 
   return (
@@ -36,7 +36,15 @@ export default async function Users() {
       <h1 className="mb-6 text-center text-2xl font-bold">
         <span className="text-primary">{userStats.length}</span> Cyclists
       </h1>
-      <CyclistsChart users={userStats} />
+      <p className="mx-4 mb-6 text-center">
+        View{" "}
+        <Link
+          href="/cyclists/charts"
+          className="text-primary hover:text-primary/80 hover:underline"
+        >
+          cyclist growth and participation charts
+        </Link>
+      </p>
       <p className="mx-4 mb-2 text-left text-sm text-muted-foreground">
         This is a list of all the cyclists who have joined any of the group
         rides since the leaderboards started on{" "}

@@ -1,8 +1,8 @@
 "use server"
 
 import { db } from "@db/client"
-import { leaderboardsTable, cyclistsTable } from "@db/schema"
-import type { EffortZones, LeaderboardJson } from "@types"
+import { cyclistsTable, leaderboardsTable } from "@db/schema"
+import type { LeaderboardJson, RideData } from "@types"
 import { format } from "date-fns"
 import { asc, desc, eq, isNotNull, sql } from "drizzle-orm"
 import { unstable_cache } from "next/cache"
@@ -31,6 +31,11 @@ export interface UserRide {
   id: string
   title: string
   instructor_name: string
+}
+
+export interface ParticipationData {
+  date: string
+  participants: number
 }
 
 const getCachedDateRange = unstable_cache(
@@ -212,6 +217,30 @@ export async function getUserRides(username: string): Promise<UserRide[]> {
       id: data.id,
       title: data.title,
       instructor_name: data.instructor_name,
+    }
+  })
+}
+
+export async function getParticipationData(): Promise<ParticipationData[]> {
+  const leaderboards = await db
+    .select({
+      date: leaderboardsTable.date,
+      json: leaderboardsTable.json,
+    })
+    .from(leaderboardsTable)
+    .orderBy(asc(leaderboardsTable.date))
+
+  return leaderboards.map((row) => {
+    const json = row.json as LeaderboardJson
+    const uniqueParticipants = new Set<string>()
+    Object.values(json.rides).forEach((ride: RideData) => {
+      ride.workouts.forEach((workout) => {
+        uniqueParticipants.add(workout.user_username)
+      })
+    })
+    return {
+      date: row.date,
+      participants: uniqueParticipants.size,
     }
   })
 }
