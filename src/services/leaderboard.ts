@@ -4,7 +4,7 @@ import { db } from "@db/client"
 import { leaderboardsTable, userAvatarsTable } from "@db/schema"
 import type { EffortZones, LeaderboardJson } from "@types"
 import { format } from "date-fns"
-import { asc, desc, eq } from "drizzle-orm"
+import { asc, desc, eq, sql } from "drizzle-orm"
 import { unstable_cache } from "next/cache"
 
 export interface Leaderboard {
@@ -36,24 +36,35 @@ export interface UserRide {
   effort_zones: EffortZones | null
 }
 
+const getCachedDateRange = unstable_cache(
+  async () => {
+    const [firstLeaderboard] = await db
+      .select({ date: leaderboardsTable.date })
+      .from(leaderboardsTable)
+      .orderBy(asc(leaderboardsTable.date))
+      .limit(1)
+
+    const [lastLeaderboard] = await db
+      .select({ date: leaderboardsTable.date })
+      .from(leaderboardsTable)
+      .orderBy(desc(leaderboardsTable.date))
+      .limit(1)
+
+    const today = format(new Date(), "yyyy-MM-dd")
+    return {
+      startDate: firstLeaderboard?.date ?? today,
+      endDate: lastLeaderboard?.date ?? today,
+    }
+  },
+  ["date-range"],
+  {
+    revalidate: 60 * 60, // Cache for 1 hour
+    tags: ["date-range"],
+  },
+)
+
 export async function getLeaderboardDateRange(): Promise<DateRange> {
-  const [firstLeaderboard] = await db
-    .select({ date: leaderboardsTable.date })
-    .from(leaderboardsTable)
-    .orderBy(asc(leaderboardsTable.date))
-    .limit(1)
-
-  const [lastLeaderboard] = await db
-    .select({ date: leaderboardsTable.date })
-    .from(leaderboardsTable)
-    .orderBy(desc(leaderboardsTable.date))
-    .limit(1)
-
-  const today = format(new Date(), "yyyy-MM-dd")
-  return {
-    startDate: firstLeaderboard?.date ?? today,
-    endDate: lastLeaderboard?.date ?? today,
-  }
+  return getCachedDateRange()
 }
 
 export async function getLatestLeaderboard(): Promise<Leaderboard | null> {
@@ -82,7 +93,60 @@ export async function getLeaderboardByDate(
 
 const getCachedUserStats = unstable_cache(
   async () => {
-    return computeUserStats()
+    // Get all leaderboards ordered by date ascending to get accurate first ride dates
+    const leaderboards = await db
+      .select()
+      .from(leaderboardsTable)
+      .orderBy(asc(leaderboardsTable.date))
+
+    const userStats = new Map<string, UserStats>()
+
+    // Process each leaderboard to gather user stats
+    for (const leaderboard of leaderboards) {
+      const data = leaderboard.json as LeaderboardJson
+
+      // Process workouts for first ride and total rides
+      for (const ride of Object.values(data.rides)) {
+        for (const workout of ride.workouts) {
+          const username = workout.user_username
+
+          if (!userStats.has(username)) {
+            userStats.set(username, {
+              username,
+              firstRide: leaderboard.date,
+              totalRides: 1,
+            })
+          } else {
+            const stats = userStats.get(username)!
+            stats.totalRides += 1
+          }
+        }
+      }
+
+      // Process PBs for highest output rate and total output
+      for (const [username, pbs] of Object.entries(data.playersWhoPbd)) {
+        const stats = userStats.get(username)
+        if (stats) {
+          for (const pb of pbs) {
+            // Update highest output if this is higher
+            if (!stats.highestOutput || pb.total_work > stats.highestOutput) {
+              stats.highestOutput = pb.total_work
+            }
+
+            // Update highest rate if this is higher
+            const rate = pb.total_work / pb.duration
+            if (!stats.highestPbRate || rate > stats.highestPbRate) {
+              stats.highestPbRate = rate
+            }
+          }
+        }
+      }
+    }
+
+    // Return all users sorted by total rides
+    return Array.from(userStats.values()).sort(
+      (a, b) => b.totalRides - a.totalRides,
+    )
   },
   ["user-stats"],
   {
@@ -93,63 +157,6 @@ const getCachedUserStats = unstable_cache(
 
 export async function getUserStats(): Promise<UserStats[]> {
   return getCachedUserStats()
-}
-
-// Move the actual stats computation to an API route
-export async function computeUserStats(): Promise<UserStats[]> {
-  // Get all leaderboards ordered by date ascending to get accurate first ride dates
-  const leaderboards = await db
-    .select()
-    .from(leaderboardsTable)
-    .orderBy(asc(leaderboardsTable.date))
-
-  const userStats = new Map<string, UserStats>()
-
-  // Process each leaderboard to gather user stats
-  for (const leaderboard of leaderboards) {
-    const data = leaderboard.json as LeaderboardJson
-
-    // Process workouts for first ride and total rides
-    for (const ride of Object.values(data.rides)) {
-      for (const workout of ride.workouts) {
-        const username = workout.user_username
-
-        if (!userStats.has(username)) {
-          userStats.set(username, {
-            username,
-            firstRide: leaderboard.date,
-            totalRides: 1,
-          })
-        } else {
-          const stats = userStats.get(username)!
-          stats.totalRides += 1
-        }
-      }
-    }
-
-    // Process PBs for highest output rate and total output
-    for (const [username, pbs] of Object.entries(data.playersWhoPbd)) {
-      const stats = userStats.get(username)
-      if (stats) {
-        for (const pb of pbs) {
-          // Update highest output if this is higher
-          if (!stats.highestOutput || pb.total_work > stats.highestOutput) {
-            stats.highestOutput = pb.total_work
-          }
-
-          // Update highest rate if this is higher
-          const rate = pb.total_work / pb.duration
-          if (!stats.highestPbRate || rate > stats.highestPbRate) {
-            stats.highestPbRate = rate
-          }
-        }
-      }
-    }
-  }
-
-  return Array.from(userStats.values()).sort(
-    (a, b) => b.totalRides - a.totalRides,
-  )
 }
 
 const getCachedUserAvatars = unstable_cache(
