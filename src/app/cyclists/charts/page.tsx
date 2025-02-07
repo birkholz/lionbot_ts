@@ -1,7 +1,7 @@
 import { CyclistsChart } from "@components/cyclists-chart"
 import { DailyParticipationChart } from "@components/daily-participation-chart"
 import { WeeklyParticipationChart } from "@components/weekly-participation-chart"
-import bothImage from "@public/both.png"
+import bothImage from "/public/both.png"
 import { getParticipationData, getUserStats } from "@services/leaderboard"
 import type { Metadata } from "next"
 

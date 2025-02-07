@@ -10,7 +10,7 @@ import {
 import { addDays, format, isMatch, subDays } from "date-fns"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
-import bothImage from "@public/both.png"
+import bothImage from "/public/both.png"
 
 export async function generateStaticParams() {
   if (process.env.NODE_ENV === "development") {

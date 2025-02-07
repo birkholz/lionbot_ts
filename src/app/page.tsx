@@ -1,5 +1,5 @@
 import { Button } from "@components/ui/button"
-import bothImage from "@public/both.png"
+import bothImage from "/public/both.png"
 import { Metadata } from "next"
 import Link from "next/link"
 

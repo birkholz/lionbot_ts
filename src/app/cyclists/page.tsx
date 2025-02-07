@@ -7,7 +7,7 @@ import {
   TableRow,
 } from "@components/ui/table"
 import { UserAvatar } from "@components/user-avatar"
-import bothImage from "@public/both.png"
+import bothImage from "/public/both.png"
 import { getUserStats } from "@services/leaderboard"
 import type { Metadata } from "next"
 import Link from "next/link"

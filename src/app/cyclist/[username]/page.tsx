@@ -1,7 +1,7 @@
 import { UserAvatar } from "@components/user-avatar"
 import { db } from "@db/client"
 import { cyclistsTable } from "@db/schema"
-import bothImage from "@public/both.png"
+import bothImage from "/public/both.png"
 import { getCyclist, getUserRides } from "@services/leaderboard"
 import { isNotNull } from "drizzle-orm"
 import { ExternalLink } from "lucide-react"

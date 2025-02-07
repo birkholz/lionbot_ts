@@ -1,7 +1,7 @@
 import { DateNavigation } from "@components/date-navigation"
 import { LeaderboardPage } from "@components/leaderboard-page"
 import { NoLeaderboard } from "@components/no-leaderboard"
-import bothImage from "@public/both.png"
+import bothImage from "/public/both.png"
 import {
   getCachedUserAvatars,
   getLatestLeaderboard,

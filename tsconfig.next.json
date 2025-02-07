@@ -29,8 +29,7 @@
       "@app/*": ["app/*"],
       "@db/*": ["db/*"],
       "@services/*": ["services/*"],
-      "@styles/*": ["styles/*"],
-      "@public/*": ["public/*"]
+      "@styles/*": ["styles/*"]
     }
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],
