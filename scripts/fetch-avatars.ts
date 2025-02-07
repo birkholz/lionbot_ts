@@ -55,7 +55,7 @@ async function fetchAndStoreAvatars() {
     "https://gql-graphql-gateway.prod.k8s.onepeloton.com/graphql",
     {
       headers: {
-        Authorization: `Bearer ${process.env.PELOTON_TOKEN}`,
+        Authorization: `Bearer ${process.env["PELOTON_TOKEN"]}`,
       },
     },
   )
