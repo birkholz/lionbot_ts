@@ -17,7 +17,7 @@ import {
 import type { DiscordEmbed, PBInfo, UserTotal } from "@types"
 import { RideInfo, WorkoutInfo } from "@types"
 import { addDays, format, set, subDays, subHours } from "date-fns"
-import { isNotNull, sql } from "drizzle-orm"
+import { sql } from "drizzle-orm"
 import { mean, median } from "mathjs"
 import pMap from "p-map"
 import pluralize from "pluralize"

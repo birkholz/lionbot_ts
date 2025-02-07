@@ -38,6 +38,6 @@
       "@styles/*": ["styles/*"]
     }
   },
-  "include": ["scripts/**/*.ts", "scripts/**/*.tsx"],
+  "include": ["src/**/*", "scripts/**/*"],
   "exclude": ["node_modules", "out"]
 }
