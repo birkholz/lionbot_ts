@@ -191,7 +191,7 @@ export function LeaderboardDisplay(props: LeaderboardDisplayProps) {
                     <TableHead>Duration</TableHead>
                     <TableHead className="text-center md:text-left">
                       <a
-                        href="https://www.onepeloton.com/blog/strive-score-explained"
+                        href="https://www.onepeloton.com/blog/strive-score/"
                         target="_blank"
                         className="cursor-help hover:text-foreground hover:underline"
                       >
