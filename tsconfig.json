@@ -19,7 +19,8 @@
       "@app/*": ["app/*"],
       "@db/*": ["db/*"],
       "@services/*": ["services/*"],
-      "@styles/*": ["styles/*"]
+      "@styles/*": ["styles/*"],
+      "@public/*": ["public/*"]
     },
     "target": "ES2017",
     "lib": ["dom", "dom.iterable", "esnext"],

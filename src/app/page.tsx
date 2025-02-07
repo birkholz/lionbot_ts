@@ -1,9 +1,17 @@
-"use client"
-
 import { Button } from "@components/ui/button"
-import { Card } from "@components/ui/card"
-import { subDays, format } from "date-fns"
+import bothImage from "@public/both.png"
+import { Metadata } from "next"
 import Link from "next/link"
+
+export const metadata: Metadata = {
+  title: "#TheEggCarton",
+  description: "The home of #TheEggCarton on Peloton",
+  openGraph: {
+    title: "#TheEggCarton",
+    description: "The home of #TheEggCarton on Peloton",
+    images: [{ url: bothImage.src }],
+  },
+}
 
 export default function HomePage() {
   return (

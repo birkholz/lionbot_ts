@@ -1,12 +1,16 @@
 import { CyclistsChart } from "@components/cyclists-chart"
 import { DailyParticipationChart } from "@components/daily-participation-chart"
 import { WeeklyParticipationChart } from "@components/weekly-participation-chart"
+import bothImage from "@public/both.png"
 import { getParticipationData, getUserStats } from "@services/leaderboard"
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
   title: "#TheEggCarton Charts",
   description: "Charts showing the group's growth and participation",
+  openGraph: {
+    images: [{ url: bothImage.src }],
+  },
 }
 
 export default async function CyclistCharts() {

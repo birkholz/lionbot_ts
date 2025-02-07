@@ -57,7 +57,7 @@ export default function RootLayout({
                 </div>
                 <CardHeader>
                   <h1 className="text-center text-3xl font-extrabold italic tracking-tight md:text-4xl">
-                    <Link href="/latest" className="cursor-pointer">
+                    <Link href="/" className="cursor-pointer">
                       <span className="text-primary">#TheEggCarton</span>
                     </Link>
                   </h1>

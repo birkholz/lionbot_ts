@@ -7,6 +7,7 @@ import {
   TableRow,
 } from "@components/ui/table"
 import { UserAvatar } from "@components/user-avatar"
+import bothImage from "@public/both.png"
 import { getUserStats } from "@services/leaderboard"
 import type { Metadata } from "next"
 import Link from "next/link"
@@ -14,6 +15,9 @@ import Link from "next/link"
 export const metadata: Metadata = {
   title: "#TheEggCarton Cyclists",
   description: "The recognized members of #TheEggCarton",
+  openGraph: {
+    images: [{ url: bothImage.src }],
+  },
 }
 
 function formatOutput(output?: number): string {
@@ -38,7 +42,7 @@ function formatOutputUnit(output?: number) {
     output === 0
   )
     return <></>
-  const unit = output >= 1000 ? "MJ" : "kJ"
+  const unit = output >= 1000 ? " MJ" : " kJ"
   return <span className="text-muted-foreground">{unit}</span>
 }
 

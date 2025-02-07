@@ -10,6 +10,7 @@ import {
 import { addDays, format, isMatch, subDays } from "date-fns"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
+import bothImage from "@public/both.png"
 
 export async function generateStaticParams() {
   if (process.env.NODE_ENV === "development") {
@@ -41,6 +42,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { date } = await params
   return {
     title: `#TheEggCarton Leaderboards - ${date}`,
+    openGraph: {
+      images: [
+        {
+          url: bothImage.src,
+        },
+      ],
+    },
   }
 }
 

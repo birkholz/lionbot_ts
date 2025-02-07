@@ -29,9 +29,10 @@
       "@app/*": ["app/*"],
       "@db/*": ["db/*"],
       "@services/*": ["services/*"],
-      "@styles/*": ["styles/*"]
+      "@styles/*": ["styles/*"],
+      "@public/*": ["public/*"]
     }
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],
-  "exclude": ["node_modules", "out", "src/lionbot"]
+  "exclude": ["node_modules", "out"]
 }

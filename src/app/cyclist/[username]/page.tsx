@@ -1,21 +1,14 @@
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@components/ui/table"
 import { UserAvatar } from "@components/user-avatar"
+import { db } from "@db/client"
+import { cyclistsTable } from "@db/schema"
+import bothImage from "@public/both.png"
 import { getCyclist, getUserRides } from "@services/leaderboard"
+import { isNotNull } from "drizzle-orm"
 import { ExternalLink } from "lucide-react"
 import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { db } from "@db/client"
-import { cyclistsTable } from "@db/schema"
 import { RideList } from "./ride-list"
-import { isNotNull } from "drizzle-orm"
 interface Props {
   params: Promise<{
     username: string
@@ -36,6 +29,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { username } = await params
   return {
     title: `${username} - #TheEggCarton`,
+    openGraph: {
+      images: [{ url: bothImage.src }],
+    },
   }
 }
 
