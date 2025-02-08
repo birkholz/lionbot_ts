@@ -56,7 +56,10 @@ export default function GlobalError({
                       {error.message || "An unexpected error occurred"}
                     </p>
                     <p className="mt-4">
-                      <Link href="/" className="text-primary hover:underline">
+                      <Link
+                        href="/"
+                        className="text-[hsl(var(--primary-link))] hover:text-[hsl(var(--primary-link)/80)] hover:underline"
+                      >
                         Return Home
                       </Link>
                     </p>

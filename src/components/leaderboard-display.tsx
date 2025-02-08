@@ -217,7 +217,7 @@ export function LeaderboardDisplay(props: LeaderboardDisplayProps) {
                             height={21}
                           />
                           <Link
-                            className="text-primary hover:text-primary/80 hover:underline"
+                            className="text-[hsl(var(--primary-link))] hover:text-[hsl(var(--primary-link)/80)] hover:underline"
                             href={`/cyclist/${workout.user_username}`}
                           >
                             {workout.user_username}
@@ -350,7 +350,7 @@ export function LeaderboardDisplay(props: LeaderboardDisplayProps) {
                             height={21}
                           />
                           <Link
-                            className="text-primary hover:text-primary/80 hover:underline"
+                            className="text-[hsl(var(--primary-link))] hover:text-[hsl(var(--primary-link)/80)] hover:underline"
                             href={`/cyclist/${user.username}`}
                           >
                             {user.username}
@@ -413,7 +413,7 @@ export function LeaderboardDisplay(props: LeaderboardDisplayProps) {
                             height={21}
                           />
                           <Link
-                            className="text-primary hover:text-primary/80 hover:underline"
+                            className="text-[hsl(var(--primary-link))] hover:text-[hsl(var(--primary-link)/80)] hover:underline"
                             href={`/cyclist/${username}`}
                           >
                             {username}

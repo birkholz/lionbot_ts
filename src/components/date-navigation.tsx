@@ -62,7 +62,7 @@ export function DateNavigation() {
       ) : (
         <Link
           href={`/archive/${prevDate}`}
-          className="text-primary hover:text-primary/80 hover:underline"
+          className="text-[hsl(var(--primary-link))] hover:text-[hsl(var(--primary-link)/80)] hover:underline"
           onClick={handlePrevClick}
         >
           <ArrowLeft size={30} />
@@ -94,7 +94,7 @@ export function DateNavigation() {
       ) : (
         <Link
           href={nextLink}
-          className="text-primary hover:text-primary/80 hover:underline"
+          className="text-[hsl(var(--primary-link))] hover:text-[hsl(var(--primary-link)/80)] hover:underline"
           onClick={handleNextClick}
         >
           <ArrowRight size={30} />

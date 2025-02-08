@@ -67,7 +67,7 @@ export default async function CyclistProfile({ params }: Props) {
             First group ride on{" "}
             <Link
               href={`/archive/${cyclist.first_ride}`}
-              className="text-primary hover:text-primary/80 hover:underline"
+              className="text-[hsl(var(--primary-link))] hover:text-[hsl(var(--primary-link)/80)] hover:underline"
             >
               {cyclist.first_ride}
             </Link>
