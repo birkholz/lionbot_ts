@@ -6,7 +6,9 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@components/ui/accordion"
-import { ChartConfig, ChartContainer } from "@components/ui/chart"
+import { ChartConfig } from "@components/ui/chart"
+import { DataTable } from "@components/data-table"
+import { rideColumns } from "@app/leaderboard/columns"
 import {
   Table,
   TableBody,
@@ -15,7 +17,6 @@ import {
   TableHeader,
   TableRow,
 } from "@components/ui/table"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip"
 import { UserAvatar } from "@components/user-avatar"
 import { getAvatarUrl, humanize, localizeNumber } from "@lib/utils"
 import { Sparkle } from "lucide-react"
@@ -23,15 +24,10 @@ import Image from "next/image"
 import Link from "next/link"
 import pluralize from "pluralize"
 import * as React from "react"
-import { Pie, PieChart } from "recharts"
-import type {
-  LeaderboardDisplayProps,
-  Ride,
-  Workout,
-} from "../types/components"
+import type { LeaderboardDisplayProps } from "../types/components"
 import { useLeaderboardState } from "./leaderboard-state"
 
-function sortWorkouts(workouts: Workout[]): Workout[] {
+function sortWorkouts(workouts: any[]): any[] {
   return [...workouts].sort((a, b) => b.total_work - a.total_work)
 }
 
@@ -102,8 +98,7 @@ export function LeaderboardDisplay(props: LeaderboardDisplayProps) {
     },
   }
 
-  const isScenicRide = (ride: Ride) =>
-    ride.instructor_name.split(" ").length > 2
+  const isScenicRide = (ride: any) => ride.instructor_name.split(" ").length > 2
 
   return (
     <>
@@ -179,117 +174,10 @@ export function LeaderboardDisplay(props: LeaderboardDisplayProps) {
                   )}
                 </div>
               </a>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Rank</TableHead>
-                    <TableHead>Username</TableHead>
-                    <TableHead className="text-center md:text-left">
-                      Total Output
-                    </TableHead>
-                    <TableHead>Distance</TableHead>
-                    <TableHead>Duration</TableHead>
-                    <TableHead className="text-center md:text-left">
-                      <a
-                        href="https://www.onepeloton.com/blog/strive-score/"
-                        target="_blank"
-                        className="cursor-help hover:text-foreground hover:underline"
-                      >
-                        Strive Score
-                      </a>
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody className="text-nowrap">
-                  {sortWorkouts(ride.workouts).map((workout, i) => (
-                    <TableRow
-                      key={`${workout.user_username}-${workout.total_work}`}
-                    >
-                      <TableCell>{humanize(i)}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <UserAvatar
-                            avatar_url={getAvatarUrl(
-                              workout.user_username,
-                              avatars,
-                            )}
-                            width={21}
-                            height={21}
-                          />
-                          <Link
-                            className="text-primary hover:text-primary/80 hover:underline"
-                            href={`/cyclist/${workout.user_username}`}
-                          >
-                            {workout.user_username}
-                          </Link>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {localizeNumber(
-                          Math.round(workout.total_work / 1000),
-                          numberFormat,
-                        )}
-                        <span className="text-muted-foreground"> kJ </span>
-                        {workout.is_new_pb && (
-                          <Tooltip>
-                            <TooltipTrigger className="inline-block h-[1em] cursor-default align-middle">
-                              <Sparkle width="1em" height="1em" color="gold" />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>New PB</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        )}
-                      </TableCell>
-                      <TableCell>{formatDistance(workout.distance)}</TableCell>
-                      <TableCell>
-                        {Math.round(workout.duration / 60)}
-                        <span className="text-muted-foreground"> mins</span>
-                      </TableCell>
-                      {workout.effort_zones?.total_effort_points ? (
-                        <TableCell className="min-w-[6em] md:text-left">
-                          {localizeNumber(
-                            workout.effort_zones.total_effort_points,
-                            numberFormat,
-                          )}
-                          <ChartContainer
-                            config={chartConfig}
-                            className="float-left mr-1 inline-block h-[20px] w-[20px]"
-                          >
-                            <PieChart>
-                              <Pie
-                                data={Object.entries(
-                                  workout.effort_zones
-                                    .heart_rate_zone_durations,
-                                )
-                                  .reverse()
-                                  .map(([key, value], i) => ({
-                                    name: key,
-                                    value,
-                                    fill: `var(--color-${5 - i})`,
-                                  }))}
-                                dataKey="value"
-                                nameKey="name"
-                                cx="50%"
-                                cy="50%"
-                                innerRadius={6}
-                                outerRadius={10}
-                                startAngle={90}
-                                endAngle={450}
-                                isAnimationActive={false}
-                              />
-                            </PieChart>
-                          </ChartContainer>
-                        </TableCell>
-                      ) : (
-                        <TableCell className="text-center md:pl-[3em] md:text-left">
-                          <span className="text-muted-foreground">-</span>
-                        </TableCell>
-                      )}
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <DataTable
+                columns={rideColumns(avatars, useMetric, numberFormat)}
+                data={sortWorkouts(ride.workouts)}
+              />
             </AccordionContent>
           </AccordionItem>
         ))}
