@@ -202,7 +202,7 @@ export async function postLeaderboard(
     users,
     async (user) => {
       const userWorkouts = await withRetry(() =>
-        api.getWorkouts(user.user_id, minDt, streamStart),
+        api.getWorkouts(user.user_id, minDt, dayEnd),
       )
       const validUserWorkouts = userWorkouts.filter(validWorkout)
 

@@ -52,13 +52,16 @@ export default async function Cyclists() {
   return (
     <div>
       <h1 className="mb-6 text-center text-2xl font-bold">
-        <span className="text-primary">{userStats.length}</span> Cyclists
+        <span className="text-[hsl(var(--primary-link))]">
+          {userStats.length}
+        </span>{" "}
+        Cyclists
       </h1>
       <p className="mx-4 mb-6 text-center">
         View{" "}
         <Link
           href="/cyclists/charts"
-          className="text-primary hover:text-primary/80 hover:underline"
+          className="text-[hsl(var(--primary-link))] hover:text-[hsl(var(--primary-link)/80)] hover:underline"
         >
           cyclist growth and participation charts
         </Link>
@@ -68,7 +71,7 @@ export default async function Cyclists() {
         rides since the leaderboards started on{" "}
         <Link
           href="/archive/2023-09-22"
-          className="text-primary hover:text-primary/80 hover:underline"
+          className="text-[hsl(var(--primary-link))] hover:text-[hsl(var(--primary-link)/80)] hover:underline"
         >
           2023-09-22
         </Link>
@@ -102,7 +105,7 @@ export default async function Cyclists() {
                   />
                   <Link
                     href={`/cyclist/${user.username}`}
-                    className="text-primary hover:text-primary/80 hover:underline"
+                    className="text-[hsl(var(--primary-link))] hover:text-[hsl(var(--primary-link)/80)] hover:underline"
                   >
                     {user.username}
                   </Link>
@@ -111,7 +114,7 @@ export default async function Cyclists() {
               <TableCell>
                 <Link
                   href={`/archive/${user.firstRide}`}
-                  className="text-primary hover:text-primary/80 hover:underline"
+                  className="text-[hsl(var(--primary-link))] hover:text-[hsl(var(--primary-link)/80)] hover:underline"
                 >
                   {user.firstRide}
                 </Link>
