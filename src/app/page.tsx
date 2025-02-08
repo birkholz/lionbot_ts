@@ -32,7 +32,7 @@ export default function HomePage() {
           <a
             href="https://www.peloton.com/us/community/tags/TheEggCarton"
             target="_blank"
-            className="text-primary hover:text-primary/80 hover:underline"
+            className="text-[hsl(var(--primary-link))] hover:text-[hsl(var(--primary-link)/80)] hover:underline"
           >
             Join the tag on Peloton
           </a>{" "}
@@ -41,7 +41,7 @@ export default function HomePage() {
           <a
             href="https://www.reddit.com/r/northernlion/comments/hwrixs/how_to_join_the_discord/"
             target="_blank"
-            className="text-primary hover:text-primary/80 hover:underline"
+            className="text-[hsl(var(--primary-link))] hover:text-[hsl(var(--primary-link)/80)] hover:underline"
           >
             Northernlion's discord server
           </a>{" "}
