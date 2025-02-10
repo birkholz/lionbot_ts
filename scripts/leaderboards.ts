@@ -208,11 +208,32 @@ export async function postLeaderboard(
 
       for (const workout of validUserWorkouts) {
         const workoutRideId = workout.ride.id
-        if (workoutRideId === "00000000000000000000000000000000") continue
+        let shouldTrackInLeaderboard = false
 
-        if (validNLWorkouts.length > 0) {
-          const ride = rides[workoutRideId]
-          if (!ride) continue
+        // Determine if this workout should be tracked in ride leaderboards
+        if (workoutRideId !== "00000000000000000000000000000000") {
+          if (validNLWorkouts.length > 0) {
+            const ride = rides[workoutRideId]
+            shouldTrackInLeaderboard = !!ride
+          } else {
+            shouldTrackInLeaderboard = true
+          }
+
+          // Track participation count for each ride that could be in leaderboards
+          if (shouldTrackInLeaderboard) {
+            if (!rideParticipationCount[workoutRideId]) {
+              rideParticipationCount[workoutRideId] = new Set()
+            }
+            rideParticipationCount[workoutRideId].add(user.username)
+            if (!rideDetails[workoutRideId]) {
+              rideDetails[workoutRideId] = {
+                title: workout.ride.title,
+                instructor: getInstructorName(workout),
+                image_url: workout.ride.image_url,
+                start_time: workout.start_time,
+              }
+            }
+          }
         }
 
         const workoutTime = new TZDate(
@@ -221,7 +242,7 @@ export async function postLeaderboard(
         )
         const workoutDateStr = format(workoutTime, "yyyy-MM-dd")
 
-        // If this workout's date matches our target date, process it
+        // If this workout's date matches our target date, process it for PBs and totals
         if (workoutDateStr === dateStr) {
           const userWorkout = await withRetry(() => api.getWorkout(workout.id))
           const isPb = userWorkout.achievement_templates.some(
@@ -269,68 +290,58 @@ export async function postLeaderboard(
           workout.start_time * 1000,
           workout.timezone,
         )
-        if (workoutDate < minDt || workoutDate > streamStart) continue
+        if (workoutDate < minDt || workoutDate > dayEnd) continue
 
-        // Track participation count for each ride
-        if (!rideParticipationCount[workoutRideId]) {
-          rideParticipationCount[workoutRideId] = new Set()
-        }
-        rideParticipationCount[workoutRideId].add(user.username)
-        if (!rideDetails[workoutRideId]) {
-          rideDetails[workoutRideId] = {
-            title: workout.ride.title,
-            instructor: getInstructorName(workout),
-            image_url: workout.ride.image_url,
-            start_time: workout.start_time,
+        // Only add to ride leaderboards if it should be tracked
+        if (shouldTrackInLeaderboard) {
+          let ride = rides[workoutRideId]
+
+          // If we don't have NL's rides, add all rides to the tracking
+          if (validNLWorkouts.length === 0) {
+            if (!ride) {
+              const details = rideDetails[workoutRideId]
+              if (details) {
+                ride = new RideInfo(
+                  workoutRideId,
+                  details.title,
+                  details.instructor,
+                  details.start_time,
+                  `https://members.onepeloton.com/classes/cycling?modal=classDetailsModal&classId=${workoutRideId}`,
+                  details.image_url,
+                )
+                rides[workoutRideId] = ride
+              }
+            }
           }
-        }
-
-        const performanceData = await withRetry(() =>
-          api.getWorkoutPerformanceData(workout.id),
-        )
-        const avgCadence =
-          performanceData.average_summaries.find(
-            (m) => m.slug === "avg_cadence",
-          )?.value ?? 0
-        const avgResistance =
-          performanceData.average_summaries.find(
-            (m) => m.slug === "avg_resistance",
-          )?.value ?? 0
-        const distance =
-          performanceData.summaries.find((m) => m.slug === "distance")?.value ??
-          0
-        // performanceData.duration is wrong, it is the ride's duration, not the workout's
-        const duration = workout.end_time - workout.start_time
-        const workoutObj = new WorkoutInfo(
-          user.username,
-          workout.total_work,
-          workout.is_total_work_personal_record,
-          avgCadence,
-          avgResistance,
-          distance,
-          duration,
-          performanceData.effort_zones,
-        )
-
-        let ride = rides[workoutRideId]
-
-        // If we don't have NL's rides, add all rides to the tracking
-        if (validNLWorkouts.length === 0) {
-          if (!ride) {
-            const details = rideDetails[workoutRideId]
-            ride = new RideInfo(
-              workoutRideId,
-              details.title,
-              details.instructor,
-              details.start_time,
-              `https://members.onepeloton.com/classes/cycling?modal=classDetailsModal&classId=${workoutRideId}`,
-              details.image_url,
+          if (ride) {
+            const performanceData = await withRetry(() =>
+              api.getWorkoutPerformanceData(workout.id),
             )
-            rides[workoutRideId] = ride
+            const avgCadence =
+              performanceData.average_summaries.find(
+                (m) => m.slug === "avg_cadence",
+              )?.value ?? 0
+            const avgResistance =
+              performanceData.average_summaries.find(
+                (m) => m.slug === "avg_resistance",
+              )?.value ?? 0
+            const distance =
+              performanceData.summaries.find((m) => m.slug === "distance")
+                ?.value ?? 0
+            // performanceData.duration is wrong, it is the ride's duration, not the workout's
+            const duration = workout.end_time - workout.start_time
+            const workoutObj = new WorkoutInfo(
+              user.username,
+              workout.total_work,
+              workout.is_total_work_personal_record,
+              avgCadence,
+              avgResistance,
+              distance,
+              duration,
+              performanceData.effort_zones,
+            )
+            ride.workouts.push(workoutObj)
           }
-        }
-        if (ride) {
-          ride.workouts.push(workoutObj)
         }
       }
     },
