@@ -293,12 +293,40 @@ interface Instructor {
   default_cue_delay: number
 }
 
+interface ArchivedRidesResponse {
+  data: ArchivedRide[]
+  page: number
+  total: number
+  count: number
+  page_count: number
+  show_previous: boolean
+  show_next: boolean
+  sort_by: string[]
+}
+
+interface ArchivedRide {
+  id: string
+  title: string
+  description: string
+  duration: number
+  content_provider: string
+  fitness_discipline: string
+  image_url: string
+  original_air_time: number
+  location: string
+  availability: {
+    is_available: boolean
+    reason: string | null
+  }
+}
+
 export class PelotonAPI {
   private readonly defaultOptions: RequestInit = {
     credentials: "include",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${process.env["PELOTON_TOKEN"]}`,
+      "Peloton-Platform": "home_bike",
     },
   }
 
@@ -391,6 +419,38 @@ export class PelotonAPI {
       return (await response.json()) as Workout
     } catch (error) {
       console.error("Failed to fetch workout:", error)
+      throw error
+    }
+  }
+
+  async getArchivedRides(
+    limit: number = 100,
+    page: number = 0,
+    duration?: number,
+    contentProvider?: string,
+  ): Promise<ArchivedRidesResponse> {
+    let requestUrl = `https://api.onepeloton.com/api/v2/ride/archived?limit=${limit}&page=${page}&sort_by=original_air_time&desc=true`
+
+    if (duration) {
+      requestUrl += `&duration=${duration}`
+    }
+    if (contentProvider) {
+      requestUrl += `&content_provider=${contentProvider}`
+    }
+
+    try {
+      const response = await fetch(requestUrl, this.defaultOptions)
+
+      if (response.status === 401) {
+        throw new Error("Unauthorized - check your Peloton token")
+      }
+      if (response.status >= 400) {
+        throw new Error(`Failed to fetch archived rides: ${response.status}`)
+      }
+
+      return (await response.json()) as ArchivedRidesResponse
+    } catch (error) {
+      console.error("Failed to fetch archived rides:", error)
       throw error
     }
   }
