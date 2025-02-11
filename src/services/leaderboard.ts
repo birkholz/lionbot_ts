@@ -190,7 +190,12 @@ export async function getUserRides(username: string): Promise<UserRide[]> {
         jsonb_build_object(
           'id', ride.value->>'id',
           'title', ride.value->>'title',
-          'instructor_name', ride.value->>'instructor_name'
+          'instructor_name', ride.value->>'instructor_name',
+          'workout_count', (
+            SELECT COUNT(*)
+            FROM jsonb_array_elements(ride.value->'workouts') w
+            WHERE w->>'user_username' = ${sql.param(username)}
+          )
         )::text
       `,
     })
@@ -210,14 +215,15 @@ export async function getUserRides(username: string): Promise<UserRide[]> {
     )
     .orderBy(desc(leaderboardsTable.date))
 
-  return rides.map((ride) => {
+  return rides.flatMap((ride) => {
     const data = JSON.parse(ride.ride_data)
-    return {
+    // Repeat the ride entry for each time the user did it
+    return Array(data.workout_count).fill({
       date: ride.date,
       id: data.id,
       title: data.title,
       instructor_name: data.instructor_name,
-    }
+    })
   })
 }
 
