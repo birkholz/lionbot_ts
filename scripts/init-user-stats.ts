@@ -29,6 +29,7 @@ async function initUserStats() {
 
     // Process each ride's workouts to count participation
     for (const ride of Object.values(rides)) {
+      if (ride.id === "00000000000000000000000000000000") continue
       for (const workout of ride.workouts) {
         const username = workout.user_username
         const existingStats = userStats.get(username)

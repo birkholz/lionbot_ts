@@ -606,6 +606,41 @@ async function getAllPastLeaderboards(): Promise<void> {
   console.info("Done")
 }
 
+async function reprocessEmptyLeaderboards(): Promise<void> {
+  const api = new PelotonAPI()
+  const nlUserId =
+    process.env["LEADERBOARD_USER_ID"] ?? "efc2317a6aad48218488a27bf8b0e460"
+  const cutoffDate = "2024-05-18"
+
+  // Get all leaderboards from the database after the cutoff date
+  const leaderboards = await db
+    .select()
+    .from(leaderboardsTable)
+    .where(sql`date > ${cutoffDate}`)
+    .orderBy(sql`date`)
+
+  const datesToReprocess = new Set<string>()
+
+  // Look through each leaderboard for empty ride lists
+  for (const leaderboard of leaderboards) {
+    const json = leaderboard.json as { rides: Record<string, RideInfo> }
+    if (Object.keys(json.rides).length === 0) {
+      datesToReprocess.add(leaderboard.date)
+    }
+  }
+  console.info(`Found ${datesToReprocess.size} empty leaderboards`)
+  console.info(Array.from(datesToReprocess).join(", "))
+
+  // Reprocess each date that had no rides
+  for (const date of datesToReprocess) {
+    console.info(`Reprocessing leaderboard for ${date}`)
+    await postLeaderboard(api, nlUserId, false, date)
+  }
+
+  console.info("Done reprocessing leaderboards")
+}
+
 // await getAllPastLeaderboards()
+// await reprocessEmptyLeaderboards()
 await getAndPostWorkouts()
 process.exit(0)
