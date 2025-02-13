@@ -32,6 +32,6 @@
       "@styles/*": ["styles/*"]
     }
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "include": ["src/**/*.ts", "src/**/*.tsx", "sentry.*.config.ts"],
   "exclude": ["node_modules", "out"]
 }
