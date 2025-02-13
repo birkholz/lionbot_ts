@@ -416,6 +416,10 @@ export async function postLeaderboard(
               WHEN ${highestPbOutput} > 0 THEN GREATEST(COALESCE(${cyclistsTable.highest_output}, 0), ${highestPbOutput})
               ELSE COALESCE(${cyclistsTable.highest_output}, 0)
             END`,
+            first_ride: sql`CASE
+              WHEN ${cyclistsTable.first_ride} IS NULL OR ${cyclistsTable.first_ride} = '' THEN ${dateStr}
+              ELSE ${cyclistsTable.first_ride}
+            END`,
           },
         })
     }
