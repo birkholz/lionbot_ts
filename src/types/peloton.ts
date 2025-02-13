@@ -64,7 +64,7 @@ export class RideInfo {
 
   getMeanOutput(): number {
     const outputs = this.getOutputs()
-    return outputs.length > 0 ? mean(outputs) : 0
+    return outputs.length > 0 ? Number(mean(outputs)) : 0
   }
 }
 
