@@ -1,9 +1,18 @@
 import { TZDate } from "@date-fns/tz"
-import { addMinutes, isWithinInterval, subMinutes } from "date-fns"
+import {
+  addMinutes,
+  format,
+  isWithinInterval,
+  subDays,
+  subMinutes,
+} from "date-fns"
+import { revalidatePath } from "next/cache"
 import { headers } from "next/headers"
 import { NextResponse } from "next/server"
-import { revalidatePath } from "next/cache"
-import { spawn } from "child_process"
+import { PelotonAPI } from "@lib/peloton"
+import { postWorkouts, postLeaderboard } from "@lib/leaderboards"
+
+export const maxDuration = 600
 
 export async function GET() {
   const headersList = await headers()
@@ -37,47 +46,44 @@ export async function GET() {
   )
 
   if (
-    isWithinInterval(now, {
+    !isWithinInterval(now, {
       start: subMinutes(targetTime, 5),
       end: addMinutes(targetTime, 5),
     })
   ) {
-    // Start the process and wait for it to complete
-    const processPromise = new Promise((resolve, reject) => {
-      const proc = spawn("npm", ["run", "leaderboards"])
-
-      proc.on("stdout", (data) => {
-        console.log(data.toString())
-      })
-
-      proc.on("stderr", (data) => {
-        console.error(data.toString())
-      })
-
-      proc.on("exit", (code) => {
-        if (code === 0) {
-          revalidatePath("/leaderboard")
-          revalidatePath("/cyclists")
-          revalidatePath("/cyclist/*")
-          // Maybe instead of revalidating, I could use Vercel's API to rebuild the app
-          resolve(code)
-        } else {
-          console.error(`Leaderboards cron exited with code ${code}`)
-          reject(new Error(`Leaderboards cron exited with code ${code}`))
-        }
-      })
-    })
-
-    try {
-      await processPromise
-      return new NextResponse(null, { status: 204 })
-    } catch (error) {
-      return NextResponse.json({ error }, { status: 500 })
-    }
+    return NextResponse.json(
+      { error: "Current time is not 9 AM PT" },
+      { status: 400 },
+    )
   }
 
-  return NextResponse.json(
-    { error: "Current time is not 9 AM PT" },
-    { status: 400 },
-  )
+  try {
+    const api = new PelotonAPI()
+    const nlUserId = "efc2317a6aad48218488a27bf8b0e460"
+
+    // Post workouts first
+    await postWorkouts(api, nlUserId)
+
+    // Get yesterday's date for the leaderboard
+    const serverTimezone = "UTC" // Vercel servers are in UTC
+    const dateStr = format(
+      subDays(new TZDate(new Date(), serverTimezone), 1),
+      "yyyy-MM-dd",
+    )
+
+    // Post leaderboard with the leaderboard user ID
+    const leaderboardUserId = process.env["LEADERBOARD_USER_ID"] ?? nlUserId
+    await postLeaderboard(api, leaderboardUserId, true, dateStr)
+
+    // Revalidate necessary paths
+    revalidatePath(`/archive/${dateStr}`)
+    revalidatePath("/latest")
+    revalidatePath("/cyclists")
+    revalidatePath("/cyclist/*")
+
+    return new NextResponse(null, { status: 204 })
+  } catch (error) {
+    console.error("Error in leaderboards cron:", error)
+    return NextResponse.json({ error }, { status: 500 })
+  }
 }
