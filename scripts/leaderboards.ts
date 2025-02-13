@@ -569,6 +569,7 @@ async function getAndPostWorkouts(): Promise<void> {
   const leaderboardUserId =
     process.env["LEADERBOARD_USER_ID"] ?? "efc2317a6aad48218488a27bf8b0e460"
   await postLeaderboard(api, leaderboardUserId, true, dateStr)
+  process.exit(0)
 }
 
 async function getAllPastLeaderboards(): Promise<void> {
@@ -643,4 +644,3 @@ async function reprocessEmptyLeaderboards(): Promise<void> {
 // await getAllPastLeaderboards()
 // await reprocessEmptyLeaderboards()
 await getAndPostWorkouts()
-process.exit(0)
