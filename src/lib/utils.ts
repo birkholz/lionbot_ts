@@ -57,7 +57,7 @@ export class RideInfo {
 
   getMedianOutput(): number {
     const outputs = this.getOutputs()
-    return outputs.length > 0 ? median(outputs) : 0
+    return outputs.length > 0 ? Number(median(outputs)) : 0
   }
 
   getMeanOutput(): number {

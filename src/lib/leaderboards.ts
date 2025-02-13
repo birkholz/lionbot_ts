@@ -466,7 +466,7 @@ export async function postLeaderboard(
     const totalsList = Object.values(totals).sort((a, b) => b.output - a.output)
     const totalRiders = totalsList.length
     const rideCounts = totalsList.map((w) => w.rides)
-    const medianRideCount = median(rideCounts)
+    const medianRideCount = Number(median(rideCounts))
     const averageRideCount = Number(mean(rideCounts))
     const totalOutput = totalsList.reduce((sum, w) => sum + w.output, 0)
     const topTotals = totalsList.slice(0, leaderboardSize)
