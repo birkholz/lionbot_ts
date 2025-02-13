@@ -12,7 +12,7 @@ import { NextResponse } from "next/server"
 import { PelotonAPI } from "@lib/peloton"
 import { postWorkouts, postLeaderboard } from "@lib/leaderboards"
 
-export const maxDuration = 600
+export const maxDuration = 300
 
 export async function GET() {
   const headersList = await headers()
