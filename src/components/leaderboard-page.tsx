@@ -61,7 +61,7 @@ export function LeaderboardPage({
   const totalsList = Object.values(totals).sort((a, b) => b.output - a.output)
   const totalRiders = totalsList.length
   const rideCounts = totalsList.map((w) => w.rides)
-  const averageRideCount = mean(rideCounts)
+  const averageRideCount = Number(mean(rideCounts))
   const totalOutput = totalsList.reduce((sum, w) => sum + w.output, 0)
   const PBList = Object.entries(playersWhoPbd).sort((a, b) =>
     a[0].toLowerCase().localeCompare(b[0].toLowerCase()),
