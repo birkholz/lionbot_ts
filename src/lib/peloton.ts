@@ -320,14 +320,67 @@ interface ArchivedRide {
   }
 }
 
+interface LoginResponse {
+  session_id: string
+  user_id: string
+  pubsub_session: Record<string, unknown>
+}
+
 export class PelotonAPI {
-  private readonly defaultOptions: RequestInit = {
-    credentials: "include",
-    headers: {
+  private sessionId: string | null = null
+
+  getSessionId(): string | null {
+    return this.sessionId
+  }
+
+  private getRequestOptions(): RequestInit {
+    const headers: Record<string, string> = {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${process.env["PELOTON_TOKEN"]}`,
       "Peloton-Platform": "home_bike",
-    },
+    }
+
+    const options: RequestInit = {
+      credentials: "include",
+      headers,
+    }
+
+    if (this.sessionId) {
+      options.headers = {
+        ...headers,
+        Cookie: `peloton_session_id=${this.sessionId}`,
+      }
+    }
+
+    return options
+  }
+
+  async login(): Promise<void> {
+    const username = process.env["PELOTON_USERNAME"]
+    const password = process.env["PELOTON_PASSWORD"]
+
+    if (!username || !password) {
+      throw new Error(
+        "PELOTON_USERNAME and PELOTON_PASSWORD must be set in environment variables",
+      )
+    }
+
+    const response = await fetch("https://api.onepeloton.com/auth/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        username_or_email: username,
+        password: password,
+      }),
+    })
+
+    if (!response.ok) {
+      throw new Error(`Failed to login: ${response.status}`)
+    }
+
+    const data = (await response.json()) as LoginResponse
+    this.sessionId = data.session_id
   }
 
   async getWorkouts(
@@ -348,10 +401,10 @@ export class PelotonAPI {
       }
 
       try {
-        const response = await fetch(requestUrl, this.defaultOptions)
+        const response = await fetch(requestUrl, this.getRequestOptions())
 
         if (response.status === 401) {
-          // await this.login()
+          await this.login()
           return this.getWorkouts(userId, startTime, endTime)
         }
         if (response.status === 403) {
@@ -383,10 +436,10 @@ export class PelotonAPI {
     const requestUrl = `https://api.onepeloton.com/api/workout/${workoutId}/performance_graph`
 
     try {
-      const response = await fetch(requestUrl, this.defaultOptions)
+      const response = await fetch(requestUrl, this.getRequestOptions())
 
       if (response.status === 401) {
-        // await this.login()
+        await this.login()
         return this.getWorkoutPerformanceData(workoutId)
       }
       if (response.status >= 400) {
@@ -406,10 +459,10 @@ export class PelotonAPI {
     const requestUrl = `https://api.onepeloton.com/api/workout/${workoutId}`
 
     try {
-      const response = await fetch(requestUrl, this.defaultOptions)
+      const response = await fetch(requestUrl, this.getRequestOptions())
 
       if (response.status === 401) {
-        // await this.login()
+        await this.login()
         return this.getWorkout(workoutId)
       }
       if (response.status >= 400) {
@@ -439,10 +492,11 @@ export class PelotonAPI {
     }
 
     try {
-      const response = await fetch(requestUrl, this.defaultOptions)
+      const response = await fetch(requestUrl, this.getRequestOptions())
 
       if (response.status === 401) {
-        throw new Error("Unauthorized - check your Peloton token")
+        await this.login()
+        return this.getArchivedRides(limit, page, duration, contentProvider)
       }
       if (response.status >= 400) {
         throw new Error(`Failed to fetch archived rides: ${response.status}`)

@@ -1,6 +1,7 @@
 import { db } from "@db/client"
 import { cyclistsTable } from "@db/schema"
 import { GraphQLClient, gql } from "graphql-request"
+import { PelotonAPI } from "../src/lib/peloton"
 
 const GET_TAG_USERS = gql`
   query TagDetail($tagName: String!, $after: Cursor) {
@@ -51,11 +52,15 @@ interface TagUsersResponse {
 async function fetchAndStoreAvatars() {
   console.log("Starting avatar fetch...")
 
+  const api = new PelotonAPI()
+  await api.login()
+
   const client = new GraphQLClient(
     "https://gql-graphql-gateway.prod.k8s.onepeloton.com/graphql",
     {
       headers: {
-        Authorization: `Bearer ${process.env["PELOTON_TOKEN"]}`,
+        "Content-Type": "application/json",
+        Cookie: `peloton_session_id=${api.getSessionId()}`,
       },
     },
   )
