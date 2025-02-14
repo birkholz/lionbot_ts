@@ -65,11 +65,9 @@ export async function GET() {
     await postWorkouts(api, nlUserId)
 
     // Get yesterday's date for the leaderboard
-    const serverTimezone = "UTC" // Vercel servers are in UTC
-    const dateStr = format(
-      subDays(new TZDate(new Date(), serverTimezone), 1),
-      "yyyy-MM-dd",
-    )
+    const now = new TZDate(new Date(), "UTC") // Vercel servers are in UTC
+    const yesterday = subDays(now, 1)
+    const dateStr = format(yesterday, "yyyy-MM-dd")
 
     // Post leaderboard with the leaderboard user ID
     const leaderboardUserId = process.env["LEADERBOARD_USER_ID"] ?? nlUserId

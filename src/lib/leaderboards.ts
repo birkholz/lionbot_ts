@@ -417,7 +417,7 @@ export async function postLeaderboard(
               ELSE COALESCE(${cyclistsTable.highest_output}, 0)
             END`,
             first_ride: sql`CASE
-              WHEN ${cyclistsTable.first_ride} IS NULL OR ${cyclistsTable.first_ride} = '' THEN ${dateStr}
+              WHEN ${cyclistsTable.first_ride} IS NULL THEN ${dateStr}
               ELSE ${cyclistsTable.first_ride}
             END`,
           },
