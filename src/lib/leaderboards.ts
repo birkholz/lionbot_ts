@@ -444,7 +444,7 @@ export async function postLeaderboard(
     const embed: DiscordEmbed = {
       type: "rich",
       title: `${ride.title} - Leaderboard`,
-      description: `Instructor: ${ride.instructor_name}\rNL rode: <t:${ride.start_time}:F>\rTotal riders: **${riderCount}**`,
+      description: `${ride.instructor_name}\rTotal riders: **${riderCount}**`,
       url: ride.url,
       thumbnail: { url: ride.image_url },
       fields: ride.workouts.map((workout, i) => ({
@@ -531,8 +531,8 @@ export async function postLeaderboard(
   const jsonBody = {
     content:
       "# \\#TheEggCarton Leaderboards\n" +
-      "Ride leaderboards are for NL's rides yesterday " +
-      "and include all matching rides from 12 hours before the ride until now.\n" +
+      "Ride leaderboards are for yesterday's rides" +
+      "and include all group rides from 6pm PT the day before until midnight.\n" +
       "Endurance leaderboards and the PB callout are only yesterday's rides (in your timezone).\n" +
       "See https://discord.com/channels/726598830992261273/1157338211480256573/1172736947526045716 " +
       "for more info.",
