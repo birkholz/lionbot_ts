@@ -349,26 +349,31 @@ export async function postLeaderboard(
   )
 
   // If we don't have NL's rides, only keep rides with enough participants
-  if (
-    validNLWorkouts.length === 0 &&
-    Object.keys(rideParticipationCount).length > 0
-  ) {
+  if (Object.keys(rideParticipationCount).length > 0) {
     // Convert Sets to counts and filter out rides with less than 10 riders
     const popularRideIds = Object.entries(rideParticipationCount)
       .filter(([_, users]) => users.size >= 10)
       .map(([rideId]) => rideId)
 
-    if (popularRideIds.length === 0) {
+    // If NL didn't ride and there are no popular rides, clear all rides
+    if (validNLWorkouts.length === 0 && popularRideIds.length === 0) {
       rides = {}
     } else {
-      // Keep only the rides that had 10+ riders
-      const popularRides: Record<string, RideInfo> = {}
+      // Keep NL's rides and add popular rides that aren't already included
+      const combinedRides: Record<string, RideInfo> = { ...rides }
       for (const rideId of popularRideIds) {
-        if (rides[rideId]) {
-          popularRides[rideId] = rides[rideId]
+        if (!combinedRides[rideId] && rideDetails[rideId]) {
+          combinedRides[rideId] = new RideInfo(
+            rideId,
+            rideDetails[rideId].title,
+            rideDetails[rideId].instructor,
+            rideDetails[rideId].start_time,
+            `https://members.onepeloton.com/classes/cycling?modal=classDetailsModal&classId=${rideId}`,
+            rideDetails[rideId].image_url,
+          )
         }
       }
-      rides = popularRides
+      rides = combinedRides
     }
   }
 
@@ -445,7 +450,7 @@ export async function postLeaderboard(
       type: "rich",
       title: `${ride.title} - Leaderboard`,
       description: `${ride.instructor_name}\rTotal riders: **${riderCount}**`,
-      url: ride.url,
+      url: `https://www.theeggcarton.com/archive/${dateStr}`,
       thumbnail: { url: ride.image_url },
       fields: ride.workouts.map((workout, i) => ({
         name: `${humanize(i)} Place`,
@@ -530,10 +535,10 @@ export async function postLeaderboard(
 
   const jsonBody = {
     content:
-      "# \\#TheEggCarton Leaderboards\n" +
-      "Ride leaderboards are for yesterday's rides" +
-      "and include all group rides from 6pm PT the day before until midnight.\n" +
-      "Endurance leaderboards and the PB callout are only yesterday's rides (in your timezone).\n" +
+      `# \\#TheEggCarton Leaderboards - ${dateStr}\n` +
+      `To see the full leaderboards, visit [theeggcarton.bike/archive/${dateStr}](https://www.theeggcarton.bike/archive/${dateStr})\n` +
+      "Ride leaderboards are generated for any ride with 10+ riders or that NL participated in.\n" +
+      "Endurance leaderboards and the PB callout include all rides on the given date in your timezone.\n" +
       "See https://discord.com/channels/726598830992261273/1157338211480256573/1172736947526045716 " +
       "for more info.",
     embeds,
