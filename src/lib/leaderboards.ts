@@ -348,19 +348,22 @@ export async function postLeaderboard(
     { concurrency: 15 },
   )
 
-  // If we don't have NL's rides, only keep rides with enough participants
+  // Process popular rides
   if (Object.keys(rideParticipationCount).length > 0) {
     // Convert Sets to counts and filter out rides with less than 10 riders
     const popularRideIds = Object.entries(rideParticipationCount)
       .filter(([_, users]) => users.size >= 10)
       .map(([rideId]) => rideId)
 
-    // If NL didn't ride and there are no popular rides, clear all rides
+    // Start with NL's rides if they exist, otherwise empty
+    const baseRides = validNLWorkouts.length > 0 ? rides : {}
+
+    // If no NL rides and no popular rides, clear all rides
     if (validNLWorkouts.length === 0 && popularRideIds.length === 0) {
       rides = {}
     } else {
-      // Keep NL's rides and add popular rides that aren't already included
-      const combinedRides: Record<string, RideInfo> = { ...rides }
+      // Keep NL's rides (if any) and add popular rides
+      const combinedRides: Record<string, RideInfo> = { ...baseRides }
       for (const rideId of popularRideIds) {
         if (!combinedRides[rideId] && rideDetails[rideId]) {
           combinedRides[rideId] = new RideInfo(
@@ -371,6 +374,7 @@ export async function postLeaderboard(
             `https://members.onepeloton.com/classes/cycling?modal=classDetailsModal&classId=${rideId}`,
             rideDetails[rideId].image_url,
           )
+          combinedRides[rideId].workouts = rides[rideId].workouts
         }
       }
       rides = combinedRides
