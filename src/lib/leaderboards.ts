@@ -389,16 +389,18 @@ export async function postLeaderboard(
   await db.insert(leaderboardsTable).values(ridesJson)
 
   // Track which users we've seen to avoid double counting rides
-  const seenUsers = new Set<string>()
+  const usersToUpdate: Array<{
+    username: string
+    highest_output: number
+  }> = []
 
-  // Update user statistics
+  // Process all users who participated in rides, checking for PBs
   for (const ride of Object.values(rides)) {
     for (const workout of ride.workouts) {
       const username = workout.user_username
-      if (seenUsers.has(username)) {
+      if (usersToUpdate.some((u) => u.username === username)) {
         continue
       }
-      seenUsers.add(username)
 
       // Get the highest output from any PBs this user achieved today
       const userPbs = playersWhoPbd[username] || []
@@ -407,31 +409,56 @@ export async function postLeaderboard(
           ? Math.round(Math.max(...userPbs.map((pb) => pb.total_work)))
           : 0
 
-      await db
-        .insert(cyclistsTable)
-        .values({
-          username,
+      usersToUpdate.push({
+        username,
+        highest_output: highestPbOutput,
+      })
+    }
+  }
+
+  // Process any users who got PBs but didn't participate in leaderboard rides
+  for (const [username, userPbs] of Object.entries(playersWhoPbd)) {
+    if (usersToUpdate.some((u) => u.username === username)) {
+      continue
+    }
+    const highestPbOutput = Math.round(
+      Math.max(...userPbs.map((pb) => pb.total_work)),
+    )
+
+    usersToUpdate.push({
+      username,
+      highest_output: highestPbOutput,
+    })
+  }
+
+  // Perform a single bulk insert/update for all users
+  if (usersToUpdate.length > 0) {
+    await db
+      .insert(cyclistsTable)
+      .values(
+        usersToUpdate.map((user) => ({
+          username: user.username,
           user_id: "", // This will be filled by fetch-avatars.ts
           avatar_url: "", // This will be filled by fetch-avatars.ts
           first_ride: dateStr,
           total_rides: 1,
-          highest_output: highestPbOutput,
-        })
-        .onConflictDoUpdate({
-          target: cyclistsTable.username,
-          set: {
-            total_rides: sql`COALESCE(${cyclistsTable.total_rides}, 0) + 1`,
-            highest_output: sql`CASE
-              WHEN ${highestPbOutput} > 0 THEN GREATEST(COALESCE(${cyclistsTable.highest_output}, 0), ${highestPbOutput})
-              ELSE COALESCE(${cyclistsTable.highest_output}, 0)
-            END`,
-            first_ride: sql`CASE
-              WHEN ${cyclistsTable.first_ride} IS NULL THEN ${dateStr}
-              ELSE ${cyclistsTable.first_ride}
-            END`,
-          },
-        })
-    }
+          highest_output: user.highest_output,
+        })),
+      )
+      .onConflictDoUpdate({
+        target: cyclistsTable.username,
+        set: {
+          total_rides: sql`COALESCE(${cyclistsTable.total_rides}, 0) + 1`,
+          highest_output: sql`CASE
+            WHEN EXCLUDED.highest_output > 0 THEN GREATEST(COALESCE(${cyclistsTable.highest_output}, 0), EXCLUDED.highest_output)
+            ELSE COALESCE(${cyclistsTable.highest_output}, 0)
+          END`,
+          first_ride: sql`CASE
+            WHEN ${cyclistsTable.first_ride} IS NULL THEN ${dateStr}
+            ELSE ${cyclistsTable.first_ride}
+          END`,
+        },
+      })
   }
 
   if (!postEmbeds) {
