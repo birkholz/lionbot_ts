@@ -42,7 +42,7 @@ function formatOutputUnit(output?: number) {
     output === 0
   )
     return <></>
-  const unit = output >= 1000 ? " MJ" : " kJ"
+  const unit = output >= 1000 ? " kJ" : " J"
   return <span className="text-muted-foreground">{unit}</span>
 }
 
