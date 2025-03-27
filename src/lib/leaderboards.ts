@@ -348,42 +348,18 @@ export async function postLeaderboard(
     { concurrency: 15 },
   )
 
-  // Process popular rides
-  if (Object.keys(rideParticipationCount).length > 0) {
-    // Convert Sets to counts and filter out rides with less than 10 riders
-    const popularRideIds = Object.entries(rideParticipationCount)
-      .filter(([_, users]) => users.size >= 10)
-      .map(([rideId]) => rideId)
-
-    // Start with NL's rides if they exist, otherwise empty
-    const baseRides = validNLWorkouts.length > 0 ? rides : {}
-
-    // If no NL rides and no popular rides, clear all rides
-    if (validNLWorkouts.length === 0 && popularRideIds.length === 0) {
-      rides = {}
-    } else {
-      // Keep NL's rides (if any) and add popular rides
-      const combinedRides: Record<string, RideInfo> = { ...baseRides }
-      for (const rideId of popularRideIds) {
-        if (!combinedRides[rideId] && rideDetails[rideId]) {
-          combinedRides[rideId] = new RideInfo(
-            rideId,
-            rideDetails[rideId].title,
-            rideDetails[rideId].instructor,
-            rideDetails[rideId].start_time,
-            `https://members.onepeloton.com/classes/cycling?modal=classDetailsModal&classId=${rideId}`,
-            rideDetails[rideId].image_url,
-          )
-          combinedRides[rideId].workouts = rides[rideId].workouts
-        }
-      }
-      rides = combinedRides
-    }
-  }
+  // Filter out rides with less than 10 riders
+  rides = Object.fromEntries(
+    Object.entries(rides).filter(
+      ([_, ride]) =>
+        ride.id in validNLWorkouts.map((w) => w.ride.id) ||
+        ride.workouts.length >= 10,
+    ),
+  )
 
   // Dump all the rides to the db
   const ridesJson: typeof leaderboardsTable.$inferInsert = {
-    json: { rides, totals, playersWhoPbd },
+    json: { totals, playersWhoPbd, rides: rides },
     date: dateStr,
   }
   await db.insert(leaderboardsTable).values(ridesJson)
