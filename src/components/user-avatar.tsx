@@ -30,6 +30,7 @@ export function UserAvatar({ avatar_url, width, height }: Props) {
       width={width}
       height={height}
       className="rounded-full"
+      unoptimized
     />
   )
 }
