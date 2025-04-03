@@ -457,7 +457,7 @@ export async function postLeaderboard(
       type: "rich",
       title: `${ride.title} - Leaderboard`,
       description: `${ride.instructor_name}\rTotal riders: **${riderCount}**`,
-      url: `https://www.theeggcarton.com/archive/${dateStr}`,
+      url: `https://www.theeggcarton.bike/archive/${dateStr}`,
       thumbnail: { url: ride.image_url },
       fields: ride.workouts.map((workout, i) => ({
         name: `${humanize(i)} Place`,
