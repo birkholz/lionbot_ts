@@ -345,7 +345,7 @@ export async function postLeaderboard(
         }
       }
     },
-    { concurrency: 15 },
+    { concurrency: 10 },
   )
 
   // Filter out rides with less than 10 riders

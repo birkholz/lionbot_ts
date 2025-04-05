@@ -407,9 +407,14 @@ export class PelotonAPI {
           await this.login()
           return this.getWorkouts(userId, startTime, endTime)
         }
-        if (response.status === 403) {
+        if (response.status === 403 || response.status === 404) {
           // Private user, must accept follow to view workouts
           return []
+        }
+        if (response.status >= 400) {
+          console.error(`Failed to fetch workouts: ${response.status}`)
+          console.error(await response.text())
+          throw new Error(`Failed to fetch workouts: ${response.status}`)
         }
         if (response.status >= 500) {
           console.error(`Peloton API returned ${response.status}.`)
