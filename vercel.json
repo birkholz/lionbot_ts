@@ -7,6 +7,14 @@
     {
       "path": "/api/crons/leaderboards",
       "schedule": "0 17 * * *"
+    },
+    {
+      "path": "/api/crons/next_ride",
+      "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/crons/next_ride",
+      "schedule": "0 1 * * *"
     }
   ]
 }
