@@ -10,11 +10,11 @@
     },
     {
       "path": "/api/crons/next_ride",
-      "schedule": "0 0 * * *"
+      "schedule": "0 2 * * *"
     },
     {
       "path": "/api/crons/next_ride",
-      "schedule": "0 1 * * *"
+      "schedule": "0 3 * * *"
     }
   ]
 }
