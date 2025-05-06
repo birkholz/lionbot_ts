@@ -1,0 +1,1 @@
+ALTER TABLE "scenic_rides" DROP COLUMN "order";

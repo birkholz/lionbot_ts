@@ -1,16 +1,11 @@
 import { TZDate } from "@date-fns/tz"
-import {
-  addMinutes,
-  format,
-  isWithinInterval,
-  subDays,
-  subMinutes,
-} from "date-fns"
+import { postLeaderboard, postWorkouts } from "@lib/leaderboards"
+import { PelotonAPI } from "@lib/peloton"
+import { isCronTimeValid } from "@lib/utils"
+import { format, subDays } from "date-fns"
 import { revalidatePath } from "next/cache"
 import { headers } from "next/headers"
 import { NextResponse } from "next/server"
-import { PelotonAPI } from "@lib/peloton"
-import { postWorkouts, postLeaderboard } from "@lib/leaderboards"
 
 export const maxDuration = 300
 
@@ -23,34 +18,7 @@ export async function GET() {
   }
 
   // Cron runs at 9 AM PST and PDT
-  // we only want to run if its currently 9 AM in the Pacific timezone
-  const jsNow = new Date()
-  // Vercel servers have UTC as the default timezone
-  const now = new TZDate(
-    jsNow.getFullYear(),
-    jsNow.getMonth(),
-    jsNow.getDate(),
-    jsNow.getHours(),
-    jsNow.getMinutes(),
-    jsNow.getSeconds(),
-    "UTC",
-  )
-  const targetTime = new TZDate(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate(),
-    9,
-    0,
-    0,
-    "America/Los_Angeles",
-  )
-
-  if (
-    !isWithinInterval(now, {
-      start: subMinutes(targetTime, 5),
-      end: addMinutes(targetTime, 5),
-    })
-  ) {
+  if (!isCronTimeValid(9)) {
     return NextResponse.json(
       { error: "Current time is not 9 AM PT" },
       { status: 400 },

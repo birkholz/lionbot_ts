@@ -1,0 +1,1 @@
+ALTER TABLE "scenic_rides" ADD COLUMN "last_posted_at" date;

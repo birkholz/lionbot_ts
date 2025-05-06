@@ -1,10 +1,15 @@
+import { TZDate } from "@date-fns/tz"
+import type { EffortZones, PBInfo, UserTotal } from "@types"
 import { clsx, type ClassValue } from "clsx"
+import {
+  addMinutes,
+  isWithinInterval as dateIsWithinInterval,
+  subMinutes,
+} from "date-fns"
 import { mean, median } from "mathjs"
 import ordinal from "ordinal"
 import pluralize from "pluralize"
 import { twMerge } from "tailwind-merge"
-import { TZDate } from "@date-fns/tz"
-import type { EffortZones, PBInfo, UserTotal } from "@types"
 
 export interface DiscordEmbed {
   type: string
@@ -257,4 +262,32 @@ export async function withRetry<T>(
       delay *= 2 // Exponential backoff
     }
   }
+}
+
+export function isCronTimeValid(targetHour: number): boolean {
+  const jsNow = new Date()
+  // Vercel servers have UTC as the default timezone
+  const now = new TZDate(
+    jsNow.getFullYear(),
+    jsNow.getMonth(),
+    jsNow.getDate(),
+    jsNow.getHours(),
+    jsNow.getMinutes(),
+    jsNow.getSeconds(),
+    "UTC",
+  )
+  const targetTime = new TZDate(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+    targetHour,
+    0,
+    0,
+    "America/Los_Angeles",
+  )
+
+  return dateIsWithinInterval(now.getTime(), {
+    start: subMinutes(targetTime, 5).getTime(),
+    end: addMinutes(targetTime, 5).getTime(),
+  })
 }

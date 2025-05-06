@@ -129,3 +129,11 @@ export const cyclistsTable = pgTable("cyclists", {
   total_rides: integer("total_rides").default(0),
   highest_output: integer("highest_output"),
 })
+
+export const scenicRidesTable = pgTable("scenic_rides", {
+  id: serial().primaryKey().notNull(),
+  title: text("title").notNull(),
+  location: text("location").notNull(),
+  published_date: date("published_date").notNull(),
+  last_posted_at: date("last_posted_at"),
+})
