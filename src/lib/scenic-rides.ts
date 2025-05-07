@@ -3,7 +3,7 @@ import { scenicRidesTable } from "@db/schema"
 import { PelotonAPI } from "@lib/peloton"
 import { sendDiscordRequest } from "@lib/utils"
 import { format } from "date-fns"
-import { asc, eq, inArray, sql } from "drizzle-orm"
+import { eq, inArray, sql } from "drizzle-orm"
 
 export async function processAndPostNextRide(shouldPost = true): Promise<void> {
   const api = new PelotonAPI()
@@ -107,7 +107,6 @@ export async function processAndPostNextRide(shouldPost = true): Promise<void> {
       content:
         "## Tomorrow's Ride:\n" +
         `# ${nextRide.title}\n` +
-        `Location: ${nextRide.location}\n` +
         "-# Lionbot always checks for new or removed scenic rides and updates the schedule accordingly\n" +
         "-# If there are any issues, defer to #peloton",
       allowed_mentions: {
