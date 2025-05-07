@@ -7,6 +7,7 @@
   "scripts": {
     "leaderboards": "bun run scripts/leaderboards.ts",
     "fetch-avatars": "bun run scripts/fetch-avatars.ts",
+    "post-next-ride": "bun run scripts/post-next-ride.ts",
     "dev": "bunx --bun next dev",
     "build": "bunx --bun next build",
     "start": "bunx --bun next start",
