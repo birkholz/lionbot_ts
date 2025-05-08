@@ -265,17 +265,7 @@ export async function withRetry<T>(
 }
 
 export function isCronTimeValid(targetHour: number): boolean {
-  const jsNow = new Date()
-  // Vercel servers have UTC as the default timezone
-  const now = new TZDate(
-    jsNow.getFullYear(),
-    jsNow.getMonth(),
-    jsNow.getDate(),
-    jsNow.getHours(),
-    jsNow.getMinutes(),
-    jsNow.getSeconds(),
-    "UTC",
-  )
+  const now = new TZDate(new Date(), "America/Los_Angeles")
   const targetTime = new TZDate(
     now.getFullYear(),
     now.getMonth(),
