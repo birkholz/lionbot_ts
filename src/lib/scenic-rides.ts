@@ -122,7 +122,7 @@ export async function processAndPostNextRide(shouldPost = true): Promise<void> {
     await db
       .update(scenicRidesTable)
       .set({
-        last_posted_at: sql`(CURRENT_TIMESTAMP AT TIME ZONE 'UTC' AT TIME ZONE 'America/Los_Angeles')::date`,
+        last_posted_at: sql`(CURRENT_TIMESTAMP AT TIME ZONE 'America/Los_Angeles')::date`,
       })
       .where(eq(scenicRidesTable.id, nextRide.id))
   }
