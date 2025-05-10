@@ -28,9 +28,9 @@ export async function postWorkouts(
 ): Promise<void> {
   const workouts = await api.getWorkouts(nlUserId)
   const intervalMs = 24 * 60 * 60 * 1000 // 24 hours in milliseconds
-  const recentWorkouts = workouts.filter((workout) =>
-    isWithinInterval(workout.created_at, intervalMs),
-  )
+  const recentWorkouts = workouts
+    .filter((workout) => isWithinInterval(workout.created_at, intervalMs))
+    .sort((a, b) => b.created_at - a.created_at) // Sort by created_at in descending order
 
   const embeds: DiscordEmbed[] = []
 
@@ -98,17 +98,21 @@ export async function postWorkouts(
     return
   }
 
-  const jsonBody = {
-    content: "Northernlion finished a workout",
-    embeds: embeds.reverse(),
-    allowed_mentions: {
-      parse: ["roles"],
-    },
-  }
-
   const channelId = process.env["PELOTON_CHANNEL_ID"]
 
-  await sendDiscordRequest("post", `channels/${channelId}/messages`, jsonBody)
+  // Send each embed as a separate message
+  for (let i = 0; i < embeds.length; i++) {
+    const jsonBody = {
+      content: i === 0 ? "Northernlion finished a workout" : "",
+      embeds: [embeds[i]],
+      allowed_mentions: {
+        parse: ["roles"],
+      },
+    }
+
+    await sendDiscordRequest("post", `channels/${channelId}/messages`, jsonBody)
+  }
+
   console.info(
     `Successfully posted Peloton ride ids: ${recentWorkouts.map((workout) => workout.ride.id)}`,
   )
