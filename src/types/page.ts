@@ -9,6 +9,7 @@ export type RideData = {
   image_url: string
   workouts: {
     user_username: string
+    user_id: string
     total_work: number
     is_new_pb: boolean
     avg_cadence: number

@@ -260,18 +260,18 @@ export async function postLeaderboard(
                 (workout.end_time - workout.start_time) / 60,
               ),
             }
-            const existingPbs = playersWhoPbd[user.username]
+            const existingPbs = playersWhoPbd[user.user_id]
             if (existingPbs) {
               existingPbs.push(pbDict)
             } else {
-              playersWhoPbd[user.username] = [pbDict]
+              playersWhoPbd[user.user_id] = [pbDict]
             }
           }
 
           // Calculate user's totals
-          const userTotal = totals[user.username]
+          const userTotal = totals[user.user_id]
           if (!userTotal) {
-            totals[user.username] = {
+            totals[user.user_id] = {
               username: user.username,
               output: workout.total_work,
               rides: 1,
@@ -336,6 +336,7 @@ export async function postLeaderboard(
             const duration = workout.end_time - workout.start_time
             const workoutObj = new WorkoutInfo(
               user.username,
+              user.user_id,
               workout.total_work,
               workout.is_total_work_personal_record,
               avgCadence,
@@ -370,35 +371,34 @@ export async function postLeaderboard(
 
   // Track which users we've seen to avoid double counting rides
   const usersToUpdate: Array<{
-    username: string
+    user_id: string
     highest_output: number
   }> = []
 
   // Process all users who participated in rides, checking for PBs
   for (const ride of Object.values(rides)) {
     for (const workout of ride.workouts) {
-      const username = workout.user_username
-      if (usersToUpdate.some((u) => u.username === username)) {
+      if (usersToUpdate.some((u) => u.user_id === workout.user_id)) {
         continue
       }
 
       // Get the highest output from any PBs this user achieved today
-      const userPbs = playersWhoPbd[username] || []
+      const userPbs = playersWhoPbd[workout.user_id] || []
       const highestPbOutput =
         userPbs.length > 0
           ? Math.round(Math.max(...userPbs.map((pb) => pb.total_work)))
           : 0
 
       usersToUpdate.push({
-        username,
+        user_id: workout.user_id,
         highest_output: highestPbOutput,
       })
     }
   }
 
   // Process any users who got PBs but didn't participate in leaderboard rides
-  for (const [username, userPbs] of Object.entries(playersWhoPbd)) {
-    if (usersToUpdate.some((u) => u.username === username)) {
+  for (const [user_id, userPbs] of Object.entries(playersWhoPbd)) {
+    if (usersToUpdate.some((u) => u.user_id === user_id)) {
       continue
     }
     const highestPbOutput = Math.round(
@@ -406,7 +406,7 @@ export async function postLeaderboard(
     )
 
     usersToUpdate.push({
-      username,
+      user_id,
       highest_output: highestPbOutput,
     })
   }
@@ -417,8 +417,8 @@ export async function postLeaderboard(
       .insert(cyclistsTable)
       .values(
         usersToUpdate.map((user) => ({
-          username: user.username,
-          user_id: "", // This will be filled by fetch-avatars.ts
+          user_id: user.user_id,
+          username: "", // This will be filled by fetch-avatars.ts
           avatar_url: "", // This will be filled by fetch-avatars.ts
           first_ride: dateStr,
           total_rides: 1,
@@ -426,7 +426,7 @@ export async function postLeaderboard(
         })),
       )
       .onConflictDoUpdate({
-        target: cyclistsTable.username,
+        target: cyclistsTable.user_id,
         set: {
           total_rides: sql`COALESCE(${cyclistsTable.total_rides}, 0) + 1`,
           highest_output: sql`CASE
@@ -521,7 +521,11 @@ export async function postLeaderboard(
   // Generate PB callout
   if (Object.keys(playersWhoPbd).length > 0) {
     const playerCallouts = Object.entries(playersWhoPbd)
-      .map(([un, uDict]) => `${un} (${pbListStr(uDict)})`)
+      .map(([user_id, uDict]) => {
+        const user = users.find((u) => u.user_id === user_id)
+        return user ? `${user.username} (${pbListStr(uDict)})` : null
+      })
+      .filter((callout): callout is string => callout !== null)
       .sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()))
 
     let desc = playerCallouts.join(", ")

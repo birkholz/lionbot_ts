@@ -74,6 +74,7 @@ export class RideInfo {
 export class WorkoutInfo {
   constructor(
     public user_username: string,
+    public user_id: string,
     public total_work: number,
     public is_new_pb: boolean,
     public avg_cadence: number,

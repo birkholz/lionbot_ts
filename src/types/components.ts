@@ -2,6 +2,7 @@ import type { EffortZones, UserTotal } from "./peloton"
 
 export type Workout = {
   user_username: string
+  user_id: string
   total_work: number
   is_new_pb: boolean
   avg_cadence: number

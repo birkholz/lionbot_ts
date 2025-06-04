@@ -113,14 +113,14 @@ async function fetchAndStoreAvatars() {
       .insert(cyclistsTable)
       .values(allUsers)
       .onConflictDoUpdate({
-        target: cyclistsTable.username,
+        target: cyclistsTable.user_id,
         set: {
-          user_id: cyclistsTable.user_id,
+          username: cyclistsTable.username,
           avatar_url: cyclistsTable.avatar_url,
         },
       })
 
-    console.log("Successfully stored all avatars!")
+    console.log(`Successfully updated ${allUsers.length} cyclists!`)
   } catch (error) {
     console.error("Error storing avatars in database:", error)
     process.exit(1)

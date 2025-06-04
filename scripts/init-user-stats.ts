@@ -15,10 +15,27 @@ async function initUserStats() {
 
   console.log(`Found ${leaderboards.length} leaderboards`)
 
+  // Get all valid cyclists from the database
+  const validCyclists = await db
+    .select({
+      username: cyclistsTable.username,
+      user_id: cyclistsTable.user_id,
+    })
+    .from(cyclistsTable)
+
+  // Create lookup maps for both username and user_id
+  const cyclistByUsername = new Map(validCyclists.map((c) => [c.username, c]))
+  const cyclistById = new Map(validCyclists.map((c) => [c.user_id, c]))
+  console.log(`Found ${validCyclists.length} valid cyclists in database`)
+
   // Track user stats as we process leaderboards
   const userStats = new Map<
-    string,
-    { first_ride: string; total_rides: number; highest_output: number }
+    string, // user_id
+    {
+      first_ride: string
+      total_rides: number
+      highest_output: number
+    }
   >()
 
   // Process each leaderboard
@@ -31,11 +48,16 @@ async function initUserStats() {
     for (const ride of Object.values(rides)) {
       if (ride.id === "00000000000000000000000000000000") continue
       for (const workout of ride.workouts) {
-        const username = workout.user_username
-        const existingStats = userStats.get(username)
+        // Handle both username and user_id based data structures
+        const cyclist =
+          cyclistById.get(workout.user_id) ||
+          cyclistByUsername.get(workout.user_username)
+        if (!cyclist) continue
+
+        const existingStats = userStats.get(cyclist.user_id)
 
         if (!existingStats) {
-          userStats.set(username, {
+          userStats.set(cyclist.user_id, {
             first_ride: leaderboard.date,
             total_rides: 1,
             highest_output: 0, // Will be updated from PBs
@@ -47,8 +69,11 @@ async function initUserStats() {
     }
 
     // Update highest outputs from PBs
-    for (const [username, pbs] of Object.entries(playersWhoPbd)) {
-      const stats = userStats.get(username)
+    for (const [key, pbs] of Object.entries(playersWhoPbd)) {
+      // Handle both username and user_id based data structures
+      const cyclist = cyclistById.get(key) || cyclistByUsername.get(key)
+      if (!cyclist) continue
+      const stats = userStats.get(cyclist.user_id)
       if (!stats) continue
 
       // Find the highest output in this user's PBs
@@ -57,29 +82,19 @@ async function initUserStats() {
     }
   }
 
-  console.log(`Found ${userStats.size} unique users`)
+  console.log(`Found ${userStats.size} unique users with valid stats`)
 
   // Insert all user stats
   console.log("Inserting user stats...")
-  for (const [username, stats] of userStats) {
+  for (const [user_id, stats] of userStats.entries()) {
     await db
-      .insert(cyclistsTable)
-      .values({
-        username,
-        user_id: "", // Will be filled by fetch-avatars.ts
-        avatar_url: "", // Will be filled by fetch-avatars.ts
-        first_ride: stats.first_ride,
+      .update(cyclistsTable)
+      .set({
+        first_ride: sql`COALESCE(${cyclistsTable.first_ride}, ${sql.param(stats.first_ride)})`,
         total_rides: stats.total_rides,
         highest_output: Math.round(stats.highest_output),
       })
-      .onConflictDoUpdate({
-        target: cyclistsTable.username,
-        set: {
-          first_ride: sql`COALESCE(${cyclistsTable.first_ride}, ${sql.param(stats.first_ride)})`,
-          total_rides: stats.total_rides,
-          highest_output: Math.round(stats.highest_output),
-        },
-      })
+      .where(sql`${cyclistsTable.user_id} = ${user_id}`)
   }
 
   console.log("Done!")
