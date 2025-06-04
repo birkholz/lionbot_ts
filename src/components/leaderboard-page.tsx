@@ -43,6 +43,7 @@ export function LeaderboardPage({
     url: ride.url,
     image_url: ride.image_url,
     workouts: ride.workouts.map((w) => ({
+      user_id: w.user_id,
       user_username: w.user_username,
       total_work: w.total_work,
       is_new_pb: w.is_new_pb,
