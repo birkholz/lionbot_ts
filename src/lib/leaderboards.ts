@@ -509,7 +509,7 @@ export async function postLeaderboard(
       fields: topTotals.map((user, i) => ({
         name: `${humanize(i)} Place`,
         value:
-          `${user.username} - **${Math.round(user.output / 1000)}** kJ (${user.rides} ` +
+          `${user.username.replace(/__/g, "\\_\\_")} - **${Math.round(user.output / 1000)}** kJ (${user.rides} ` +
           `${pluralize("ride", user.rides)} / ${user.duration} mins)`,
         inline: false,
       })),

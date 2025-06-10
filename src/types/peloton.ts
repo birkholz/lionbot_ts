@@ -82,7 +82,7 @@ export class WorkoutInfo {
   ) {}
 
   getOutputString(): string {
-    return `${this.user_username} - **${Math.round(this.total_work / 1000)}** kJ`
+    return `${this.user_username.replace(/__/g, "\\_\\_")} - **${Math.round(this.total_work / 1000)}** kJ`
   }
 
   getPBString(): string {
