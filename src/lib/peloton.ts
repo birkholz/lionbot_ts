@@ -320,6 +320,39 @@ interface ArchivedRide {
   }
 }
 
+interface Follower {
+  id: string
+  username: string
+  image_url: string
+  is_profile_private: boolean
+  location: string
+  total_followers: number | null
+  total_following: number | null
+  total_workouts: number | null
+  authed_user_follows: boolean
+  relationship: {
+    me_to_user: string
+    user_to_me: string
+  }
+  category: string
+}
+
+interface FollowersResponse {
+  data: Follower[]
+  limit: number
+  page: number
+  total: number
+  count: number
+  page_count: number
+  show_previous: boolean
+  show_next: boolean
+  sort_by: string | null
+  next: {
+    page: number
+  } | null
+  total_non_pending_followers: number
+}
+
 interface LoginResponse {
   session_id: string
   user_id: string
@@ -333,7 +366,7 @@ export class PelotonAPI {
     return this.sessionId
   }
 
-  private getRequestOptions(): RequestInit {
+  public getRequestOptions(): RequestInit {
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
       "Peloton-Platform": "home_bike",
@@ -511,6 +544,98 @@ export class PelotonAPI {
     } catch (error) {
       console.error("Failed to fetch archived rides:", error)
       throw error
+    }
+  }
+
+  async getFollowers(
+    userId: string,
+    limit: number = 100,
+    page: number = 0,
+  ): Promise<FollowersResponse> {
+    const requestUrl = `https://api.onepeloton.com/api/user/${userId}/followers?limit=${limit}&page=${page}`
+
+    try {
+      const response = await fetch(requestUrl, this.getRequestOptions())
+
+      if (response.status === 401) {
+        await this.login()
+        return this.getFollowers(userId, limit, page)
+      }
+      if (response.status >= 400) {
+        throw new Error(`Failed to fetch followers: ${response.status}`)
+      }
+
+      return (await response.json()) as FollowersResponse
+    } catch (error) {
+      console.error("Failed to fetch followers:", error)
+      throw error
+    }
+  }
+
+  async getAllFollowers(userId: string): Promise<Follower[]> {
+    const allFollowers: Follower[] = []
+    let page = 0
+    let hasMore = true
+    const limit = 100 // Max allowed by Peloton API
+
+    while (hasMore) {
+      try {
+        const data = await this.getFollowers(userId, limit, page)
+        allFollowers.push(...data.data)
+        hasMore = data.show_next
+        page++
+
+        // Wait 1 second between page requests to avoid rate limiting
+        if (hasMore) {
+          await new Promise((resolve) => setTimeout(resolve, 1000))
+        }
+      } catch (error) {
+        console.error(`Failed to fetch followers page ${page}:`, error)
+        throw error
+      }
+    }
+
+    return allFollowers
+  }
+
+  async followUser(userId: string): Promise<boolean> {
+    const requestUrl = "https://api.onepeloton.com/api/user/change_relationship"
+
+    try {
+      const response = await fetch(requestUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...this.getRequestOptions().headers,
+        },
+        body: JSON.stringify({
+          user_id: userId,
+          action: "follow",
+        }),
+      })
+
+      if (response.status === 401) {
+        await this.login()
+        // Retry the follow request
+        const retryResponse = await fetch(requestUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...this.getRequestOptions().headers,
+          },
+          body: JSON.stringify({
+            user_id: userId,
+            action: "follow",
+          }),
+        })
+
+        return retryResponse.ok
+      }
+
+      return response.ok
+    } catch (error) {
+      console.error(`Error following user ${userId}:`, error)
+      return false
     }
   }
 }
