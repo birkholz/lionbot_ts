@@ -35,7 +35,7 @@ export function Navigation() {
       <NavigationMenu className="m-1 rounded-lg md:mt-4">
         <NavigationMenuList>
           <NavigationMenuItem>
-            <Link href="/latest" legacyBehavior passHref>
+            <Link href="/latest" passHref>
               <NavigationMenuLink
                 className={getLinkClasses("/latest")}
                 onClick={handleClick}
@@ -45,7 +45,7 @@ export function Navigation() {
             </Link>
           </NavigationMenuItem>
           <NavigationMenuItem>
-            <Link href="/cyclists" legacyBehavior passHref>
+            <Link href="/cyclists" passHref>
               <NavigationMenuLink
                 className={getLinkClasses("/cyclists")}
                 onClick={handleClick}

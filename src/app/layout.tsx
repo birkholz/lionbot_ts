@@ -9,6 +9,7 @@ import "@styles/globals.css"
 import { Analytics } from "@vercel/analytics/react"
 import { Inter } from "next/font/google"
 import Link from "next/link"
+import type { Metadata } from "next"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -21,7 +22,7 @@ export const viewport = {
   initialScale: 1.0,
 }
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "#TheEggCarton Leaderboards",
   description:
     "Daily leaderboards for #TheEggCarton on Peloton, join us at Twitch.tv/Northernlion!",
