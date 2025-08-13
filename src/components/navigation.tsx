@@ -8,7 +8,6 @@ import {
   navigationMenuTriggerStyle,
 } from "@components/ui/navigation-menu"
 import { cn } from "@lib/utils"
-import Link from "next/link"
 import { usePathname } from "next/navigation"
 
 export function Navigation() {
@@ -35,24 +34,22 @@ export function Navigation() {
       <NavigationMenu className="m-1 rounded-lg md:mt-4">
         <NavigationMenuList>
           <NavigationMenuItem>
-            <Link href="/latest" passHref>
-              <NavigationMenuLink
-                className={getLinkClasses("/latest")}
-                onClick={handleClick}
-              >
-                Leaderboards
-              </NavigationMenuLink>
-            </Link>
+            <NavigationMenuLink
+              href="/latest"
+              className={getLinkClasses("/latest")}
+              onClick={handleClick}
+            >
+              Leaderboards
+            </NavigationMenuLink>
           </NavigationMenuItem>
           <NavigationMenuItem>
-            <Link href="/cyclists" passHref>
-              <NavigationMenuLink
-                className={getLinkClasses("/cyclists")}
-                onClick={handleClick}
-              >
-                Cyclists
-              </NavigationMenuLink>
-            </Link>
+            <NavigationMenuLink
+              href="/cyclists"
+              className={getLinkClasses("/cyclists")}
+              onClick={handleClick}
+            >
+              Cyclists
+            </NavigationMenuLink>
           </NavigationMenuItem>
           <NavigationMenuItem>
             <NavigationMenuLink
