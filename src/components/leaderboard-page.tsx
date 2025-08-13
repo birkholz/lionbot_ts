@@ -3,7 +3,7 @@
 import { LeaderboardDisplay } from "@components/leaderboard-display"
 import { useLeaderboardState } from "@components/leaderboard-state"
 import type { DateRange } from "@services/leaderboard"
-import type { LeaderboardJson } from "@types"
+import type { LeaderboardJson, PBInfo } from "@types"
 import { mean } from "mathjs"
 import { use, useEffect, useRef } from "react"
 
@@ -64,9 +64,20 @@ export function LeaderboardPage({
   const rideCounts = totalsList.map((w) => w.rides)
   const averageRideCount = Number(mean(rideCounts))
   const totalOutput = totalsList.reduce((sum, w) => sum + w.output, 0)
-  const PBList = Object.entries(playersWhoPbd).sort((a, b) =>
-    a[0].toLowerCase().localeCompare(b[0].toLowerCase()),
+
+  // Create a mapping from user_id to username for PB list
+  const userIdToUsername = Object.fromEntries(
+    Object.entries(totals).map(([user_id, userTotal]) => [
+      user_id,
+      userTotal.username,
+    ]),
   )
+
+  // Map the PB list to use usernames instead of user IDs
+  const PBList = Object.entries(playersWhoPbd)
+    .map(([user_id, pbs]) => [userIdToUsername[user_id], pbs])
+    .filter((entry): entry is [string, PBInfo[]] => entry[0] !== undefined)
+    .sort((a, b) => a[0].toLowerCase().localeCompare(b[0].toLowerCase()))
 
   return (
     <LeaderboardDisplay
