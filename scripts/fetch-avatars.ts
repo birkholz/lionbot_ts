@@ -2,6 +2,7 @@ import { db } from "@db/client"
 import { cyclistsTable } from "@db/schema"
 import { GraphQLClient, gql } from "graphql-request"
 import { PelotonAPI } from "../src/lib/peloton"
+import { sql } from "drizzle-orm"
 
 const GET_TAG_USERS = gql`
   query TagDetail($tagName: String!, $after: Cursor) {
@@ -91,7 +92,7 @@ async function fetchAndStoreAvatars() {
         (edge: TagUsersResponse["tag"]["users"]["edges"][0]) => ({
           username: edge.node.username,
           user_id: edge.node.id,
-          avatar_url: edge.node.assets.image.location,
+          avatar_url: edge.node.assets?.image?.location || "",
         }),
       )
 
@@ -115,8 +116,8 @@ async function fetchAndStoreAvatars() {
       .onConflictDoUpdate({
         target: cyclistsTable.user_id,
         set: {
-          username: cyclistsTable.username,
-          avatar_url: cyclistsTable.avatar_url,
+          username: sql`excluded.username`,
+          avatar_url: sql`excluded.avatar_url`,
         },
       })
 

@@ -1,0 +1,58 @@
+{
+  "id": "fix-cyclists-primary-key-0008",
+  "prevId": "00c1b0db-7ad7-4e2b-8280-26e455157304",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.cyclists": {
+      "name": "cyclists",
+      "schema": "",
+      "columns": {
+        "username": {
+          "name": "username",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "avatar_url": {
+          "name": "avatar_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "first_ride": {
+          "name": "first_ride",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "total_rides": {
+          "name": "total_rides",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "highest_output": {
+          "name": "highest_output",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  }
+}

@@ -122,8 +122,8 @@ export const leaderboardsTable = pgTable("leaderboards", {
 })
 
 export const cyclistsTable = pgTable("cyclists", {
-  username: text("username").primaryKey(),
-  user_id: text("user_id").notNull(),
+  username: text("username").notNull(),
+  user_id: text("user_id").primaryKey(),
   avatar_url: text("avatar_url").notNull(),
   first_ride: date("first_ride"),
   total_rides: integer("total_rides").default(0),
