@@ -359,11 +359,47 @@ interface LoginResponse {
   pubsub_session: Record<string, unknown>
 }
 
+interface UserDetails {
+  id: string
+  username: string
+  image_url: string
+  is_profile_private: boolean
+  location: string
+  total_followers: number | null
+  total_following: number | null
+  total_workouts: number | null
+  authed_user_follows: boolean
+  relationship: {
+    me_to_user: string
+    user_to_me: string
+  }
+  category: string
+  tags_info: {
+    primary_name: string
+    primary_tag_background_image_url: string
+    total_joined: number
+  }
+}
+
 export class PelotonAPI {
   private sessionId: string | null = null
+  private lastRequestTime: number = 0
+  private readonly minRequestInterval: number = 100 // 100ms between requests
 
   getSessionId(): string | null {
     return this.sessionId
+  }
+
+  private async ensureRateLimit(): Promise<void> {
+    const now = Date.now()
+    const timeSinceLastRequest = now - this.lastRequestTime
+
+    if (timeSinceLastRequest < this.minRequestInterval) {
+      const delay = this.minRequestInterval - timeSinceLastRequest
+      await new Promise((resolve) => setTimeout(resolve, delay))
+    }
+
+    this.lastRequestTime = Date.now()
   }
 
   public getRequestOptions(): RequestInit {
@@ -552,6 +588,8 @@ export class PelotonAPI {
     limit: number = 100,
     page: number = 0,
   ): Promise<FollowersResponse> {
+    await this.ensureRateLimit()
+
     const requestUrl = `https://api.onepeloton.com/api/user/${userId}/followers?limit=${limit}&page=${page}`
 
     try {
@@ -584,11 +622,6 @@ export class PelotonAPI {
         allFollowers.push(...data.data)
         hasMore = data.show_next
         page++
-
-        // Wait 1 second between page requests to avoid rate limiting
-        if (hasMore) {
-          await new Promise((resolve) => setTimeout(resolve, 1000))
-        }
       } catch (error) {
         console.error(`Failed to fetch followers page ${page}:`, error)
         throw error
@@ -599,6 +632,8 @@ export class PelotonAPI {
   }
 
   async followUser(userId: string): Promise<boolean> {
+    await this.ensureRateLimit()
+
     const requestUrl = "https://api.onepeloton.com/api/user/change_relationship"
 
     try {
@@ -636,6 +671,34 @@ export class PelotonAPI {
     } catch (error) {
       console.error(`Error following user ${userId}:`, error)
       return false
+    }
+  }
+
+  async getUserDetails(userId: string): Promise<UserDetails | null> {
+    await this.ensureRateLimit()
+
+    const requestUrl = `https://api.onepeloton.com/api/user/${userId}`
+
+    try {
+      const response = await fetch(requestUrl, this.getRequestOptions())
+
+      if (response.status === 401) {
+        await this.login()
+        return this.getUserDetails(userId)
+      }
+      if (response.status === 403 || response.status === 404) {
+        // Private user or user not found
+        return null
+      }
+      if (response.status >= 400) {
+        console.error(`Failed to fetch user details: ${response.status}`)
+        return null
+      }
+
+      return (await response.json()) as UserDetails
+    } catch (error) {
+      console.error(`Failed to fetch user details for ${userId}:`, error)
+      return null
     }
   }
 }
