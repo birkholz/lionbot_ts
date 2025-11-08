@@ -433,7 +433,7 @@ export class PelotonAPI {
       )
     }
 
-    const response = await fetch("https://api.onepeloton.com/auth/login", {
+    const response = await fetch("https://api.onepeloton.com/auth/login?=", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
