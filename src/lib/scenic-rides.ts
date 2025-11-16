@@ -107,7 +107,7 @@ export async function processAndPostNextRide(shouldPost = true): Promise<void> {
       content:
         "## Tomorrow's Ride:\n" +
         `# ${nextRide.title}\n` +
-        // "-# Lionbot always checks for new or removed scenic rides and updates the schedule accordingly\n" +
+        "-# Lionbot always checks for new or removed scenic rides and updates the schedule accordingly\n" +
         "-# If there are any issues, defer to #peloton",
       allowed_mentions: {
         parse: ["roles"],
