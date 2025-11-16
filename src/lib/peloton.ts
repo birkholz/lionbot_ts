@@ -1,3 +1,7 @@
+import { desc } from "drizzle-orm"
+import { db } from "../db/client"
+import { pelotonOAuthTokensTable } from "../db/schema"
+
 // Types
 interface PerformanceGraphResponse {
   duration: number
@@ -353,10 +357,13 @@ interface FollowersResponse {
   total_non_pending_followers: number
 }
 
-interface LoginResponse {
-  session_id: string
-  user_id: string
-  pubsub_session: Record<string, unknown>
+interface TokenResponse {
+  access_token: string
+  expires_in: number
+  scope: string
+  id_token: string
+  token_type: string
+  refresh_token?: string
 }
 
 interface UserDetails {
@@ -382,12 +389,16 @@ interface UserDetails {
 }
 
 export class PelotonAPI {
-  private sessionId: string | null = null
+  private accessToken: string | null = null
+  private refreshToken: string | null = null
+  private tokenExpiresAt: Date | null = null
   private lastRequestTime: number = 0
   private readonly minRequestInterval: number = 100 // 100ms between requests
 
-  getSessionId(): string | null {
-    return this.sessionId
+  constructor() {}
+
+  getAccessToken(): string | null {
+    return this.accessToken
   }
 
   private async ensureRateLimit(): Promise<void> {
@@ -408,48 +419,126 @@ export class PelotonAPI {
       "Peloton-Platform": "home_bike",
     }
 
-    const options: RequestInit = {
-      credentials: "include",
-      headers,
+    if (this.accessToken) {
+      headers["Authorization"] = `Bearer ${this.accessToken}`
     }
 
-    if (this.sessionId) {
-      options.headers = {
-        ...headers,
-        Cookie: `peloton_session_id=${this.sessionId}`,
-      }
+    const options: RequestInit = {
+      headers,
     }
 
     return options
   }
 
-  async login(): Promise<void> {
-    const username = process.env["PELOTON_USERNAME"]
-    const password = process.env["PELOTON_PASSWORD"]
+  /**
+   * Load tokens from the database
+   */
+  async loadTokensFromDB(): Promise<void> {
+    // Get the most recent token record
+    const tokenRecords = await db
+      .select()
+      .from(pelotonOAuthTokensTable)
+      .orderBy(desc(pelotonOAuthTokensTable.createdAt))
+      .limit(1)
 
-    if (!username || !password) {
-      throw new Error(
-        "PELOTON_USERNAME and PELOTON_PASSWORD must be set in environment variables",
-      )
+    const record = tokenRecords[0]
+    this.accessToken = record.accessToken
+    this.refreshToken = record.refreshToken
+    this.tokenExpiresAt = new Date(record.expiresAt)
+  }
+
+  /**
+   * Save tokens to the database
+   */
+  async saveTokensToDB(
+    accessToken: string,
+    refreshToken: string,
+    expiresIn: number,
+  ): Promise<void> {
+    const expiresAt = new Date(Date.now() + expiresIn * 1000)
+
+    await db.insert(pelotonOAuthTokensTable).values({
+      accessToken,
+      refreshToken,
+      expiresAt,
+    })
+
+    this.accessToken = accessToken
+    this.refreshToken = refreshToken
+    this.tokenExpiresAt = expiresAt
+  }
+
+  /**
+   * Check if the current access token is expired or about to expire
+   */
+  private isTokenExpired(): boolean {
+    if (!this.tokenExpiresAt) {
+      return true
+    }
+    // Consider token expired if it expires in less than 5 minutes
+    const bufferTime = 5 * 60 * 1000 // 5 minutes in milliseconds
+    return Date.now() + bufferTime >= this.tokenExpiresAt.getTime()
+  }
+
+  /**
+   * Refresh the access token using the refresh token
+   */
+  async refreshAccessToken(): Promise<void> {
+    if (!this.refreshToken) {
+      throw new Error("No refresh token available")
     }
 
-    const response = await fetch("https://api.onepeloton.com/auth/login?=", {
+    const clientId = process.env["PELOTON_CLIENT_ID"]
+    if (!clientId) {
+      throw new Error("PELOTON_CLIENT_ID must be set in environment variables")
+    }
+
+    const response = await fetch("https://auth.onepeloton.com/oauth/token", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        username_or_email: username,
-        password: password,
+        grant_type: "refresh_token",
+        client_id: clientId,
+        refresh_token: this.refreshToken,
       }),
     })
 
     if (!response.ok) {
-      throw new Error(`Failed to login: ${response.status}`)
+      const errorText = await response.text()
+      throw new Error(
+        `Failed to refresh token: ${response.status} - ${errorText}`,
+      )
     }
 
-    const data = (await response.json()) as LoginResponse
-    this.sessionId = data.session_id
+    const data = (await response.json()) as TokenResponse
+
+    if (!data.refresh_token) {
+      throw new Error("No refresh token returned from Peloton")
+    }
+
+    // Save the new tokens
+    await this.saveTokensToDB(
+      data.access_token,
+      data.refresh_token,
+      data.expires_in,
+    )
+  }
+
+  /**
+   * Ensure we have a valid access token, refreshing if necessary
+   */
+  async ensureValidToken(): Promise<void> {
+    // If we don't have tokens in memory, try loading from DB
+    if (!this.accessToken) {
+      await this.loadTokensFromDB()
+    }
+
+    // If token is expired or about to expire, refresh it
+    if (this.isTokenExpired()) {
+      await this.refreshAccessToken()
+    }
   }
 
   async getWorkouts(
@@ -457,6 +546,8 @@ export class PelotonAPI {
     startTime?: Date,
     endTime?: Date,
   ): Promise<Workout[]> {
+    await this.ensureValidToken()
+
     const allWorkouts: Workout[] = []
     let page = 0
     let hasMore = true
@@ -473,7 +564,7 @@ export class PelotonAPI {
         const response = await fetch(requestUrl, this.getRequestOptions())
 
         if (response.status === 401) {
-          await this.login()
+          await this.refreshAccessToken()
           return this.getWorkouts(userId, startTime, endTime)
         }
         if (response.status === 403 || response.status === 404) {
@@ -507,13 +598,15 @@ export class PelotonAPI {
   async getWorkoutPerformanceData(
     workoutId: string,
   ): Promise<PerformanceGraphResponse> {
+    await this.ensureValidToken()
+
     const requestUrl = `https://api.onepeloton.com/api/workout/${workoutId}/performance_graph`
 
     try {
       const response = await fetch(requestUrl, this.getRequestOptions())
 
       if (response.status === 401) {
-        await this.login()
+        await this.refreshAccessToken()
         return this.getWorkoutPerformanceData(workoutId)
       }
       if (response.status >= 400) {
@@ -530,13 +623,15 @@ export class PelotonAPI {
   }
 
   async getWorkout(workoutId: string): Promise<Workout> {
+    await this.ensureValidToken()
+
     const requestUrl = `https://api.onepeloton.com/api/workout/${workoutId}`
 
     try {
       const response = await fetch(requestUrl, this.getRequestOptions())
 
       if (response.status === 401) {
-        await this.login()
+        await this.refreshAccessToken()
         return this.getWorkout(workoutId)
       }
       if (response.status >= 400) {
@@ -556,6 +651,8 @@ export class PelotonAPI {
     duration?: number,
     contentProvider?: string,
   ): Promise<ArchivedRidesResponse> {
+    await this.ensureValidToken()
+
     let requestUrl = `https://api.onepeloton.com/api/v2/ride/archived?limit=${limit}&page=${page}&sort_by=original_air_time&desc=true`
 
     if (duration) {
@@ -569,7 +666,7 @@ export class PelotonAPI {
       const response = await fetch(requestUrl, this.getRequestOptions())
 
       if (response.status === 401) {
-        await this.login()
+        await this.refreshAccessToken()
         return this.getArchivedRides(limit, page, duration, contentProvider)
       }
       if (response.status >= 400) {
@@ -588,6 +685,7 @@ export class PelotonAPI {
     limit: number = 100,
     page: number = 0,
   ): Promise<FollowersResponse> {
+    await this.ensureValidToken()
     await this.ensureRateLimit()
 
     const requestUrl = `https://api.onepeloton.com/api/user/${userId}/followers?limit=${limit}&page=${page}`
@@ -596,7 +694,7 @@ export class PelotonAPI {
       const response = await fetch(requestUrl, this.getRequestOptions())
 
       if (response.status === 401) {
-        await this.login()
+        await this.refreshAccessToken()
         return this.getFollowers(userId, limit, page)
       }
       if (response.status >= 400) {
@@ -632,6 +730,7 @@ export class PelotonAPI {
   }
 
   async followUser(userId: string): Promise<boolean> {
+    await this.ensureValidToken()
     await this.ensureRateLimit()
 
     const requestUrl = "https://api.onepeloton.com/api/user/change_relationship"
@@ -650,7 +749,7 @@ export class PelotonAPI {
       })
 
       if (response.status === 401) {
-        await this.login()
+        await this.refreshAccessToken()
         // Retry the follow request
         const retryResponse = await fetch(requestUrl, {
           method: "POST",
@@ -675,6 +774,7 @@ export class PelotonAPI {
   }
 
   async getUserDetails(userId: string): Promise<UserDetails | null> {
+    await this.ensureValidToken()
     await this.ensureRateLimit()
 
     const requestUrl = `https://api.onepeloton.com/api/user/${userId}`
@@ -683,7 +783,7 @@ export class PelotonAPI {
       const response = await fetch(requestUrl, this.getRequestOptions())
 
       if (response.status === 401) {
-        await this.login()
+        await this.refreshAccessToken()
         return this.getUserDetails(userId)
       }
       if (response.status === 403 || response.status === 404) {

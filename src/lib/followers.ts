@@ -5,7 +5,6 @@ import { sql } from "drizzle-orm"
 
 export async function processAndFollowFollowers(): Promise<void> {
   const peloton = new PelotonAPI()
-  await peloton.login()
 
   const userId = "8e72aa494a744541a238a76648c1aa8a" // Lionbot's user ID
   let processedFollowers = 0

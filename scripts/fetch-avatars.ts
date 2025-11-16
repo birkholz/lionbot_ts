@@ -54,14 +54,13 @@ async function fetchAndStoreAvatars() {
   console.log("Starting avatar fetch...")
 
   const api = new PelotonAPI()
-  await api.login()
 
   const client = new GraphQLClient(
     "https://gql-graphql-gateway.prod.k8s.onepeloton.com/graphql",
     {
       headers: {
         "Content-Type": "application/json",
-        Cookie: `peloton_session_id=${api.getSessionId()}`,
+        Authorization: `Bearer ${api.getAccessToken()}`,
       },
     },
   )

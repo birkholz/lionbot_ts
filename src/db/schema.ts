@@ -137,3 +137,12 @@ export const scenicRidesTable = pgTable("scenic_rides", {
   published_date: date("published_date").notNull(),
   last_posted_at: date("last_posted_at"),
 })
+
+export const pelotonOAuthTokensTable = pgTable("peloton_oauth_tokens", {
+  id: serial().primaryKey().notNull(),
+  accessToken: text("access_token").notNull(),
+  refreshToken: text("refresh_token").notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+})
