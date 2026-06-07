@@ -12,8 +12,9 @@ async function getAndPostWorkouts(): Promise<void> {
   const serverTimezone =
     process.env.NODE_ENV === "production" ? "UTC" : "America/Chicago"
 
+  const providedDate = process.argv[2]
   const dateStr =
-    process.argv[2] ??
+    providedDate ??
     format(subDays(new TZDate(new Date(), serverTimezone), 1), "yyyy-MM-dd")
 
   // Validate date format
@@ -24,12 +25,19 @@ async function getAndPostWorkouts(): Promise<void> {
 
   const api = new PelotonAPI()
 
-  const nlUserId = "efc2317a6aad48218488a27bf8b0e460"
-  await postWorkouts(api, nlUserId)
+  if (providedDate === undefined) {
+    const nlUserId = "efc2317a6aad48218488a27bf8b0e460"
+    await postWorkouts(api, nlUserId)
+  }
 
   const leaderboardUserId =
     process.env["LEADERBOARD_USER_ID"] ?? "efc2317a6aad48218488a27bf8b0e460"
-  await postLeaderboard(api, leaderboardUserId, true, dateStr)
+  await postLeaderboard(
+    api,
+    leaderboardUserId,
+    providedDate === undefined,
+    dateStr,
+  )
   process.exit(0)
 }
 

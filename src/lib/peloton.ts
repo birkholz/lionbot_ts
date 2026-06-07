@@ -469,14 +469,15 @@ export class PelotonAPI {
   }
 
   /**
-   * Check if the current access token is expired or about to expire
+   * Check if the current access token is expired or about to expire.
+   * Buffer is 15 hours to cover the longest gap between scheduled checks
+   * (7 PM PT → 9 AM PT = 14 hours), ensuring tokens are refreshed proactively.
    */
   private isTokenExpired(): boolean {
     if (!this.tokenExpiresAt) {
       return true
     }
-    // Consider token expired if it expires in less than 5 minutes
-    const bufferTime = 5 * 60 * 1000 // 5 minutes in milliseconds
+    const bufferTime = 15 * 60 * 60 * 1000 // 15 hours in milliseconds
     return Date.now() + bufferTime >= this.tokenExpiresAt.getTime()
   }
 
