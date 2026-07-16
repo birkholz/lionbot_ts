@@ -45,7 +45,7 @@ export async function GET() {
     revalidatePath(`/archive/${dateStr}`)
     revalidatePath("/latest")
     revalidatePath("/cyclists")
-    revalidatePath("/cyclist/*")
+    revalidatePath("/cyclist/[username]", "page")
 
     return new NextResponse(null, { status: 204 })
   } catch (error) {
