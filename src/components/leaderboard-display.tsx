@@ -47,16 +47,27 @@ export function LeaderboardDisplay(props: LeaderboardDisplayProps) {
     avatars,
   } = props
   const accordionRef = React.useRef<HTMLDivElement>(null)
+  const userInteractedRef = React.useRef(false)
   const { useMetric, numberFormat, autoOpen } = useLeaderboardState()
 
-  const getDefaultAccordionValue = React.useCallback(() => {
-    if (!autoOpen) return undefined
+  const getAutoOpenValue = React.useCallback(() => {
     if (rides.length > 0) return rides[0].id
     if (Object.keys(totals).length > 0) return "endurance"
     return undefined
-  }, [autoOpen, rides, totals])
+  }, [rides, totals])
+
+  const [openValue, setOpenValue] = React.useState<string | undefined>(() =>
+    autoOpen ? getAutoOpenValue() : undefined,
+  )
+
+  React.useEffect(() => {
+    if (userInteractedRef.current) return
+    setOpenValue(autoOpen ? getAutoOpenValue() : undefined)
+  }, [autoOpen, getAutoOpenValue])
 
   const handleAccordionChange = (value: string) => {
+    userInteractedRef.current = true
+    setOpenValue(value)
     if (value && accordionRef.current) {
       accordionRef.current.scrollIntoView({ behavior: "smooth" })
     }
@@ -111,7 +122,7 @@ export function LeaderboardDisplay(props: LeaderboardDisplayProps) {
         ref={accordionRef}
         type="single"
         collapsible
-        defaultValue={getDefaultAccordionValue()}
+        value={openValue}
         onValueChange={handleAccordionChange}
       >
         {rides.map((ride) => (

@@ -28,7 +28,7 @@ export function LeaderboardProvider({
   const [mounted, setMounted] = useState(false)
   const [useMetric, setUseMetric] = useState(true)
   const [numberFormat, setNumberFormat] = useState("en-US")
-  const [autoOpen, setAutoOpen] = useState(false)
+  const [autoOpen, setAutoOpen] = useState(true)
 
   useEffect(() => {
     const savedMetric = localStorage.getItem("useMetric")
