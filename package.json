@@ -4,6 +4,9 @@
   "version": "0.0.0",
   "module": "src/lionbot/leaderboards.ts",
   "type": "module",
+  "overrides": {
+    "shell-quote": "1.8.4"
+  },
   "scripts": {
     "leaderboards": "bun run scripts/leaderboards.ts",
     "fetch-avatars": "bun run scripts/fetch-avatars.ts",
