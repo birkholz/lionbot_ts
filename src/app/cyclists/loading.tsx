@@ -29,7 +29,7 @@ export default function Loading() {
             <TableHead>Username</TableHead>
             <TableHead>First Ride</TableHead>
             <TableHead>Total Rides</TableHead>
-            <TableHead>Highest Output</TableHead>
+            <TableHead>Endurance PB</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody className="text-nowrap">

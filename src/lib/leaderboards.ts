@@ -375,39 +375,31 @@ export async function postLeaderboard(
     highest_output: number
   }> = []
 
-  // Process all users who participated in rides, checking for PBs
+  // Process all users who participated in rides
   for (const ride of Object.values(rides)) {
     for (const workout of ride.workouts) {
       if (usersToUpdate.some((u) => u.user_id === workout.user_id)) {
         continue
       }
 
-      // Get the highest output from any PBs this user achieved today
-      const userPbs = playersWhoPbd[workout.user_id] || []
-      const highestPbOutput =
-        userPbs.length > 0
-          ? Math.round(Math.max(...userPbs.map((pb) => pb.total_work)))
-          : 0
-
+      // highest_output is the day's combined (endurance leaderboard)
+      // output, not any single ride's output
       usersToUpdate.push({
         user_id: workout.user_id,
-        highest_output: highestPbOutput,
+        highest_output: Math.round(totals[workout.user_id]?.output ?? 0),
       })
     }
   }
 
   // Process any users who got PBs but didn't participate in leaderboard rides
-  for (const [user_id, userPbs] of Object.entries(playersWhoPbd)) {
+  for (const user_id of Object.keys(playersWhoPbd)) {
     if (usersToUpdate.some((u) => u.user_id === user_id)) {
       continue
     }
-    const highestPbOutput = Math.round(
-      Math.max(...userPbs.map((pb) => pb.total_work)),
-    )
 
     usersToUpdate.push({
       user_id,
-      highest_output: highestPbOutput,
+      highest_output: Math.round(totals[user_id]?.output ?? 0),
     })
   }
 

@@ -78,8 +78,9 @@ export default async function Cyclists() {
         .
       </p>
       <p className="mx-4 mb-2 text-left text-sm text-muted-foreground">
-        Total Rides only counts group rides, while Highest Output is based on
-        all rides since the start of the leaderboards.
+        Total Rides only counts group rides, while Endurance PB is each
+        cyclist's best single-day combined output since the start of the
+        leaderboards.
       </p>
       <Table>
         <TableHeader>
@@ -87,7 +88,7 @@ export default async function Cyclists() {
             <TableHead>Username</TableHead>
             <TableHead>First Ride</TableHead>
             <TableHead>Total Rides</TableHead>
-            <TableHead>Highest Output</TableHead>
+            <TableHead>Endurance PB</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody className="text-nowrap">
