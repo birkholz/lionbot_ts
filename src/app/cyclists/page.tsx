@@ -1,16 +1,9 @@
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@components/ui/table"
-import { UserAvatar } from "@components/user-avatar"
+import { DataTable } from "@components/data-table"
 import bothImage from "/public/both.png"
 import { getUserStats } from "@services/leaderboard"
 import type { Metadata } from "next"
 import Link from "next/link"
+import { columns } from "./columns"
 
 export const metadata: Metadata = {
   title: "#TheEggCarton Cyclists",
@@ -18,32 +11,6 @@ export const metadata: Metadata = {
   openGraph: {
     images: [{ url: bothImage.src }],
   },
-}
-
-function formatOutput(output?: number): string {
-  if (
-    output === undefined ||
-    output === null ||
-    !isFinite(output) ||
-    output === 0
-  )
-    return "-"
-  if (output >= 1000) {
-    return `${(output / 1000).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-  }
-  return `${Math.round(output).toLocaleString()}`
-}
-
-function formatOutputUnit(output?: number) {
-  if (
-    output === undefined ||
-    output === null ||
-    !isFinite(output) ||
-    output === 0
-  )
-    return <></>
-  const unit = output >= 1000 ? " kJ" : " J"
-  return <span className="text-muted-foreground">{unit}</span>
 }
 
 export default async function Cyclists() {
@@ -82,56 +49,11 @@ export default async function Cyclists() {
         cyclist's best single-day combined output since the start of the
         leaderboards.
       </p>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Username</TableHead>
-            <TableHead>First Ride</TableHead>
-            <TableHead>Total Rides</TableHead>
-            <TableHead>Endurance PB</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody className="text-nowrap">
-          {userStats.map((user) => (
-            <TableRow key={user.username}>
-              <TableCell>
-                <div className="flex items-center gap-2">
-                  <UserAvatar
-                    avatar_url={
-                      user.avatar_url ??
-                      `https://placehold.co/21x21/red/red.webp`
-                    }
-                    width={21}
-                    height={21}
-                  />
-                  <Link
-                    href={`/cyclist/${user.username}`}
-                    className="text-[hsl(var(--primary-link))] hover:text-[hsl(var(--primary-link)/80)] hover:underline"
-                  >
-                    {user.username}
-                  </Link>
-                </div>
-              </TableCell>
-              <TableCell>
-                <Link
-                  href={`/archive/${user.firstRide}`}
-                  className="text-[hsl(var(--primary-link))] hover:text-[hsl(var(--primary-link)/80)] hover:underline"
-                >
-                  {user.firstRide}
-                </Link>
-              </TableCell>
-              <TableCell>
-                {user.totalRides}
-                <span className="text-muted-foreground"> rides</span>
-              </TableCell>
-              <TableCell>
-                {formatOutput(user.highestOutput)}
-                {formatOutputUnit(user.highestOutput)}
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      <DataTable
+        columns={columns}
+        data={userStats}
+        defaultSorting={[{ id: "totalRides", desc: true }]}
+      />
     </div>
   )
 }

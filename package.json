@@ -67,6 +67,7 @@
     "@sentry/bun": "^8.55.0",
     "@sentry/nextjs": "^10.56.0",
     "@sentry/react": "^8.55.0",
+    "@tanstack/react-table": "^8.21.3",
     "@vercel/analytics": "^1.5.0",
     "caniuse-lite": "^1.0.30001734",
     "class-variance-authority": "^0.7.1",
