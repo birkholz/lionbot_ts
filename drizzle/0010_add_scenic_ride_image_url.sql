@@ -1,0 +1,1 @@
+ALTER TABLE "scenic_rides" ADD COLUMN "image_url" text;

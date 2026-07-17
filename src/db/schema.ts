@@ -141,6 +141,7 @@ export const scenicRidesTable = pgTable("scenic_rides", {
   location: text("location").notNull(),
   published_date: date("published_date").notNull(),
   last_posted_at: date("last_posted_at"),
+  image_url: text("image_url"),
 })
 
 export const pelotonOAuthTokensTable = pgTable("peloton_oauth_tokens", {

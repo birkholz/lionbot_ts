@@ -55,6 +55,15 @@ export function Navigation(): React.ReactElement {
           </NavigationMenuItem>
           <NavigationMenuItem>
             <NavigationMenuLink
+              href="/schedule"
+              className={getLinkClasses("/schedule")}
+              onClick={handleClick}
+            >
+              Schedule
+            </NavigationMenuLink>
+          </NavigationMenuItem>
+          <NavigationMenuItem>
+            <NavigationMenuLink
               className={cn(
                 getLinkClasses("/daily-game"),
                 "pointer-events-none opacity-50 shadow-none hover:bg-background hover:text-foreground",

@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache"
 import { headers } from "next/headers"
 import { NextResponse } from "next/server"
 
@@ -24,6 +25,7 @@ export async function GET(): Promise<NextResponse> {
 
   try {
     await processAndPostNextRide()
+    revalidatePath("/schedule")
     return new NextResponse(null, { status: 204 })
   } catch (error) {
     console.error("Error in next ride cron:", error)

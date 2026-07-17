@@ -1,6 +1,6 @@
 {
-  "id": "fix-cyclists-primary-key-0008",
-  "prevId": "00c1b0db-7ad7-4e2b-8280-26e455157304",
+  "id": "d4c3cc3d-8d46-4187-9e57-003b1005b71d",
+  "prevId": "1231d43e-623b-4598-9972-cbe720ff3eee",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -194,6 +194,57 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.peloton_oauth_tokens": {
+      "name": "peloton_oauth_tokens",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "access_token": {
+          "name": "access_token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "refresh_token": {
+          "name": "refresh_token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.scenic_rides": {
       "name": "scenic_rides",
       "schema": "",
@@ -225,6 +276,12 @@
         "last_posted_at": {
           "name": "last_posted_at",
           "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "image_url": {
+          "name": "image_url",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         }

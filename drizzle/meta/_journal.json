@@ -64,6 +64,20 @@
       "when": 1746562524802,
       "tag": "0008_fix_cyclists_primary_key",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1784255288728,
+      "tag": "0009_add_peloton_oauth_tokens",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1784255320337,
+      "tag": "0010_add_scenic_ride_image_url",
+      "breakpoints": true
     }
   ]
 }

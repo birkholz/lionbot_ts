@@ -11,6 +11,7 @@
     "leaderboards": "bun run scripts/leaderboards.ts",
     "fetch-avatars": "bun run scripts/fetch-avatars.ts",
     "backfill-highest-output": "bun run scripts/backfill-highest-output.ts",
+    "backfill-scenic-ride-images": "bun run scripts/backfill-scenic-ride-images.ts",
     "post-next-ride": "bun run scripts/post-next-ride.ts",
     "follow-followers": "bun run scripts/follow-followers.ts",
     "dev": "bunx --bun next dev",
