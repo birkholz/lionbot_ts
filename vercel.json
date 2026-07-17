@@ -1,4 +1,5 @@
 {
+  "installCommand": "bunx bun@1.3.14 install",
   "crons": [
     {
       "path": "/api/crons/leaderboards",
