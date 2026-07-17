@@ -1,3 +1,4 @@
+import { format } from "date-fns"
 import type { Metadata } from "next"
 import Image from "next/image"
 import type React from "react"
@@ -11,6 +12,7 @@ import {
   TableRow,
 } from "@components/ui/table"
 import { getScenicRideSchedule } from "@lib/scenic-rides"
+import { parseDate } from "@lib/utils"
 
 export const metadata: Metadata = {
   title: "#TheEggCarton Ride Schedule",
@@ -33,8 +35,10 @@ export default async function SchedulePage(): Promise<React.ReactElement> {
           <TableRow>
             <TableHead></TableHead>
             <TableHead>Ride</TableHead>
-            <TableHead>Location</TableHead>
-            <TableHead className="text-nowrap">Last Posted</TableHead>
+            <TableHead className="text-nowrap text-center">Published</TableHead>
+            <TableHead className="text-nowrap text-center">
+              Last Posted
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -57,10 +61,19 @@ export default async function SchedulePage(): Promise<React.ReactElement> {
                   <div className="aspect-video w-28 rounded-md bg-muted" />
                 )}
               </TableCell>
-              <TableCell>{ride.title}</TableCell>
-              <TableCell>{ride.location}</TableCell>
-              <TableCell className="text-nowrap">
-                {ride.last_posted_at ?? (
+              <TableCell>
+                {ride.title}
+                <div className="mt-1 text-sm text-muted-foreground">
+                  {ride.location}
+                </div>
+              </TableCell>
+              <TableCell className="text-nowrap text-center">
+                {format(parseDate(ride.published_date), "d MMM yyyy")}
+              </TableCell>
+              <TableCell className="text-nowrap text-center">
+                {ride.last_posted_at != null ? (
+                  format(parseDate(ride.last_posted_at), "d MMM")
+                ) : (
                   <span className="text-muted-foreground">Never</span>
                 )}
               </TableCell>
