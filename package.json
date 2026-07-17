@@ -32,6 +32,8 @@
     "autoprefixer": "^10.5.3",
     "drizzle-kit": "^0.30.6",
     "eslint": "^9.39.5",
+    "eslint-import-resolver-typescript-bun": "^0.0.104",
+    "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-refresh": "^0.4.26",
     "globals": "^15.15.0",
