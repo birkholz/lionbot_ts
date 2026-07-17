@@ -15,15 +15,23 @@ import {
 
 import bothImage from "/public/both.png"
 
+// Older dates never change once posted, so only pre-render a recent window
+// at build time; everything older is generated on first request and cached
+// indefinitely via ISR (see `dynamicParams` below) instead of being rebuilt
+// from scratch on every deploy.
+const PRERENDER_DAYS = 14
+
+export const dynamicParams = true
+
 export async function generateStaticParams(): Promise<{ date: string }[]> {
   if (process.env.NODE_ENV === "development") {
     return []
   }
-  const { startDate, endDate } = await getLeaderboardDateRange()
+  const { endDate } = await getLeaderboardDateRange()
   const dates: string[] = []
-  let currentDate = new TZDate(startDate, "UTC")
   // Don't cache the last date because it's handled by /latest
   const lastDate = subDays(new TZDate(endDate, "UTC"), 1)
+  let currentDate = subDays(lastDate, PRERENDER_DAYS - 1)
 
   while (currentDate <= lastDate) {
     dates.push(format(currentDate, "yyyy-MM-dd"))
