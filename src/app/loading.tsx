@@ -1,6 +1,8 @@
+import type React from "react"
+
 import { Skeleton } from "@components/ui/skeleton"
 
-export default function Loading() {
+export default function Loading(): React.ReactElement {
   return (
     <>
       <div className="border-b py-4">

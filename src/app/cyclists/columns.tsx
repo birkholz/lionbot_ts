@@ -1,8 +1,10 @@
 "use client"
 
 import type { ColumnDef } from "@tanstack/react-table"
-import { UserAvatar } from "@components/user-avatar"
 import Link from "next/link"
+import type React from "react"
+
+import { UserAvatar } from "@components/user-avatar"
 import type { UserStats } from "@services/leaderboard"
 
 function formatOutput(output?: number): string {
@@ -22,7 +24,7 @@ function formatOutput(output?: number): string {
   return `${Math.round(output).toLocaleString()}`
 }
 
-function formatOutputUnit(output?: number) {
+function formatOutputUnit(output?: number): React.ReactElement {
   if (
     output === undefined ||
     output === null ||
@@ -38,7 +40,7 @@ export const columns: ColumnDef<UserStats>[] = [
   {
     accessorKey: "username",
     header: "Username",
-    cell: ({ row }) => {
+    cell: ({ row }): React.ReactElement => {
       const user = row.original
       return (
         <div className="flex items-center gap-2">

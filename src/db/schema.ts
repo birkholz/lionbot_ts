@@ -14,6 +14,10 @@ import {
   timestamp,
 } from "drizzle-orm/pg-core"
 
+// `any` breaks the circular type reference between `streams` and `guilds`
+// (each has a foreign key into the other); a narrower bound reintroduces
+// the circularity and fails to typecheck under exactOptionalPropertyTypes.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const streams: PgTableWithColumns<any> = pgTable(
   "streams",
   {
@@ -42,6 +46,7 @@ export const streams: PgTableWithColumns<any> = pgTable(
   ],
 )
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const guilds: PgTableWithColumns<any> = pgTable(
   "guilds",
   {

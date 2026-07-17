@@ -7,6 +7,11 @@ import {
   useReactTable,
 } from "@tanstack/react-table"
 import type { ColumnDef, SortingState } from "@tanstack/react-table"
+import { ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react"
+import { useState } from "react"
+import type React from "react"
+
+import { Button } from "@components/ui/button"
 import {
   Table,
   TableBody,
@@ -15,9 +20,6 @@ import {
   TableHeader,
   TableRow,
 } from "@components/ui/table"
-import { useState } from "react"
-import { ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react"
-import { Button } from "@components/ui/button"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -29,7 +31,7 @@ export function DataTable<TData, TValue>({
   columns,
   data,
   defaultSorting = [],
-}: DataTableProps<TData, TValue>) {
+}: DataTableProps<TData, TValue>): React.ReactElement {
   const [sorting, setSorting] = useState<SortingState>(defaultSorting)
 
   const table = useReactTable({
@@ -61,7 +63,7 @@ export function DataTable<TData, TValue>({
                           header.column.columnDef.header,
                           header.getContext(),
                         )}
-                        {header.column.getIsSorted() ? (
+                        {header.column.getIsSorted() !== false ? (
                           header.column.getIsSorted() === "desc" ? (
                             <ArrowDown className="ml-2 h-4 w-4" />
                           ) : (

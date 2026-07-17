@@ -1,3 +1,9 @@
+import { Analytics } from "@vercel/analytics/react"
+import type { Metadata } from "next"
+import { Inter } from "next/font/google"
+import Link from "next/link"
+import type React from "react"
+
 import { LeaderboardSettings } from "@components/leaderboard-settings"
 import { LeaderboardProvider } from "@components/leaderboard-state"
 import { Navigation } from "@components/navigation"
@@ -5,11 +11,8 @@ import { ThemeProvider } from "@components/theme-provider"
 import { ThemeToggle } from "@components/theme-toggle"
 import { Card, CardContent, CardHeader } from "@components/ui/card"
 import { TooltipProvider } from "@components/ui/tooltip"
+
 import "@styles/globals.css"
-import { Analytics } from "@vercel/analytics/react"
-import { Inter } from "next/font/google"
-import Link from "next/link"
-import type { Metadata } from "next"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -38,7 +41,7 @@ export default function RootLayout({
   children,
 }: {
   children: React.ReactNode
-}) {
+}): React.ReactElement {
   return (
     <html
       lang="en"

@@ -1,8 +1,11 @@
+import type { Metadata } from "next"
+import Link from "next/link"
+import type React from "react"
+
 import { DataTable } from "@components/data-table"
 import bothImage from "/public/both.png"
 import { getUserStats } from "@services/leaderboard"
-import type { Metadata } from "next"
-import Link from "next/link"
+
 import { columns } from "./columns"
 
 export const metadata: Metadata = {
@@ -13,7 +16,7 @@ export const metadata: Metadata = {
   },
 }
 
-export default async function Cyclists() {
+export default async function Cyclists(): Promise<React.ReactElement> {
   const userStats = await getUserStats()
 
   return (

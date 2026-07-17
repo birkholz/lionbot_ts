@@ -1,4 +1,5 @@
 import { relations } from "drizzle-orm/relations"
+
 import { streams, guilds, videos, twitchStreams } from "./schema"
 
 export const guildsRelations = relations(guilds, ({ one, many }) => ({

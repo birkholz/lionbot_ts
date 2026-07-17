@@ -1,5 +1,12 @@
 "use client"
 
+import { Sparkle } from "lucide-react"
+import Image from "next/image"
+import Link from "next/link"
+import pluralize from "pluralize"
+import * as React from "react"
+import { Pie, PieChart } from "recharts"
+
 import {
   Accordion,
   AccordionContent,
@@ -18,24 +25,22 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip"
 import { UserAvatar } from "@components/user-avatar"
 import { getAvatarUrl, humanize, localizeNumber } from "@lib/utils"
-import { Sparkle } from "lucide-react"
-import Image from "next/image"
-import Link from "next/link"
-import pluralize from "pluralize"
-import * as React from "react"
-import { Pie, PieChart } from "recharts"
+
 import type {
   LeaderboardDisplayProps,
   Ride,
   Workout,
 } from "../types/components"
+
 import { useLeaderboardState } from "./leaderboard-state"
 
 function sortWorkouts(workouts: Workout[]): Workout[] {
   return [...workouts].sort((a, b) => b.total_work - a.total_work)
 }
 
-export function LeaderboardDisplay(props: LeaderboardDisplayProps) {
+export function LeaderboardDisplay(
+  props: LeaderboardDisplayProps,
+): React.ReactElement {
   const {
     rides,
     totals,
@@ -65,7 +70,7 @@ export function LeaderboardDisplay(props: LeaderboardDisplayProps) {
     setOpenValue(autoOpen ? getAutoOpenValue() : undefined)
   }, [autoOpen, getAutoOpenValue])
 
-  const handleAccordionChange = (value: string) => {
+  const handleAccordionChange = (value: string): void => {
     userInteractedRef.current = true
     setOpenValue(value)
     if (value && accordionRef.current) {
@@ -73,7 +78,7 @@ export function LeaderboardDisplay(props: LeaderboardDisplayProps) {
     }
   }
 
-  const formatDistance = (distance: number) => {
+  const formatDistance = (distance: number): React.ReactElement => {
     if (useMetric) {
       return (
         <>
@@ -113,7 +118,7 @@ export function LeaderboardDisplay(props: LeaderboardDisplayProps) {
     },
   }
 
-  const isScenicRide = (ride: Ride) =>
+  const isScenicRide = (ride: Ride): boolean =>
     ride.instructor_name.split(" ").length > 2
 
   return (
@@ -257,7 +262,8 @@ export function LeaderboardDisplay(props: LeaderboardDisplayProps) {
                         {Math.round(workout.duration / 60)}
                         <span className="text-muted-foreground"> mins</span>
                       </TableCell>
-                      {workout.effort_zones?.total_effort_points ? (
+                      {workout.effort_zones?.total_effort_points != null &&
+                      workout.effort_zones.total_effort_points !== 0 ? (
                         <TableCell className="min-w-[6em] md:text-left">
                           {localizeNumber(
                             workout.effort_zones.total_effort_points,

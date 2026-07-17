@@ -1,4 +1,10 @@
 import { TZDate } from "@date-fns/tz"
+import { addDays, format, set, subHours } from "date-fns"
+import { sql } from "drizzle-orm"
+import { mean, median } from "mathjs"
+import pMap from "p-map"
+import pluralize from "pluralize"
+
 import { db } from "@db/client"
 import { cyclistsTable, leaderboardsTable } from "@db/schema"
 import { PelotonAPI } from "@lib/peloton"
@@ -16,11 +22,6 @@ import {
 } from "@lib/utils"
 import type { DiscordEmbed, PBInfo, UserTotal } from "@types"
 import { RideInfo, WorkoutInfo } from "@types"
-import { addDays, format, set, subDays, subHours } from "date-fns"
-import { sql } from "drizzle-orm"
-import { mean, median } from "mathjs"
-import pMap from "p-map"
-import pluralize from "pluralize"
 
 export async function postWorkouts(
   api: PelotonAPI,
@@ -217,19 +218,29 @@ export async function postLeaderboard(
         // Determine if this workout should be tracked in ride leaderboards
         if (workoutRideId !== "00000000000000000000000000000000") {
           if (validNLWorkouts.length > 0) {
-            const ride = rides[workoutRideId]
-            shouldTrackInLeaderboard = !!ride
+            const ride: RideInfo | undefined = rides[workoutRideId]
+            shouldTrackInLeaderboard = ride != null
           } else {
             shouldTrackInLeaderboard = true
           }
 
           // Track participation count for each ride that could be in leaderboards
           if (shouldTrackInLeaderboard) {
-            if (!rideParticipationCount[workoutRideId]) {
+            const participation: Set<string> | undefined =
+              rideParticipationCount[workoutRideId]
+            if (participation == null) {
               rideParticipationCount[workoutRideId] = new Set()
             }
             rideParticipationCount[workoutRideId].add(user.username)
-            if (!rideDetails[workoutRideId]) {
+            const existingDetails:
+              | {
+                  title: string
+                  instructor: string
+                  image_url: string
+                  start_time: number
+                }
+              | undefined = rideDetails[workoutRideId]
+            if (existingDetails == null) {
               rideDetails[workoutRideId] = {
                 title: workout.ride.title,
                 instructor: getInstructorName(workout),
@@ -260,8 +271,9 @@ export async function postLeaderboard(
                 (workout.end_time - workout.start_time) / 60,
               ),
             }
-            const existingPbs = playersWhoPbd[user.user_id]
-            if (existingPbs) {
+            const existingPbs: PBInfo[] | undefined =
+              playersWhoPbd[user.user_id]
+            if (existingPbs != null) {
               existingPbs.push(pbDict)
             } else {
               playersWhoPbd[user.user_id] = [pbDict]
@@ -269,8 +281,8 @@ export async function postLeaderboard(
           }
 
           // Calculate user's totals
-          const userTotal = totals[user.user_id]
-          if (!userTotal) {
+          const userTotal: UserTotal | undefined = totals[user.user_id]
+          if (userTotal == null) {
             totals[user.user_id] = {
               username: user.username,
               output: workout.total_work,
@@ -298,13 +310,20 @@ export async function postLeaderboard(
 
         // Only add to ride leaderboards if it should be tracked
         if (shouldTrackInLeaderboard) {
-          let ride = rides[workoutRideId]
+          let ride: RideInfo | undefined = rides[workoutRideId]
 
           // If we don't have NL's rides, add all rides to the tracking
           if (validNLWorkouts.length === 0) {
-            if (!ride) {
-              const details = rideDetails[workoutRideId]
-              if (details) {
+            if (ride == null) {
+              const details:
+                | {
+                    title: string
+                    instructor: string
+                    image_url: string
+                    start_time: number
+                  }
+                | undefined = rideDetails[workoutRideId]
+              if (details != null) {
                 ride = new RideInfo(
                   workoutRideId,
                   details.title,
@@ -317,7 +336,7 @@ export async function postLeaderboard(
               }
             }
           }
-          if (ride) {
+          if (ride != null) {
             const performanceData = await withRetry(() =>
               api.getWorkoutPerformanceData(workout.id),
             )

@@ -1,17 +1,19 @@
 "use client"
 
+import { startOfWeek, format } from "date-fns"
+import type React from "react"
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts"
+
 import { ChartTooltip } from "@components/ui/chart"
 import { ChartTooltipContent } from "@components/ui/chart"
 import { ChartContainer } from "@components/ui/chart"
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts"
 import type { UserStats } from "@services/leaderboard"
-import { startOfWeek, format } from "date-fns"
 
 interface Props {
   users: UserStats[]
 }
 
-export function CyclistsChart({ users }: Props) {
+export function CyclistsChart({ users }: Props): React.ReactElement {
   // Group users by week and count them
   const data = users.reduce<{ date: string; count: number }[]>((acc, user) => {
     // Get the start of the week for this user's first ride
@@ -35,8 +37,8 @@ export function CyclistsChart({ users }: Props) {
   // Sort by date
   data.sort((a, b) => a.date.localeCompare(b.date))
 
-  const formatDate = (date: string) => format(new Date(date), "MM/dd")
-  const formatTooltipDate = (date: string) =>
+  const formatDate = (date: string): string => format(new Date(date), "MM/dd")
+  const formatTooltipDate = (date: string): string =>
     `Week of ${format(new Date(date), "MM/dd")}`
 
   return (

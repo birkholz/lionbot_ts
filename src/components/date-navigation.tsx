@@ -1,21 +1,24 @@
 "use client"
 
-import { parseDate } from "@lib/utils"
 import { addDays, format, isSameDay, subDays } from "date-fns"
 import { ArrowLeft, ArrowRight } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import type React from "react"
+
+import { parseDate } from "@lib/utils"
+
 import { useLeaderboardState } from "./leaderboard-state"
 import { Calendar } from "./ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover"
 
-export function DateNavigation() {
+export function DateNavigation(): React.ReactElement {
   const router = useRouter()
   const { date, dateRange, setDate } = useLeaderboardState()
 
   // Default to yesterday if no date or date range is provided
   const yesterday = parseDate(format(subDays(new Date(), 1), "yyyy-MM-dd"))
-  const displayDate = date ? parseDate(date) : yesterday
+  const displayDate = date != null && date !== "" ? parseDate(date) : yesterday
   const startDate = dateRange ? parseDate(dateRange.startDate) : yesterday
   const endDate = dateRange ? parseDate(dateRange.endDate) : yesterday
 
@@ -27,7 +30,7 @@ export function DateNavigation() {
     ? "/latest"
     : `/archive/${nextDate}`
 
-  const handleDateSelect = (newDate: Date | undefined) => {
+  const handleDateSelect = (newDate: Date | undefined): void => {
     if (newDate) {
       if (isSameDay(newDate, endDate)) {
         setDate(format(newDate, "yyyy-MM-dd"))
@@ -40,13 +43,13 @@ export function DateNavigation() {
     }
   }
 
-  const handlePrevClick = () => {
+  const handlePrevClick = (): void => {
     if (!isPrevDisabled) {
       setDate(prevDate)
     }
   }
 
-  const handleNextClick = () => {
+  const handleNextClick = (): void => {
     if (!isNextDisabled) {
       const nextDateStr = format(addDays(displayDate, 1), "yyyy-MM-dd")
       setDate(nextDateStr)

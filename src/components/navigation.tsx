@@ -1,5 +1,8 @@
 "use client"
 
+import { usePathname } from "next/navigation"
+import type React from "react"
+
 import {
   NavigationMenu,
   NavigationMenuItem,
@@ -8,12 +11,11 @@ import {
   navigationMenuTriggerStyle,
 } from "@components/ui/navigation-menu"
 import { cn } from "@lib/utils"
-import { usePathname } from "next/navigation"
 
-export function Navigation() {
+export function Navigation(): React.ReactElement {
   const pathname = usePathname()
 
-  const getLinkClasses = (href: string) => {
+  const getLinkClasses = (href: string): string => {
     const isActive =
       pathname === href ||
       (href === "/latest" && pathname.startsWith("/archive/")) ||
@@ -25,7 +27,7 @@ export function Navigation() {
     )
   }
 
-  const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+  const handleClick = (e: React.MouseEvent<HTMLAnchorElement>): void => {
     e.currentTarget.blur()
   }
 

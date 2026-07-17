@@ -1,9 +1,11 @@
+import type { Metadata } from "next"
+import type React from "react"
+
 import { CyclistsChart } from "@components/cyclists-chart"
 import { DailyParticipationChart } from "@components/daily-participation-chart"
 import { WeeklyParticipationChart } from "@components/weekly-participation-chart"
 import bothImage from "/public/both.png"
 import { getParticipationData, getUserStats } from "@services/leaderboard"
-import type { Metadata } from "next"
 
 export const metadata: Metadata = {
   title: "#TheEggCarton Charts",
@@ -13,7 +15,7 @@ export const metadata: Metadata = {
   },
 }
 
-export default async function CyclistCharts() {
+export default async function CyclistCharts(): Promise<React.ReactElement> {
   const [userStats, participationData] = await Promise.all([
     getUserStats(),
     getParticipationData(),

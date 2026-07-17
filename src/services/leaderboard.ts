@@ -1,15 +1,16 @@
 "use server"
 
-import { db } from "@db/client"
-import { cyclistsTable, leaderboardsTable } from "@db/schema"
-import type { LeaderboardJson, RideData } from "@types"
 import { format } from "date-fns"
 import { asc, desc, eq, isNotNull, sql } from "drizzle-orm"
 import { unstable_cache } from "next/cache"
 
+import { db } from "@db/client"
+import { cyclistsTable, leaderboardsTable } from "@db/schema"
+import type { LeaderboardJson, RideData } from "@types"
+
 export interface Leaderboard {
   date: string
-  json: LeaderboardJson
+  json: LeaderboardJson | null
 }
 
 export interface DateRange {
@@ -70,26 +71,34 @@ export async function getLeaderboardDateRange(): Promise<DateRange> {
 }
 
 export async function getLatestLeaderboard(): Promise<Leaderboard | null> {
-  const [leaderboard] = await db
+  const rows = await db
     .select()
     .from(leaderboardsTable)
     .orderBy(desc(leaderboardsTable.date))
     .limit(1)
-  return leaderboard
-    ? { date: leaderboard.date, json: leaderboard.json as LeaderboardJson }
+  const leaderboard: (typeof rows)[number] | undefined = rows[0]
+  return leaderboard != null
+    ? {
+        date: leaderboard.date,
+        json: leaderboard.json as LeaderboardJson | null,
+      }
     : null
 }
 
 export async function getLeaderboardByDate(
   date: string,
 ): Promise<Leaderboard | null> {
-  const [leaderboard] = await db
+  const rows = await db
     .select()
     .from(leaderboardsTable)
     .where(eq(leaderboardsTable.date, date))
     .limit(1)
-  return leaderboard
-    ? { date: leaderboard.date, json: leaderboard.json as LeaderboardJson }
+  const leaderboard: (typeof rows)[number] | undefined = rows[0]
+  return leaderboard != null
+    ? {
+        date: leaderboard.date,
+        json: leaderboard.json as LeaderboardJson | null,
+      }
     : null
 }
 
@@ -109,7 +118,10 @@ const getCachedUserStats = unstable_cache(
 
     return result.map((row) => ({
       username: row.username,
-      firstRide: row.first_ride ? format(row.first_ride, "yyyy-MM-dd") : "",
+      firstRide:
+        row.first_ride != null && row.first_ride !== ""
+          ? format(row.first_ride, "yyyy-MM-dd")
+          : "",
       totalRides: row.total_rides ?? 0,
       highestOutput: row.highest_output ?? undefined,
       avatar_url: row.avatar_url,

@@ -1,9 +1,10 @@
-import { isCronTimeValid } from "@lib/utils"
-import { processAndFollowFollowers } from "@lib/followers"
 import { headers } from "next/headers"
 import { NextResponse } from "next/server"
 
-export async function GET() {
+import { processAndFollowFollowers } from "@lib/followers"
+import { isCronTimeValid } from "@lib/utils"
+
+export async function GET(): Promise<NextResponse> {
   const headersList = await headers()
   const authHeader = headersList.get("authorization")
 

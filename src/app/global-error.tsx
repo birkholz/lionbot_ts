@@ -1,16 +1,19 @@
 "use client"
 
+import * as Sentry from "@sentry/nextjs"
+import { Inter } from "next/font/google"
+import Link from "next/link"
+import { useEffect } from "react"
+import type React from "react"
+
 import { LeaderboardProvider } from "@components/leaderboard-state"
 import { Navigation } from "@components/navigation"
 import { ThemeProvider } from "@components/theme-provider"
 import { ThemeToggle } from "@components/theme-toggle"
 import { Card, CardContent, CardHeader } from "@components/ui/card"
 import { TooltipProvider } from "@components/ui/tooltip"
+
 import "@styles/globals.css"
-import * as Sentry from "@sentry/nextjs"
-import { Inter } from "next/font/google"
-import Link from "next/link"
-import { useEffect } from "react"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -22,7 +25,7 @@ export default function GlobalError({
   error,
 }: {
   error: Error & { digest?: string }
-}) {
+}): React.ReactElement {
   useEffect(() => {
     Sentry.captureException(error)
   }, [error])

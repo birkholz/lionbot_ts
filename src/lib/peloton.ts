@@ -1,4 +1,5 @@
 import { desc } from "drizzle-orm"
+
 import { db } from "../db/client"
 import { pelotonOAuthTokensTable } from "../db/schema"
 
@@ -15,11 +16,11 @@ interface PerformanceGraphResponse {
   splits_data: SplitsData
   splits_metrics: SplitsMetrics
   target_metrics_performance_data: {
-    target_metrics: any[]
-    time_in_metric: any[]
+    target_metrics: unknown[]
+    time_in_metric: unknown[]
   }
   effort_zones: EffortZones
-  muscle_group_score: any[]
+  muscle_group_score: unknown[]
   summary_available: boolean
   performance_graph_available: boolean
 }
@@ -132,7 +133,7 @@ interface WorkoutResponse {
   sort_by: string
   next: NextPage
   summary: Record<string, number>
-  aggregate_stats: any[]
+  aggregate_stats: unknown[]
   total_heart_rate_zone_durations: null
 }
 
@@ -158,7 +159,7 @@ interface AchievementTemplate {
   achievement_count: number
 }
 
-interface Workout {
+export interface Workout {
   created_at: number
   device_type: string
   end_time: number
@@ -219,7 +220,7 @@ interface Ride {
   distance_unit: null
   duration: number
   dynamic_video_recorded_speed_in_mph: number
-  extra_images: any[]
+  extra_images: unknown[]
   fitness_discipline: string
   fitness_discipline_display_name: string
   has_pedaling_metrics: boolean
@@ -275,7 +276,7 @@ interface Instructor {
   is_active: boolean
   is_filterable: boolean
   is_instructor_group: boolean
-  individual_instructor_ids: any[]
+  individual_instructor_ids: unknown[]
   is_visible: boolean
   is_announced: boolean
   list_order: number
@@ -395,8 +396,6 @@ export class PelotonAPI {
   private lastRequestTime: number = 0
   private readonly minRequestInterval: number = 100 // 100ms between requests
 
-  constructor() {}
-
   getAccessToken(): string | null {
     return this.accessToken
   }
@@ -419,7 +418,7 @@ export class PelotonAPI {
       "Peloton-Platform": "home_bike",
     }
 
-    if (this.accessToken) {
+    if (this.accessToken != null && this.accessToken !== "") {
       headers["Authorization"] = `Bearer ${this.accessToken}`
     }
 
@@ -485,12 +484,12 @@ export class PelotonAPI {
    * Refresh the access token using the refresh token
    */
   async refreshAccessToken(): Promise<void> {
-    if (!this.refreshToken) {
+    if (this.refreshToken == null || this.refreshToken === "") {
       throw new Error("No refresh token available")
     }
 
     const clientId = process.env["PELOTON_CLIENT_ID"]
-    if (!clientId) {
+    if (clientId == null || clientId === "") {
       throw new Error("PELOTON_CLIENT_ID must be set in environment variables")
     }
 
@@ -515,7 +514,7 @@ export class PelotonAPI {
 
     const data = (await response.json()) as TokenResponse
 
-    if (!data.refresh_token) {
+    if (data.refresh_token == null || data.refresh_token === "") {
       throw new Error("No refresh token returned from Peloton")
     }
 
@@ -532,7 +531,7 @@ export class PelotonAPI {
    */
   async ensureValidToken(): Promise<void> {
     // If we don't have tokens in memory, try loading from DB
-    if (!this.accessToken) {
+    if (this.accessToken == null || this.accessToken === "") {
       await this.loadTokensFromDB()
     }
 
@@ -656,10 +655,10 @@ export class PelotonAPI {
 
     let requestUrl = `https://api.onepeloton.com/api/v2/ride/archived?limit=${limit}&page=${page}&sort_by=original_air_time&desc=true`
 
-    if (duration) {
+    if (duration != null && duration !== 0) {
       requestUrl += `&duration=${duration}`
     }
-    if (contentProvider) {
+    if (contentProvider != null && contentProvider !== "") {
       requestUrl += `&content_provider=${contentProvider}`
     }
 

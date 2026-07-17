@@ -1,6 +1,8 @@
 "use client"
 
 import { createContext, useContext, useState, useEffect } from "react"
+import type React from "react"
+
 import type { DateRange } from "@services/leaderboard"
 
 interface LeaderboardState {
@@ -22,7 +24,7 @@ export function LeaderboardProvider({
   children,
 }: {
   children: React.ReactNode
-}) {
+}): React.ReactElement {
   const [date, setDate] = useState<string | null>(null)
   const [dateRange, setDateRange] = useState<DateRange | null>(null)
   const [mounted, setMounted] = useState(false)
@@ -36,7 +38,7 @@ export function LeaderboardProvider({
     const savedAutoOpen = localStorage.getItem("autoOpen")
 
     if (savedMetric !== null) setUseMetric(savedMetric === "true")
-    if (savedFormat) setNumberFormat(savedFormat)
+    if (savedFormat !== null) setNumberFormat(savedFormat)
     if (savedAutoOpen !== null) setAutoOpen(savedAutoOpen === "true")
     setMounted(true)
   }, [])
@@ -76,7 +78,7 @@ export function LeaderboardProvider({
   )
 }
 
-export function useLeaderboardState() {
+export function useLeaderboardState(): LeaderboardState {
   const context = useContext(LeaderboardContext)
   if (!context) {
     throw new Error(

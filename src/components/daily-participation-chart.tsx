@@ -1,13 +1,15 @@
 "use client"
 
+import { parseISO, subMonths } from "date-fns"
+import type React from "react"
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts"
+
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
 } from "@components/ui/chart"
 import { ParticipationData } from "@services/leaderboard"
-import { format, parseISO, subMonths } from "date-fns"
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts"
 
 interface DailyParticipationChartProps {
   data: ParticipationData[]
@@ -15,7 +17,7 @@ interface DailyParticipationChartProps {
 
 export function DailyParticipationChart({
   data,
-}: DailyParticipationChartProps) {
+}: DailyParticipationChartProps): React.ReactElement {
   const twoMonthsAgo = subMonths(new Date(), 2)
   const recentData = data.filter((d) => parseISO(d.date) >= twoMonthsAgo)
 

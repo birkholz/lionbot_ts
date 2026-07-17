@@ -1,3 +1,6 @@
+import type { Metadata } from "next"
+import type React from "react"
+
 import { DateNavigation } from "@components/date-navigation"
 import { LeaderboardPage } from "@components/leaderboard-page"
 import { NoLeaderboard } from "@components/no-leaderboard"
@@ -7,7 +10,6 @@ import {
   getLatestLeaderboard,
   getLeaderboardDateRange,
 } from "@services/leaderboard"
-import type { Metadata } from "next"
 
 export const metadata: Metadata = {
   title: "#TheEggCarton Leaderboards",
@@ -20,12 +22,12 @@ export const metadata: Metadata = {
   },
 }
 
-export default async function LatestPage() {
+export default async function LatestPage(): Promise<React.ReactElement> {
   const [leaderboard, avatars] = await Promise.all([
     getLatestLeaderboard(),
     getCachedUserAvatars(),
   ])
-  const date = leaderboard?.date || new Date().toISOString().split("T")[0]
+  const date = leaderboard?.date ?? new Date().toISOString().split("T")[0]
 
   if (!leaderboard || !leaderboard.json) {
     return (
@@ -42,7 +44,7 @@ export default async function LatestPage() {
       <DateNavigation />
       <LeaderboardPage
         date={date}
-        leaderboard={leaderboard}
+        leaderboard={{ json: leaderboard.json }}
         dateRange={dateRange}
         avatars={avatars}
       />

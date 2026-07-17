@@ -1,8 +1,11 @@
 "use client"
 
-import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip"
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
 import { Settings } from "lucide-react"
+import type React from "react"
+
+import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip"
+
 import { useLeaderboardState } from "./leaderboard-state"
 import { Button } from "./ui/button"
 import {
@@ -25,7 +28,7 @@ import {
 import { Switch } from "./ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs"
 
-export function LeaderboardSettings() {
+export function LeaderboardSettings(): React.ReactElement {
   const {
     useMetric,
     setUseMetric,

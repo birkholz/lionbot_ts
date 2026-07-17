@@ -1,11 +1,12 @@
-import { isCronTimeValid } from "@lib/utils"
-import { processAndPostNextRide } from "@lib/scenic-rides"
 import { headers } from "next/headers"
 import { NextResponse } from "next/server"
 
+import { processAndPostNextRide } from "@lib/scenic-rides"
+import { isCronTimeValid } from "@lib/utils"
+
 export const maxDuration = 300
 
-export async function GET() {
+export async function GET(): Promise<NextResponse> {
   const headersList = await headers()
   const authHeader = headersList.get("authorization")
 

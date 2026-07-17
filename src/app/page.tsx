@@ -1,7 +1,9 @@
-import { Button } from "@components/ui/button"
 import bothImage from "/public/both.png"
 import { Metadata } from "next"
 import Link from "next/link"
+import type React from "react"
+
+import { Button } from "@components/ui/button"
 
 export const metadata: Metadata = {
   title: "#TheEggCarton",
@@ -13,7 +15,7 @@ export const metadata: Metadata = {
   },
 }
 
-export default function HomePage() {
+export default function HomePage(): React.ReactElement {
   return (
     <>
       <div className="mb-8 text-center">

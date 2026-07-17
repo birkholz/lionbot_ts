@@ -1,6 +1,7 @@
 import Link from "next/link"
+import type React from "react"
 
-export default function NotFound() {
+export default function NotFound(): React.ReactElement {
   return (
     <p className="mt-4 text-center">
       Page Not Found.{" "}

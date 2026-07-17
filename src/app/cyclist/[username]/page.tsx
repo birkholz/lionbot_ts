@@ -1,13 +1,16 @@
-import { UserAvatar } from "@components/user-avatar"
-import { db } from "@db/client"
-import { cyclistsTable } from "@db/schema"
 import bothImage from "/public/both.png"
-import { getCyclist, getUserRides } from "@services/leaderboard"
 import { isNotNull } from "drizzle-orm"
 import { ExternalLink } from "lucide-react"
 import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
+import type React from "react"
+
+import { UserAvatar } from "@components/user-avatar"
+import { db } from "@db/client"
+import { cyclistsTable } from "@db/schema"
+import { getCyclist, getUserRides } from "@services/leaderboard"
+
 import { RideList } from "./ride-list"
 interface Props {
   params: Promise<{
@@ -15,7 +18,7 @@ interface Props {
   }>
 }
 
-export async function generateStaticParams() {
+export async function generateStaticParams(): Promise<{ username: string }[]> {
   if (process.env.NODE_ENV === "development") {
     return []
   }
@@ -35,7 +38,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-export default async function CyclistProfile({ params }: Props) {
+export default async function CyclistProfile({
+  params,
+}: Props): Promise<React.ReactElement> {
   const { username } = await params
   const [cyclist, rides] = await Promise.all([
     getCyclist(username),
@@ -44,7 +49,7 @@ export default async function CyclistProfile({ params }: Props) {
   const avatar_url =
     cyclist?.avatar_url ?? `https://placehold.co/21x21/red/red.webp`
 
-  if (!cyclist || !cyclist.first_ride) {
+  if (!cyclist || cyclist.first_ride == null || cyclist.first_ride === "") {
     notFound()
   }
 

@@ -1,11 +1,13 @@
 "use client"
 
+import { mean } from "mathjs"
+import { use, useEffect, useRef } from "react"
+import type React from "react"
+
 import { LeaderboardDisplay } from "@components/leaderboard-display"
 import { useLeaderboardState } from "@components/leaderboard-state"
 import type { DateRange } from "@services/leaderboard"
 import type { LeaderboardJson, PBInfo } from "@types"
-import { mean } from "mathjs"
-import { use, useEffect, useRef } from "react"
 
 interface Props {
   date: string
@@ -21,7 +23,7 @@ export function LeaderboardPage({
   leaderboard,
   dateRange,
   avatars,
-}: Props) {
+}: Props): React.ReactElement {
   const { setDate, setDateRange } = useLeaderboardState()
   const range = use(dateRange)
   const initializedRef = useRef(false)

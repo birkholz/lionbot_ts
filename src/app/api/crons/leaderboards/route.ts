@@ -1,15 +1,16 @@
 import { TZDate } from "@date-fns/tz"
-import { postLeaderboard, postWorkouts } from "@lib/leaderboards"
-import { PelotonAPI } from "@lib/peloton"
-import { isCronTimeValid } from "@lib/utils"
 import { format, subDays } from "date-fns"
 import { revalidatePath } from "next/cache"
 import { headers } from "next/headers"
 import { NextResponse } from "next/server"
 
+import { postLeaderboard, postWorkouts } from "@lib/leaderboards"
+import { PelotonAPI } from "@lib/peloton"
+import { isCronTimeValid } from "@lib/utils"
+
 export const maxDuration = 300
 
-export async function GET() {
+export async function GET(): Promise<NextResponse> {
   const headersList = await headers()
   const authHeader = headersList.get("authorization")
 

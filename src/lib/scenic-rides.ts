@@ -1,9 +1,10 @@
+import { format } from "date-fns"
+import { eq, inArray, sql } from "drizzle-orm"
+
 import { db } from "@db/client"
 import { scenicRidesTable } from "@db/schema"
 import { PelotonAPI } from "@lib/peloton"
 import { sendDiscordRequest } from "@lib/utils"
-import { format } from "date-fns"
-import { eq, inArray, sql } from "drizzle-orm"
 
 export async function processAndPostNextRide(shouldPost = true): Promise<void> {
   const api = new PelotonAPI()
@@ -90,7 +91,7 @@ export async function processAndPostNextRide(shouldPost = true): Promise<void> {
 
   // Find the next ride to post - prioritize rides that haven't been posted yet,
   // then pick the one that was posted longest ago
-  const [nextRide] = await db
+  const nextRideRows = await db
     .select({
       id: scenicRidesTable.id,
       title: scenicRidesTable.title,
@@ -100,8 +101,9 @@ export async function processAndPostNextRide(shouldPost = true): Promise<void> {
     .from(scenicRidesTable)
     .orderBy(sql`last_posted_at NULLS FIRST`)
     .limit(1)
+  const nextRide: (typeof nextRideRows)[number] | undefined = nextRideRows[0]
 
-  if (nextRide && shouldPost) {
+  if (nextRide != null && shouldPost) {
     // Post the ride to Discord
     const jsonBody = {
       content:

@@ -1,3 +1,6 @@
+import type React from "react"
+
+import { Skeleton } from "@components/ui/skeleton"
 import {
   Table,
   TableBody,
@@ -6,9 +9,8 @@ import {
   TableHeader,
   TableRow,
 } from "@components/ui/table"
-import { Skeleton } from "@components/ui/skeleton"
 
-export default function Loading() {
+export default function Loading(): React.ReactElement {
   return (
     <>
       <div className="mb-8 flex items-center justify-center gap-4">

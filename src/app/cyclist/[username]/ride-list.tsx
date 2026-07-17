@@ -1,5 +1,9 @@
 "use client"
 
+import Link from "next/link"
+import type React from "react"
+
+import { useLeaderboardState } from "@components/leaderboard-state"
 import {
   Table,
   TableBody,
@@ -8,15 +12,13 @@ import {
   TableHeader,
   TableRow,
 } from "@components/ui/table"
-import Link from "next/link"
 import type { UserRide } from "@services/leaderboard"
-import { useLeaderboardState } from "@components/leaderboard-state"
 
 interface Props {
   rides: UserRide[]
 }
 
-export function RideList({ rides }: Props) {
+export function RideList({ rides }: Props): React.ReactElement {
   const { dateRange } = useLeaderboardState()
 
   return (

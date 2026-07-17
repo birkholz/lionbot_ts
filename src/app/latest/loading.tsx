@@ -1,6 +1,9 @@
-import { Skeleton } from "@components/ui/skeleton"
+import type React from "react"
+
 import { Separator } from "@components/ui/separator"
-export default function Loading() {
+import { Skeleton } from "@components/ui/skeleton"
+
+export default function Loading(): React.ReactElement {
   return (
     <>
       <div className="mt-2 flex items-center justify-center gap-2">

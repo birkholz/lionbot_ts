@@ -1,7 +1,8 @@
-import { PelotonAPI } from "@lib/peloton"
+import { sql } from "drizzle-orm"
+
 import { db } from "@db/client"
 import { cyclistsTable } from "@db/schema"
-import { sql } from "drizzle-orm"
+import { PelotonAPI } from "@lib/peloton"
 
 export async function processAndFollowFollowers(): Promise<void> {
   const peloton = new PelotonAPI()
@@ -10,7 +11,7 @@ export async function processAndFollowFollowers(): Promise<void> {
   let processedFollowers = 0
   let followedCount = 0
 
-  console.log("Starting to fetch and process followers...")
+  console.info("Starting to fetch and process followers...")
 
   try {
     // Get all followers and existing cyclists
@@ -19,7 +20,7 @@ export async function processAndFollowFollowers(): Promise<void> {
       db.select({ user_id: cyclistsTable.user_id }).from(cyclistsTable),
     ])
 
-    console.log(`Total followers: ${followers.length}`)
+    console.info(`Total followers: ${followers.length}`)
     const existingUserIds = new Set(existingCyclists.map((c) => c.user_id))
     const existingFollowers = followers.filter((f) => existingUserIds.has(f.id))
     const newFollowers = followers.filter((f) => !existingUserIds.has(f.id))
@@ -27,9 +28,9 @@ export async function processAndFollowFollowers(): Promise<void> {
       (f) => f.relationship.me_to_user === "none",
     )
 
-    console.log(`New followers to check: ${newFollowers.length}`)
-    console.log(`Followers to follow back: ${followersToFollow.length}`)
-    console.log("Checking tag membership for new followers...")
+    console.info(`New followers to check: ${newFollowers.length}`)
+    console.info(`Followers to follow back: ${followersToFollow.length}`)
+    console.info("Checking tag membership for new followers...")
     const cyclistsData: Array<{
       username: string
       user_id: string
@@ -65,7 +66,7 @@ export async function processAndFollowFollowers(): Promise<void> {
     )
 
     for (const follower of tagFollowersToFollow) {
-      console.log(`Following user: ${follower.username} (${follower.id})`)
+      console.info(`Following user: ${follower.username} (${follower.id})`)
 
       const success = await peloton.followUser(follower.id)
       if (success) {
@@ -79,7 +80,7 @@ export async function processAndFollowFollowers(): Promise<void> {
 
     // Add/Update cyclists in DB
     if (cyclistsData.length > 0) {
-      console.log(
+      console.info(
         `Inserting ${cyclistsData.length} tag members to cyclists table...`,
       )
       await db
@@ -94,7 +95,7 @@ export async function processAndFollowFollowers(): Promise<void> {
         })
     }
 
-    console.log(
+    console.info(
       `Completed processing followers. Total processed: ${processedFollowers}, New follows: ${followedCount}`,
     )
   } catch (error) {

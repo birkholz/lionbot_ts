@@ -1,18 +1,21 @@
+import { TZDate } from "@date-fns/tz"
+import { addDays, format, isMatch, subDays } from "date-fns"
+import type { Metadata } from "next"
+import { notFound } from "next/navigation"
+import type React from "react"
+
 import { DateNavigation } from "@components/date-navigation"
 import { LeaderboardPage } from "@components/leaderboard-page"
 import { NoLeaderboard } from "@components/no-leaderboard"
-import { TZDate } from "@date-fns/tz"
 import {
   getCachedUserAvatars,
   getLeaderboardByDate,
   getLeaderboardDateRange,
 } from "@services/leaderboard"
-import { addDays, format, isMatch, subDays } from "date-fns"
-import { notFound } from "next/navigation"
-import type { Metadata } from "next"
+
 import bothImage from "/public/both.png"
 
-export async function generateStaticParams() {
+export async function generateStaticParams(): Promise<{ date: string }[]> {
   if (process.env.NODE_ENV === "development") {
     return []
   }
@@ -52,7 +55,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-export default async function DatePage({ params }: Props) {
+export default async function DatePage({
+  params,
+}: Props): Promise<React.ReactElement> {
   const { date } = await params
 
   if (!isMatch(date, "yyyy-MM-dd")) {
@@ -80,7 +85,7 @@ export default async function DatePage({ params }: Props) {
       <DateNavigation />
       <LeaderboardPage
         date={date}
-        leaderboard={leaderboard}
+        leaderboard={{ json: leaderboard.json }}
         dateRange={dateRange}
         avatars={avatars}
       />

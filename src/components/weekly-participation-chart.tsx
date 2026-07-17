@@ -1,13 +1,15 @@
 "use client"
 
+import { format, parseISO, startOfWeek } from "date-fns"
+import type React from "react"
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts"
+
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
 } from "@components/ui/chart"
 import { ParticipationData } from "@services/leaderboard"
-import { format, parseISO, startOfWeek } from "date-fns"
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts"
 
 interface WeeklyParticipationChartProps {
   data: ParticipationData[]
@@ -15,7 +17,7 @@ interface WeeklyParticipationChartProps {
 
 export function WeeklyParticipationChart({
   data,
-}: WeeklyParticipationChartProps) {
+}: WeeklyParticipationChartProps): React.ReactElement {
   // Group data by week
   const weeklyData = data.reduce<{ date: string; participants: number }[]>(
     (acc, day) => {
@@ -44,8 +46,8 @@ export function WeeklyParticipationChart({
   // Sort by date
   weeklyData.sort((a, b) => a.date.localeCompare(b.date))
 
-  const formatDate = (date: string) => format(parseISO(date), "MM/dd")
-  const formatTooltipDate = (date: string) =>
+  const formatDate = (date: string): string => format(parseISO(date), "MM/dd")
+  const formatTooltipDate = (date: string): string =>
     `Week of ${format(parseISO(date), "MM/dd")}`
 
   return (

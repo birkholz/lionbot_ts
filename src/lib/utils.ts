@@ -1,5 +1,4 @@
 import { TZDate } from "@date-fns/tz"
-import type { EffortZones, PBInfo, UserTotal } from "@types"
 import { clsx, type ClassValue } from "clsx"
 import {
   addMinutes,
@@ -10,6 +9,10 @@ import { mean, median } from "mathjs"
 import ordinal from "ordinal"
 import pluralize from "pluralize"
 import { twMerge } from "tailwind-merge"
+
+import type { EffortZones, PBInfo, UserTotal } from "@types"
+
+import type { Workout } from "./peloton"
 
 export interface DiscordEmbed {
   type: string
@@ -102,7 +105,7 @@ export function hasNoDuration(workout: {
   end_time: number | null
 }): boolean {
   const startTime = new Date(workout.start_time * 1000)
-  if (!workout.end_time) {
+  if (workout.end_time == null || workout.end_time === 0) {
     return true
   }
 
@@ -114,7 +117,7 @@ export function hasNoDuration(workout: {
   return false
 }
 
-export function validWorkout(workout: any): boolean {
+export function validWorkout(workout: Workout): boolean {
   if (
     workout.status !== "COMPLETE" ||
     hasNoDuration(workout) ||
@@ -129,8 +132,8 @@ export function rideCountStr(
   totals: Record<string, UserTotal>,
   workout: { user_username: string },
 ): string {
-  const total = totals[workout.user_username]
-  if (!total) {
+  const total: UserTotal | undefined = totals[workout.user_username]
+  if (total == null) {
     return ""
   }
 
@@ -146,9 +149,9 @@ export function pbListStr(pbDict: PBInfo[]): string {
     .join(", ")
 }
 
-export function getInstructorName(workout: any): string {
+export function getInstructorName(workout: Workout): string {
   const instructor = workout.ride?.instructor
-  if (!instructor) {
+  if (instructor == null) {
     return workout.ride?.description ?? "n/a"
   }
   return instructor.name ?? "n/a"
@@ -181,7 +184,7 @@ export function sendDiscordRequest(
       //     }
       // })
     }
-    if (response.status != 204) {
+    if (response.status !== 204) {
       return response.json()
     }
     return {}
@@ -202,7 +205,7 @@ export function humanize(i: number): string {
   return ordinal(i + 1)
 }
 
-export function cn(...inputs: ClassValue[]) {
+export function cn(...inputs: ClassValue[]): string {
   return twMerge(clsx(inputs))
 }
 
