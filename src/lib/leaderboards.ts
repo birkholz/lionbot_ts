@@ -124,7 +124,7 @@ export async function postLeaderboard(
   nlUserId: string,
   postEmbeds: boolean,
   dateStr: string,
-): Promise<void> {
+): Promise<string[]> {
   // Validate date format
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
     throw new Error("Date must be in YYYY-MM-DD format")
@@ -452,8 +452,16 @@ export async function postLeaderboard(
       })
   }
 
+  // Cyclists whose rides or stats changed today, so callers can revalidate
+  // only their pages instead of every cyclist page
+  const updatedUsernames = usersToUpdate
+    .map((user) => users.find((u) => u.user_id === user.user_id)?.username)
+    .filter(
+      (username): username is string => username != null && username !== "",
+    )
+
   if (!postEmbeds) {
-    return
+    return updatedUsernames
   }
 
   const embeds: DiscordEmbed[] = []
@@ -556,7 +564,7 @@ export async function postLeaderboard(
   }
 
   if (embeds.length === 0) {
-    return
+    return updatedUsernames
   }
 
   const jsonBody = {
@@ -579,4 +587,6 @@ export async function postLeaderboard(
   console.info(
     `Successfully posted leaderboard with ride ids: ${Object.keys(rides)}`,
   )
+
+  return updatedUsernames
 }

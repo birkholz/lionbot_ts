@@ -40,13 +40,21 @@ export async function GET(): Promise<NextResponse> {
 
     // Post leaderboard with the leaderboard user ID
     const leaderboardUserId = process.env["LEADERBOARD_USER_ID"] ?? nlUserId
-    await postLeaderboard(api, leaderboardUserId, true, dateStr)
+    const updatedUsernames = await postLeaderboard(
+      api,
+      leaderboardUserId,
+      true,
+      dateStr,
+    )
 
     // Revalidate necessary paths
     revalidatePath(`/archive/${dateStr}`)
     revalidatePath("/latest")
     revalidatePath("/cyclists")
-    revalidatePath("/cyclist/[username]", "page")
+    revalidatePath("/cyclists/charts")
+    for (const username of updatedUsernames) {
+      revalidatePath(`/cyclist/${username}`)
+    }
 
     return new NextResponse(null, { status: 204 })
   } catch (error) {
