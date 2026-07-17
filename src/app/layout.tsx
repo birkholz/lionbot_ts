@@ -52,7 +52,7 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <TooltipProvider delayDuration={0}>
             <LeaderboardProvider>
-              <Card className="relative mx-auto max-w-2xl md:mt-4">
+              <Card className="relative mx-auto max-w-2xl md:my-4">
                 <div className="absolute right-3 top-3 flex gap-2">
                   <LeaderboardSettings />
                   <div className="hidden md:block">
