@@ -1,5 +1,4 @@
 import bothImage from "/public/both.png"
-import { isNotNull } from "drizzle-orm"
 import { ExternalLink } from "lucide-react"
 import type { Metadata } from "next"
 import Link from "next/link"
@@ -7,8 +6,6 @@ import { notFound } from "next/navigation"
 import type React from "react"
 
 import { UserAvatar } from "@components/user-avatar"
-import { db } from "@db/client"
-import { cyclistsTable } from "@db/schema"
 import { getCyclist, getUserRides } from "@services/leaderboard"
 
 import { RideList } from "./ride-list"
@@ -18,14 +15,14 @@ interface Props {
   }>
 }
 
+// There are thousands of cyclists, so pre-rendering all of them at build
+// time is what stalls Vercel builds. Pages are still cached and revalidated
+// the same way (see the leaderboards cron's revalidatePath calls) — they're
+// just generated on first request instead of at build time.
+export const dynamicParams = true
+
 export async function generateStaticParams(): Promise<{ username: string }[]> {
-  if (process.env.NODE_ENV === "development") {
-    return []
-  }
-  return await db
-    .select({ username: cyclistsTable.username })
-    .from(cyclistsTable)
-    .where(isNotNull(cyclistsTable.first_ride))
+  return []
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
