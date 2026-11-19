@@ -119,6 +119,34 @@ export async function postWorkouts(
   )
 }
 
+// Bun's Intl rejects legacy zone names Peloton sends (e.g. "WET"), which
+// makes TZDate invalid. Map them to equivalent IANA zones.
+const LEGACY_TIMEZONES: Record<string, string> = {
+  WET: "Europe/Lisbon",
+  CET: "Europe/Paris",
+  MET: "Europe/Paris",
+  EET: "Europe/Athens",
+  EST: "America/Panama",
+  MST: "America/Phoenix",
+  HST: "Pacific/Honolulu",
+  EST5EDT: "America/New_York",
+  CST6CDT: "America/Chicago",
+  MST7MDT: "America/Denver",
+  PST8PDT: "America/Los_Angeles",
+}
+
+function toWorkoutTZDate(startTime: number, timezone: string): TZDate {
+  const ms = startTime * 1000
+  for (const zone of [timezone, LEGACY_TIMEZONES[timezone], "UTC"]) {
+    if (!zone) continue
+    try {
+      const d = new TZDate(ms, zone)
+      if (!isNaN(d.getTime())) return d
+    } catch {}
+  }
+  return new TZDate(ms, "UTC")
+}
+
 export async function postLeaderboard(
   api: PelotonAPI,
   nlUserId: string,
@@ -251,11 +279,10 @@ export async function postLeaderboard(
           }
         }
 
-        const workoutTime = new TZDate(
-          workout.start_time * 1000,
-          workout.timezone,
+        const workoutDateStr = format(
+          toWorkoutTZDate(workout.start_time, workout.timezone),
+          "yyyy-MM-dd",
         )
-        const workoutDateStr = format(workoutTime, "yyyy-MM-dd")
 
         // If this workout's date matches our target date, process it for PBs and totals
         if (workoutDateStr === dateStr) {
