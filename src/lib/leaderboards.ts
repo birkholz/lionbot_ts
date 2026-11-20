@@ -142,7 +142,9 @@ function toWorkoutTZDate(startTime: number, timezone: string): TZDate {
     try {
       const d = new TZDate(ms, zone)
       if (!isNaN(d.getTime())) return d
-    } catch {}
+    } catch {
+      // invalid zone for this runtime; try the next fallback
+    }
   }
   return new TZDate(ms, "UTC")
 }
